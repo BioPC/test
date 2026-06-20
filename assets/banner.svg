@@ -1,53 +1,142 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1774" height="887" viewBox="0 0 1774 887" role="img" aria-label="Home PV Control for HBC banner">
+<svg xmlns="http://www.w3.org/2000/svg" width="1792" height="896" viewBox="0 0 1792 896" role="img" aria-labelledby="title desc">
+  <title id="title">Home PV Control banner</title>
+  <desc id="desc">GitHub banner for Home PV Control, generic PV export control for Home Assistant and Node-RED.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0F172A"/>
-      <stop offset="45%" stop-color="#0B3B5A"/>
-      <stop offset="100%" stop-color="#14532D"/>
+      <stop offset="0" stop-color="#003f91"/>
+      <stop offset="0.45" stop-color="#006dc9"/>
+      <stop offset="1" stop-color="#008ff0"/>
     </linearGradient>
-    <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FDE68A"/>
-      <stop offset="100%" stop-color="#F59E0B"/>
+    <linearGradient id="dark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#002555"/>
+      <stop offset="1" stop-color="#003c7a"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#13a36b"/><stop offset="1" stop-color="#087e56"/>
+    </linearGradient>
+    <linearGradient id="blueCard" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d7bd5"/><stop offset="1" stop-color="#004f9f"/>
     </linearGradient>
     <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#000000" flood-opacity="0.35"/>
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#001b40" flood-opacity="0.35"/>
     </filter>
+    <style>
+      .white{fill:#fff}.soft{fill:#c8e7ff}.muted{fill:#b7daf8}.greenText{fill:#75db67}.line{stroke:#7cb9e8;stroke-width:2;opacity:.75}.small{font:500 30px Arial,Helvetica,sans-serif}.tiny{font:500 24px Arial,Helvetica,sans-serif}.mid{font:700 30px Arial,Helvetica,sans-serif}.title{font:800 104px Arial,Helvetica,sans-serif;letter-spacing:-3px}.subtitle{font:700 54px Arial,Helvetica,sans-serif}.cardText{font:700 32px Arial,Helvetica,sans-serif}.footer{font:500 25px Arial,Helvetica,sans-serif}.strokeWhite{fill:none;stroke:#fff;stroke-width:12;stroke-linecap:round;stroke-linejoin:round}
+    </style>
   </defs>
 
-  <rect width="1774" height="887" rx="48" fill="url(#bg)"/>
+  <rect width="1792" height="896" rx="28" fill="url(#bg)"/>
+  <path d="M0 690h1792v178c0 15-13 28-28 28H28c-15 0-28-13-28-28z" fill="url(#dark)" opacity=".92"/>
+  <path d="M0 650 C300 590,450 705,760 620 S1200 520,1792 455 V690 H0z" fill="#00437d" opacity=".28"/>
+  <path d="M900 400 C1030 325,1065 400,1140 345 S1260 410,1370 345 S1540 380,1792 310 V690 H900z" fill="#005b9b" opacity=".35"/>
 
-  <circle cx="1435" cy="170" r="86" fill="url(#sun)" opacity="0.95"/>
-  <g stroke="#FDE68A" stroke-width="12" stroke-linecap="round" opacity="0.8">
-    <line x1="1435" y1="38" x2="1435" y2="0"/>
-    <line x1="1435" y1="302" x2="1435" y2="350"/>
-    <line x1="1303" y1="170" x2="1255" y2="170"/>
-    <line x1="1567" y1="170" x2="1615" y2="170"/>
-    <line x1="1342" y1="77" x2="1308" y2="43"/>
-    <line x1="1528" y1="263" x2="1562" y2="297"/>
-    <line x1="1528" y1="77" x2="1562" y2="43"/>
-    <line x1="1342" y1="263" x2="1308" y2="297"/>
-  </g>
-
-  <g filter="url(#shadow)">
-    <rect x="116" y="195" width="560" height="335" rx="28" fill="#111827" stroke="#38BDF8" stroke-width="6"/>
-    <g stroke="#38BDF8" stroke-width="5" opacity="0.9">
-      <line x1="180" y1="260" x2="612" y2="260"/>
-      <line x1="180" y1="330" x2="612" y2="330"/>
-      <line x1="180" y1="400" x2="612" y2="400"/>
-      <line x1="180" y1="470" x2="612" y2="470"/>
-      <line x1="288" y1="220" x2="288" y2="505"/>
-      <line x1="396" y1="220" x2="396" y2="505"/>
-      <line x1="504" y1="220" x2="504" y2="505"/>
+  <!-- Logo -->
+  <g transform="translate(70 70)">
+    <path class="strokeWhite" d="M5 70 L80 5 L155 70 M25 70 V160"/>
+    <g transform="translate(38 78) skewX(-18)">
+      <rect x="0" y="0" width="118" height="90" rx="4" fill="#1aa2f2"/>
+      <path d="M0 30h118M0 60h118M30 0v90M60 0v90M90 0v90" stroke="#0b4d95" stroke-width="5" opacity=".75"/>
     </g>
-    <polyline points="708,365 835,365 902,285 984,455 1060,365 1165,365" fill="none" stroke="#22C55E" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
-    <rect x="1205" y="300" width="210" height="130" rx="26" fill="#111827" stroke="#22C55E" stroke-width="8"/>
-    <rect x="1415" y="340" width="28" height="50" rx="8" fill="#22C55E"/>
-    <rect x="1238" y="330" width="42" height="70" rx="8" fill="#22C55E"/>
-    <rect x="1295" y="330" width="42" height="70" rx="8" fill="#22C55E"/>
-    <rect x="1352" y="330" width="42" height="70" rx="8" fill="#22C55E"/>
+    <path d="M0 180 C45 240 115 238 170 182" fill="none" stroke="#75ca3d" stroke-width="18" stroke-linecap="round"/>
+    <path d="M142 142 L192 132 L172 182" fill="none" stroke="#75ca3d" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 
-  <text x="120" y="660" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="104" font-weight="800" fill="#FFFFFF">Home PV Control</text>
-  <text x="126" y="735" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="48" font-weight="600" fill="#BAE6FD">Standalone PV export control for Home Assistant + Node-RED</text>
-  <text x="126" y="800" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="38" font-weight="500" fill="#DCFCE7">Works independently or together with Home Battery Control (HBC)</text>
+  <!-- Title -->
+  <text x="285" y="170" class="title white">Home PV Control</text>
+  <text x="292" y="255" class="subtitle soft">Generic PV export control for</text>
+  <text x="292" y="320" class="subtitle soft">Home Assistant + Node-RED</text>
+
+  <!-- Sun -->
+  <g transform="translate(1380 143)">
+    <circle r="60" fill="#ffd23b"/>
+    <circle r="42" fill="#ffe57c" opacity=".55"/>
+    <g stroke="#ffd23b" stroke-width="8" stroke-linecap="round">
+      <line x1="0" y1="-95" x2="0" y2="-140"/><line x1="0" y1="95" x2="0" y2="140"/><line x1="95" y1="0" x2="140" y2="0"/><line x1="-95" y1="0" x2="-140" y2="0"/>
+      <line x1="67" y1="-67" x2="99" y2="-99"/><line x1="-67" y1="-67" x2="-99" y2="-99"/><line x1="67" y1="67" x2="99" y2="99"/><line x1="-67" y1="67" x2="-99" y2="99"/>
+      <line x1="35" y1="-88" x2="52" y2="-128"/><line x1="88" y1="-35" x2="128" y2="-52"/><line x1="-35" y1="-88" x2="-52" y2="-128"/><line x1="-88" y1="-35" x2="-128" y2="-52"/>
+    </g>
+  </g>
+
+  <!-- Clouds -->
+  <g fill="#d9efff" opacity=".9">
+    <path d="M1585 130c18-35 73-30 82 10 28-5 53 13 60 40h-175c2-28 14-43 33-50z"/>
+    <path d="M1715 210c11-22 44-19 50 6 17-3 32 8 36 24h-104c1-17 8-26 18-30z" opacity=".75"/>
+  </g>
+
+  <!-- Power pylons -->
+  <g opacity=".55" stroke="#00345f" stroke-width="4" fill="none">
+    <path d="M1220 420l55-210 58 210M1248 320h58M1238 360h78M1260 255h34M1215 290h120M1315 420l35-130 38 130M1330 350h43M1324 380h55"/>
+    <path d="M1180 310 C1240 290 1285 285 1350 315" opacity=".5"/>
+  </g>
+
+  <!-- House -->
+  <g transform="translate(1390 250)" filter="url(#shadow)">
+    <path d="M0 130 L165 35 L330 130 Z" fill="#112c4f"/>
+    <rect x="35" y="130" width="255" height="160" fill="#e9f1f8"/>
+    <rect x="68" y="165" width="58" height="75" fill="#0c70c7"/><rect x="205" y="165" width="35" height="125" fill="#10375f"/>
+    <polygon points="95,80 245,62 285,123 135,142" fill="#0b5fb5" stroke="#9ed8ff" stroke-width="3"/>
+    <path d="M125 84l40 51M162 75l40 55M200 70l40 52M105 105l160-18M121 125l160-19" stroke="#b9e7ff" stroke-width="3"/>
+    <g fill="#0b773d"><circle cx="305" cy="272" r="42"/><circle cx="350" cy="278" r="62"/><circle cx="5" cy="278" r="42"/></g>
+  </g>
+
+  <!-- Badges -->
+  <g transform="translate(50 365)">
+    <rect width="200" height="96" rx="16" fill="url(#green)" stroke="#46ce83" stroke-width="3"/>
+    <path d="M55 28h32l25 25-42 42-25-25z" fill="#fff"/><circle cx="72" cy="44" r="6" fill="#11a36a"/>
+    <text x="125" y="63" class="cardText white" text-anchor="middle">v1.0.0</text>
+  </g>
+  <g transform="translate(275 365)">
+    <rect width="240" height="96" rx="16" fill="url(#blueCard)" stroke="#3bb3ff" stroke-width="3"/>
+    <circle cx="58" cy="48" r="34" fill="#fff"/><path d="M58 16c23 25 25 45 0 64-25-19-23-39 0-64z" fill="#1ca2f2"/>
+    <text x="104" y="42" class="small white">Home</text><text x="104" y="76" class="small white">Assistant</text>
+  </g>
+  <g transform="translate(540 365)">
+    <rect width="265" height="96" rx="16" fill="#064f9b" opacity=".85" stroke="#2e8ed7" stroke-width="3"/>
+    <rect x="25" y="25" width="62" height="48" rx="6" fill="#c92917"/><path d="M38 48h60m0 0h35m-35 0v-18h35m-35 18v18h35" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="132" cy="30" r="8" fill="#c92917" stroke="#fff" stroke-width="5"/><circle cx="132" cy="66" r="8" fill="#c92917" stroke="#fff" stroke-width="5"/>
+    <text x="170" y="60" class="small white">Node-RED</text>
+  </g>
+  <g transform="translate(830 365)">
+    <rect width="255" height="96" rx="16" fill="url(#green)" stroke="#77d36a" stroke-width="3" opacity=".95"/>
+    <rect x="28" y="33" width="42" height="45" rx="3" fill="#fff"/><rect x="38" y="20" width="22" height="14" rx="3" fill="#fff"/>
+    <text x="92" y="34" class="tiny white">Works with</text><text x="92" y="61" class="tiny white">Home Battery</text><text x="92" y="88" class="tiny white">Control (HBC)</text>
+  </g>
+
+  <!-- Feature row -->
+  <g transform="translate(0 510)">
+    <g transform="translate(70 0)"><circle cx="80" cy="42" r="48" fill="#0b87d9" stroke="#49c3ff" stroke-width="4"/><text x="80" y="61" font-family="Arial" font-size="64" font-weight="700" fill="#fff" text-anchor="middle">€</text><text x="80" y="132" class="mid white" text-anchor="middle">Dynamic</text><text x="80" y="162" class="mid white" text-anchor="middle">electricity pricing</text><text x="80" y="207" class="tiny white" text-anchor="middle">Day-ahead aware</text></g>
+    <line x1="295" y1="40" x2="295" y2="218" class="line"/>
+    <g transform="translate(330 0)"><circle cx="100" cy="42" r="48" fill="#0cb379" stroke="#41dc89" stroke-width="4"/><path d="M67 48h24l12-32 23 60 11-28h26" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="100" y="132" class="mid white" text-anchor="middle">Multi-inverter</text><text x="100" y="162" class="mid white" text-anchor="middle">support</text><text x="100" y="207" class="tiny white" text-anchor="middle">Hoymiles, OpenDTU,</text><text x="100" y="235" class="tiny white" text-anchor="middle">Growatt &amp; more</text></g>
+    <line x1="555" y1="40" x2="555" y2="218" class="line"/>
+    <g transform="translate(615 0)"><circle cx="80" cy="42" r="48" fill="#ff9414" stroke="#ffc54a" stroke-width="4"/><path d="M80 13l31 13v25c0 24-14 38-31 48-17-10-31-24-31-48V26z" fill="none" stroke="#fff" stroke-width="6"/><path d="M65 50l12 12 22-25" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round"/><text x="80" y="132" class="mid white" text-anchor="middle">Safe &amp; non-</text><text x="80" y="162" class="mid white" text-anchor="middle">intrusive</text><text x="80" y="207" class="tiny white" text-anchor="middle">No changes to</text><text x="80" y="235" class="tiny white" text-anchor="middle">HBC files</text></g>
+    <line x1="815" y1="40" x2="815" y2="218" class="line"/>
+    <g transform="translate(860 0)"><circle cx="100" cy="42" r="48" fill="#8e40dd" stroke="#b662ff" stroke-width="4"/><path d="M65 25h70M65 43h70M65 61h70" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="92" cy="25" r="8" fill="#8e40dd" stroke="#fff" stroke-width="4"/><circle cx="118" cy="43" r="8" fill="#8e40dd" stroke="#fff" stroke-width="4"/><circle cx="83" cy="61" r="8" fill="#8e40dd" stroke="#fff" stroke-width="4"/><text x="100" y="132" class="mid white" text-anchor="middle">Highly</text><text x="100" y="162" class="mid white" text-anchor="middle">configurable</text><text x="100" y="207" class="tiny white" text-anchor="middle">Adapt to your</text><text x="100" y="235" class="tiny white" text-anchor="middle">home &amp; goals</text></g>
+  </g>
+
+  <!-- Right panel -->
+  <g transform="translate(1120 430)" filter="url(#shadow)">
+    <rect width="640" height="295" rx="28" fill="#002856" stroke="#4fa9e8" stroke-width="4"/>
+    <g transform="translate(70 62)">
+      <g fill="none" stroke="#ffd23b" stroke-width="5" stroke-linecap="round"><circle cx="0" cy="0" r="24" fill="#ffd23b" stroke="none"/><line x1="0" y1="-45" x2="0" y2="-60"/><line x1="0" y1="45" x2="0" y2="60"/><line x1="45" y1="0" x2="60" y2="0"/><line x1="-45" y1="0" x2="-60" y2="0"/><line x1="32" y1="-32" x2="45" y2="-45"/><line x1="-32" y1="-32" x2="-45" y2="-45"/><line x1="32" y1="32" x2="45" y2="45"/><line x1="-32" y1="32" x2="-45" y2="45"/></g>
+      <text x="70" y="8" font-family="Arial" font-size="38" font-weight="800" fill="#fff">HPVC</text><text x="185" y="8" font-family="Arial" font-size="42" font-weight="800" fill="#68cc39">→</text><text x="245" y="8" font-family="Arial" font-size="38" font-weight="700" fill="#fff">inverter limits</text>
+      <line x1="70" y1="42" x2="505" y2="42" stroke="#2c78aa" stroke-width="2"/>
+      <rect x="-20" y="70" width="40" height="58" rx="5" fill="#67d85f"/><rect x="-10" y="58" width="20" height="14" rx="3" fill="#67d85f"/><rect x="-13" y="86" width="26" height="26" fill="#164b80" opacity=".6"/>
+      <text x="70" y="115" font-family="Arial" font-size="38" font-weight="700" fill="#8ee982">HBC</text><text x="185" y="115" font-family="Arial" font-size="42" font-weight="800" fill="#68cc39">→</text><text x="245" y="115" font-family="Arial" font-size="38" font-weight="700" fill="#8ee982">battery control</text>
+      <line x1="70" y1="150" x2="505" y2="150" stroke="#2c78aa" stroke-width="2"/>
+      <path d="M0 188l14 5 13-9 18 18-9 13 5 14 16 3v26l-16 3-5 14 9 13-18 18-13-9-14 5-3 16h-26l-3-16-14-5-13 9-18-18 9-13-5-14-16-3v-26l16-3 5-14-9-13 18-18 13 9 14-5 3-16h26z" fill="#39a9ff"/>
+      <text x="70" y="257" font-family="Arial" font-size="34" font-weight="700" fill="#fff">Runs standalone, no HBC edits</text>
+    </g>
+  </g>
+
+  <!-- Footer -->
+  <g transform="translate(80 795)">
+    <g><path d="M30 0l28 12v25c0 24-12 38-28 48C14 75 2 61 2 37V12z" fill="none" stroke="#d7ecff" stroke-width="5"/><text x="75" y="22" class="footer white">Open Source</text><text x="75" y="52" class="footer soft">GPL-3.0</text></g>
+    <line x1="300" y1="-5" x2="300" y2="65" class="line"/>
+    <g transform="translate(370 0)"><path d="M20 18h18V0h22v18h18v22H60v18H38V40H20z" fill="none" stroke="#d7ecff" stroke-width="5" stroke-linejoin="round"/><text x="95" y="22" class="footer white">Built for</text><text x="95" y="52" class="footer soft">Home Assistant</text></g>
+    <line x1="670" y1="-5" x2="670" y2="65" class="line"/>
+    <g transform="translate(730 0)"><path d="M0 33h40l25-22h35M40 33l25 24h35" stroke="#d7ecff" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="105" cy="11" r="10" fill="none" stroke="#d7ecff" stroke-width="5"/><circle cx="105" cy="57" r="10" fill="none" stroke="#d7ecff" stroke-width="5"/><text x="135" y="22" class="footer white">Designed for</text><text x="135" y="52" class="footer soft">Node-RED</text></g>
+    <line x1="1050" y1="-5" x2="1050" y2="65" class="line"/>
+    <g transform="translate(1110 0)"><circle cx="20" cy="16" r="13" fill="#d7ecff"/><circle cx="48" cy="16" r="13" fill="#d7ecff"/><circle cx="34" cy="5" r="13" fill="#d7ecff"/><path d="M0 62c4-28 64-28 68 0z" fill="#d7ecff"/><text x="95" y="22" class="footer white">Community</text><text x="95" y="52" class="footer soft">driven</text></g>
+    <line x1="1385" y1="-5" x2="1385" y2="65" class="line"/>
+    <g transform="translate(1445 0)"><path d="M0 0h40l25 25v60H0z" fill="none" stroke="#d7ecff" stroke-width="5"/><path d="M40 0v25h25M15 45h35M15 63h35" stroke="#d7ecff" stroke-width="5"/><text x="85" y="22" class="footer white">Docs &amp; examples</text><text x="85" y="52" class="footer soft">included</text></g>
+  </g>
 </svg>
