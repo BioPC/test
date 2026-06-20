@@ -73,7 +73,7 @@ It is designed for:
                              ▼
                     Marstek / battery
 
-Tibber / market price ─┐
+Market/full price ─────┐
 Grid power sensor ─────┼──► Home PV Control Node-RED flow ───► PV inverter limits
 PV power sensor ───────┘
 ```
