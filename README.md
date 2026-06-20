@@ -109,6 +109,16 @@ Each inverter is clamped to its own `minimum_power`.
 | Minimum PV Change | `1 min` |
 | Deadband | `25 W` |
 
+## Trigger design
+
+Home PV Control evaluates on:
+
+- Every 1 minute: PV limit, restore, negative-price mode and HBC strategy.
+- On deploy/startup: one immediate evaluation.
+- When Home PV Control settings change: one immediate evaluation.
+
+The package does not use hardcoded grid/PV sensor triggers, so it stays generic for every installation.
+
 ## Documentation
 
 - [Installation](docs/01-installation.md)
@@ -135,17 +145,6 @@ docs/
   04-troubleshooting.md
   wiki/
 ```
-
-
-## Trigger design
-
-Home PV Control evaluates on:
-
-- Every 1 minute: PV limit, restore, negative-price mode and HBC strategy.
-- On deploy/startup: one immediate evaluation.
-- When Home PV Control settings change: one immediate evaluation.
-
-The package does not use hardcoded grid/PV sensor triggers, so it stays generic for every installation.
 
 ## Screenshots
 
