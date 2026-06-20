@@ -604,15 +604,13 @@ views:
                 state: "on"
             card:
               type: history-graph
-              title: Home PV Control power history
-              hours_to_show: 4
               entities:
                 - entity: sensor.pv_ems_debug_grid_power
                   name: Grid power
                 - entity: sensor.pv_ems_debug_pv_power
                   name: Total solar power
-                - entity: sensor.pv_ems_target_total_limit
-                  name: EMS adjusted total PV power
+              title: Home PV Control power history
+              hours_to_show: 4
       - type: grid
         cards:
           - type: conditional

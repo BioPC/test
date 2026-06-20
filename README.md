@@ -69,11 +69,11 @@ It is designed for:
 Replace these placeholders with real screenshots after installation.
 
 <p align="center">
-  <img src="assets/screenshots/dashboard-placeholder.svg" width="820" alt="Dashboard placeholder">
+  <img src="assets/screenshots/assets/screenshots/dashboard_main.png.svg" width="820" alt="Dashboard placeholder">
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/node-red-placeholder.svg" width="820" alt="Node-RED flow placeholder">
+  <img src="assets/screenshots/assets/screenshots/node_red_flow.png.svg" width="820" alt="Node-RED flow placeholder">
 </p>
 
 ## Architecture

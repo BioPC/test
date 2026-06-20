@@ -492,7 +492,7 @@ input_number:
     mode: box
     unit_of_measurement: W
     icon: mdi:transmission-tower-export
-    initial: -300
+    initial: -200
   pv_ems_export_stop_threshold:
     name: Export Stop Threshold
     min: -5000
@@ -573,7 +573,9 @@ template:
     unique_id: pv_ems_target_total_limit
     unit_of_measurement: W
     icon: mdi:chart-line
-    state: "{% set raw = states('input_text.pv_ems_last_targets_json') %} {% if raw in ['unknown','unavailable','', '[]'] %}\n  0\n{% else %}\n  {% set items = raw | from_json(default=[]) %}\n  {{ items | map(attribute='t') | map('float', 0) | sum | round(0) }}\n{% endif %}\n"
+    state: >
+      {% set data = states('input_text.pv_ems_last_targets_json') | from_json(default={}) %}
+      {{ data.get('target_total', 0) | float(0) | round(0) }}
   - name: Home PV Control Debug Market Price
     unique_id: pv_ems_debug_market_price
     unit_of_measurement: €/kWh
@@ -701,7 +703,9 @@ template:
   - name: Home PV Control Cooldown Active
     unique_id: pv_ems_cooldown_active
     icon: mdi:timer-sand
-    state: '{{ ''cooldown'' in states(''input_text.pv_ems_reason'')|lower }}'
+    state: >
+      {% set data = states('input_text.pv_ems_last_targets_json') | from_json(default={}) %}
+      {{ data.get('cooldown_active', false) }}
   - name: Home PV Control Negative Price Mode
     unique_id: pv_ems_negative_price_mode
     icon: mdi:cash-minus
