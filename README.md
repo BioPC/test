@@ -49,55 +49,6 @@ It is designed for:
 | Optional HBC strategy handoff | ✅ |
 | HBC files remain untouched | ✅ |
 
-## Screenshots
-
-### Main Dashboard
-![Main Dashboard](assets/screenshots/dashboard_main.png)
-
-![Settings & Configuration](assets/screenshots/dashboard_settings.png)
-
-### Debug & Insights
-![Debug & Insights](assets/screenshots/dashboard_debug.png)
-
-### Node-RED Flow
-![Node-RED Flow](assets/screenshots/node_red_flow.png)
-
-## Architecture
-
-```text
-                 ┌───────────────────────┐
-                 │  Home Battery Control │
-                 │  Battery strategies   │
-                 └───────────┬───────────┘
-                             │
-                             ▼
-                    Marstek / battery
-
-Market/full price ─────┐
-Grid power sensor ─────┼──► Home PV Control Node-RED flow ───► PV inverter limits
-PV power sensor ───────┘
-```
-
-Home PV Control may optionally select the HBC strategy, but HBC still performs the battery control.
-
-## Repository structure
-
-```text
-home assistant/
-  pv_ems_config.yaml      # Home Assistant helpers/package
-  pv_ems_dashboard.yaml   # Separate HBC-style dashboard
-
-node-red/
-  pv_ems_flow.json        # Node-RED flow
-
-docs/
-  01-installation.md
-  02-configuration.md
-  03-how-it-works.md
-  04-troubleshooting.md
-  wiki/
-```
-
 ## Quick install
 
 1. Copy `home assistant/pv_ems_config.yaml` to:
@@ -158,6 +109,55 @@ Home PV Control evaluates on:
 - When Home PV Control settings change: one immediate evaluation.
 
 The package does not use hardcoded grid/PV sensor triggers, so it stays generic for every installation.
+
+## Screenshots
+
+### Main Dashboard
+![Main Dashboard](assets/screenshots/dashboard_main.png)
+
+![Settings & Configuration](assets/screenshots/dashboard_settings.png)
+
+### Debug & Insights
+![Debug & Insights](assets/screenshots/dashboard_debug.png)
+
+### Node-RED Flow
+![Node-RED Flow](assets/screenshots/node_red_flow.png)
+
+## Architecture
+
+```text
+                 ┌───────────────────────┐
+                 │  Home Battery Control │
+                 │  Battery strategies   │
+                 └───────────┬───────────┘
+                             │
+                             ▼
+                    Marstek / battery
+
+Market/full price ─────┐
+Grid power sensor ─────┼──► Home PV Control Node-RED flow ───► PV inverter limits
+PV power sensor ───────┘
+```
+
+Home PV Control may optionally select the HBC strategy, but HBC still performs the battery control.
+
+## Repository structure
+
+```text
+home assistant/
+  pv_ems_config.yaml      # Home Assistant helpers/package
+  pv_ems_dashboard.yaml   # Separate HBC-style dashboard
+
+node-red/
+  pv_ems_flow.json        # Node-RED flow
+
+docs/
+  01-installation.md
+  02-configuration.md
+  03-how-it-works.md
+  04-troubleshooting.md
+  wiki/
+```
 
 ## HACS note
 
