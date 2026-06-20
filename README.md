@@ -65,10 +65,10 @@ It is designed for:
 ## Architecture
 
 ```text
-                 ┌──────────────────────┐
+                 ┌───────────────────────┐
                  │  Home Battery Control │
                  │  Battery strategies   │
-                 └───────────┬──────────┘
+                 └───────────┬───────────┘
                              │
                              ▼
                     Marstek / battery
