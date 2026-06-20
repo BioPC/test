@@ -10,13 +10,6 @@
   <img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="GPL-3.0-or-later">
 </p>
 
-# Home PV Control for HBC
-
-<p align="center">
-  <a href="https://docs.homebatterycontrol.com/">📖 HBC Documentation</a> •
-  <a href="https://docs.homebatterycontrol.com/02-modbus-setup.html">🔋 Battery Setup</a>
-</p>
-
 ## Home Battery Control (HBC)
 
 Home PV Control is designed to work alongside Home Battery Control (HBC).
