@@ -191,7 +191,6 @@ The package does not use hardcoded grid/PV sensor triggers, so it stays generic 
 ### Main Dashboard
 ![Main Dashboard](assets/screenshots/dashboard_main.png)
 
-### Settings & Configuration
 ![Settings](assets/screenshots/dashboard_settings.png)
 
 ### Debug & Insights
