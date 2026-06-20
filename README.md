@@ -12,13 +12,11 @@
 
 ## Home PV Control (HPVC)
 
-Home PV Control is designed to work alongside Home Battery Control (HBC).
+**Home PV Control** is a standalone photovoltaic export-control add-on for Home Assistant and Node-RED. It can operate independently or alongside **Home Battery Control (HBC)**. When HBC integration is enabled, Home PV Control can automatically switch HBC battery strategies based on electricity prices while HBC continues to manage the batteries.
 
-- 🌐 Documentation: https://docs.homebatterycontrol.com/
+- 🌐 Documentation for HBC: https://docs.homebatterycontrol.com/
 
 Home PV Control manages PV inverter power limits while HBC remains responsible for battery charging, discharging and strategy selection.
-
-**Home PV Control** is a standalone photovoltaic export-control add-on for Home Assistant and Node-RED users who also run **Home Battery Control(optional)**.
 
 It controls PV inverter power limits while Home Battery Control keeps controlling the batteries.
 
