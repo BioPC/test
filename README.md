@@ -140,13 +140,6 @@ Each inverter is clamped to its own `minimum_power`.
 | Minimum PV Change | `1 min` |
 | Deadband | `25 W` |
 
-## HACS note
-
-This repository is structured to be easy to use with Home Assistant and Node-RED.  
-It is **not a normal Python Home Assistant integration**. HACS support would require using this as a custom repository for documentation/files, not as a standard integration install.
-
-See [HACS notes](docs/wiki/HACS.md).
-
 ## Documentation
 
 - [Installation](docs/01-installation.md)
@@ -155,14 +148,6 @@ See [HACS notes](docs/wiki/HACS.md).
 - [Troubleshooting](docs/04-troubleshooting.md)
 - [Wiki index](docs/wiki/Home.md)
 - [Changelog](CHANGELOG.md)
-
-## Roadmap
-
-- More dashboard examples
-- Node-RED trace/debug dashboard
-- Optional helper-based trigger configuration
-- Import/export examples for popular inverter brands
-- More safety checks around invalid inverter JSON
 
 ## Trigger design
 
@@ -173,6 +158,21 @@ Home PV Control evaluates on:
 - When Home PV Control settings change: one immediate evaluation.
 
 The package does not use hardcoded grid/PV sensor triggers, so it stays generic for every installation.
+
+## HACS note
+
+This repository is structured to be easy to use with Home Assistant and Node-RED.  
+It is **not a normal Python Home Assistant integration**. HACS support would require using this as a custom repository for documentation/files, not as a standard integration install.
+
+See [HACS notes](docs/wiki/HACS.md).
+
+## Roadmap
+
+- More dashboard examples
+- Node-RED trace/debug dashboard
+- Optional helper-based trigger configuration
+- Import/export examples for popular inverter brands
+- More safety checks around invalid inverter JSON
 
 ## Credits
 
