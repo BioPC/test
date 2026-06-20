@@ -12,7 +12,6 @@
 
 # Home PV Control for HBC
 
-
 <p align="center">
   <a href="https://docs.homebatterycontrol.com/">📖 HBC Documentation</a> •
   <a href="https://docs.homebatterycontrol.com/02-modbus-setup.html">🔋 Battery Setup</a>
@@ -27,7 +26,6 @@ Home PV Control is designed to work alongside Home Battery Control (HBC).
 - 📚 HBC Wiki: https://docs.homebatterycontrol.com/
 
 Home PV Control manages PV inverter power limits while HBC remains responsible for battery charging, discharging and strategy selection.
-
 
 **Home PV Control** is a standalone photovoltaic export-control add-on for Home Assistant and Node-RED users who run **Home Battery Control**.
 
@@ -77,7 +75,6 @@ It is designed for:
 
 ### Node-RED Flow
 ![Node-RED Flow](assets/screenshots/node_red_flow.png)
-
 
 ## Architecture
 
@@ -199,9 +196,7 @@ Home Battery Control: https://github.com/gitcodebob/marstek-venus-rs485-node-red
 
 GPL-3.0-or-later. See [LICENSE](LICENSE).
 
-
 Note: Home Assistant input_text has a 255-character limit. Use compact inverter keys: `n` name, `e` limit entity, `f` full power, `m` minimum power, `en` enabled. The Node-RED flow also still accepts the long key names for imported JSON.
-
 
 ## Trigger design
 
@@ -212,7 +207,6 @@ Home PV Control evaluates on:
 - When Home PV Control settings change: one immediate evaluation.
 
 The package does not use hardcoded grid/PV sensor triggers, so it stays generic for every installation.
-
 
 ## Screenshots
 
