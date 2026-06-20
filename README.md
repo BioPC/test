@@ -164,16 +164,6 @@ See [HACS notes](docs/wiki/HACS.md).
 - Import/export examples for popular inverter brands
 - More safety checks around invalid inverter JSON
 
-## Credits
-
-Inspired by the Home Assistant + Node-RED workflow of Home Battery Control.
-
-Home Battery Control: https://github.com/gitcodebob/marstek-venus-rs485-node-red
-
-## License
-
-GPL-3.0-or-later. See [LICENSE](LICENSE).
-
 ## Trigger design
 
 Home PV Control evaluates on:
@@ -184,18 +174,15 @@ Home PV Control evaluates on:
 
 The package does not use hardcoded grid/PV sensor triggers, so it stays generic for every installation.
 
-## Screenshots
+## Credits
 
-### Main Dashboard
-![Main Dashboard](assets/screenshots/dashboard_main.png)
+Inspired by the Home Assistant + Node-RED workflow of Home Battery Control.
 
-![Settings](assets/screenshots/dashboard_settings.png)
+Home Battery Control: https://github.com/gitcodebob/marstek-venus-rs485-node-red
 
-### Debug & Insights
-![Debug](assets/screenshots/dashboard_debug.png)
+## License
 
-### Node-RED Flow
-![Node-RED](assets/screenshots/node_red_flow.png)
+GPL-3.0-or-later. See [LICENSE](LICENSE).
 
 ## Disclaimer
 
