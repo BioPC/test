@@ -54,7 +54,6 @@ It is designed for:
 ### Main Dashboard
 ![Main Dashboard](assets/screenshots/dashboard_main.png)
 
-### Settings & Configuration
 ![Settings & Configuration](assets/screenshots/dashboard_settings.png)
 
 ### Debug & Insights
