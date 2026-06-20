@@ -10,17 +10,15 @@
   <img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="GPL-3.0-or-later">
 </p>
 
-## Home Battery Control (HBC)
+## Home PV Control (HPVC)
 
 Home PV Control is designed to work alongside Home Battery Control (HBC).
 
 - 🌐 Documentation: https://docs.homebatterycontrol.com/
-- 🔋 Battery Setup Guide: https://docs.homebatterycontrol.com/02-modbus-setup.html
-- 📚 HBC Wiki: https://docs.homebatterycontrol.com/
 
 Home PV Control manages PV inverter power limits while HBC remains responsible for battery charging, discharging and strategy selection.
 
-**Home PV Control** is a standalone photovoltaic export-control add-on for Home Assistant and Node-RED users who run **Home Battery Control**.
+**Home PV Control** is a standalone photovoltaic export-control add-on for Home Assistant and Node-RED users who also run **Home Battery Control(optional)**.
 
 It controls PV inverter power limits while Home Battery Control keeps controlling the batteries.
 
@@ -28,7 +26,7 @@ It controls PV inverter power limits while Home Battery Control keeps controllin
 
 ## What it does
 
-Home PV Control dynamically controls writable PV inverter limit entities, for example OpenDTU / Hoymiles power-limit `number` entities.
+Home PV Control dynamically controls writable PV inverter limit entities.
 
 It is designed for:
 
@@ -113,29 +111,22 @@ docs/
    /config/packages/pv_ems_config.yaml
    ```
 
-2. Restart Home Assistant.
+2. Quick Reload or Restart Home Assistant.
 
-3. Import `node-red/pv_ems_flow.json` into Node-RED.
+3. Import `node-red/pv_ems_flow.json` into Node-RED and deploy.
 
 4. Add/import `home assistant/pv_ems_dashboard.yaml` as a separate dashboard.
 
-5. Configure:
+5. Configure core entities:
    - grid power sensor
    - market/export price sensor
    - all-in import price sensor
-   - PV power sensor
-   - HBC strategy selector
-   - inverters JSON
+   - PV total power sensor
+   - inverter limits
 
 6. Enable Home PV Control.
 
 See [Installation](docs/01-installation.md).
-
-## Example inverter configuration
-
-```json
-[{"n":"PV1","e":"number.inverter1_limit","f":2000,"m":100},{"n":"PV2","e":"number.inverter2_limit","f":1000,"m":50}]
-```
 
 The EMS calculates total target PV power and splits it proportionally by `full_power`.
 
@@ -146,7 +137,7 @@ Each inverter is clamped to its own `minimum_power`.
 | Setting | Recommended |
 |---|---:|
 | PV Limiting Price | `0.00 €/kWh` |
-| Start Limiting Export | `-300 W` |
+| Start Limiting Export | `-200 W` |
 | Target Export | `-25 W` |
 | Import Recalculation | `200 W` |
 | Minimum PV Power | `100 W` |
@@ -188,8 +179,6 @@ Home Battery Control: https://github.com/gitcodebob/marstek-venus-rs485-node-red
 ## License
 
 GPL-3.0-or-later. See [LICENSE](LICENSE).
-
-Note: Home Assistant input_text has a 255-character limit. Use compact inverter keys: `n` name, `e` limit entity, `f` full power, `m` minimum power, `en` enabled. The Node-RED flow also still accepts the long key names for imported JSON.
 
 ## Trigger design
 
