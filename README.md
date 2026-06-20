@@ -69,11 +69,11 @@ It is designed for:
 Replace these placeholders with real screenshots after installation.
 
 <p align="center">
-  <img src="assets/screenshots/assets/screenshots/dashboard_main.png.svg" width="820" alt="Dashboard placeholder">
+  <img src="assets/screenshots/dashboard-placeholder.svg" width="820" alt="Dashboard placeholder">
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/assets/screenshots/node_red_flow.png.svg" width="820" alt="Node-RED flow placeholder">
+  <img src="assets/screenshots/node-red-placeholder.svg" width="820" alt="Node-RED flow placeholder">
 </p>
 
 ## Architecture
@@ -209,3 +209,19 @@ Home PV Control evaluates on:
 - When Home PV Control settings change: one immediate evaluation.
 
 The package does not use hardcoded grid/PV sensor triggers, so it stays generic for every installation.
+
+
+## Screenshots
+
+### Main Dashboard
+![Main Dashboard](assets/screenshots/dashboard_main.png)
+
+### Settings & Configuration
+![Settings](assets/screenshots/dashboard_settings.png)
+
+### Debug & Insights
+![Debug](assets/screenshots/dashboard_debug.png)
+
+### Node-RED Flow
+![Node-RED](assets/screenshots/node_red_flow.png)
+
