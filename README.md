@@ -66,15 +66,18 @@ It is designed for:
 
 ## Screenshots
 
-Replace these placeholders with real screenshots after installation.
+### Main Dashboard
+![Main Dashboard](assets/screenshots/dashboard_main.png)
 
-<p align="center">
-  <img src="assets/screenshots/dashboard-placeholder.svg" width="820" alt="Dashboard placeholder">
-</p>
+### Settings & Configuration
+![Settings & Configuration](assets/screenshots/dashboard_settings.png)
 
-<p align="center">
-  <img src="assets/screenshots/node-red-placeholder.svg" width="820" alt="Node-RED flow placeholder">
-</p>
+### Debug & Insights
+![Debug & Insights](assets/screenshots/dashboard_debug.png)
+
+### Node-RED Flow
+![Node-RED Flow](assets/screenshots/node_red_flow.png)
+
 
 ## Architecture
 
