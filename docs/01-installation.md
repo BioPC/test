@@ -66,7 +66,6 @@ Set these helpers from the dashboard:
 - Market/export price sensor
 - All-in import price sensor
 - Total PV power sensor
-- HBC strategy selector
 - PV inverter helpers
 
 ## Step 5 - Test
@@ -74,7 +73,7 @@ Set these helpers from the dashboard:
 Start with conservative values:
 
 - PV Limiting Price: `0.00`
-- Start Limiting When Exporting More Than: `-300 W`
+- Start Limiting When Exporting More Than: `-200 W`
 - Target Export Power: `-25 W`
 - Import Recalculation Threshold: `200 W`
 - Minimum Minutes Between PV Changes: `1`

@@ -203,7 +203,7 @@ Home PV Control modifies PV inverter power limits through Home Assistant and Nod
 
 By using this software, you acknowledge that:
 
-* You are responsible for verifying that your inverter, OpenDTU, Home Assistant, and Node-RED configuration are compatible and correctly configured.
+* You are responsible for verifying that your inverter, Home Assistant, and Node-RED configuration are compatible and correctly configured.
 * Incorrect configuration may result in reduced solar production, unexpected inverter behavior, or failure to achieve the intended energy-management strategy.
 * The software is provided "as is" without any warranty of any kind.
 * Always test changes in a safe environment before using them in a production energy system.
