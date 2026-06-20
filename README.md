@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="RELEASE_NOTES.md"><img src="https://img.shields.io/badge/release-v1.0.0-blue" alt="release"></a>
+  <a href="https://github.com/BioPC/pv-ems-hbc-node-red/releases"><img src="https://img.shields.io/github/v/release/BioPC/pv-ems-hbc-node-red?include_prereleases&label=release" alt="release"></a>
   <img src="https://img.shields.io/badge/Home%20Assistant-ready-41BDF5" alt="Home Assistant">
   <img src="https://img.shields.io/badge/Node--RED-flow-8F0000" alt="Node-RED">
   <img src="https://img.shields.io/badge/HBC-compatible-22C55E" alt="HBC compatible">
@@ -12,9 +12,11 @@
 
 ## Home PV Control (HPVC)
 
-**Home PV Control** is a standalone photovoltaic export-control add-on for Home Assistant and Node-RED. It works independently or together with **Home Battery Control (HBC)**. Home PV Control manages PV inverter limits, while HBC remains responsible for battery charging, discharging and strategy selection.
+**Home PV Control** is a standalone photovoltaic export-control add-on for Home Assistant and Node-RED. It works independently or together with **Home Battery Control (HBC)**. Home PV Control manages PV inverter limits, while HBC remains responsible for battery control.
 
 - 🌐 Documentation for HBC: https://docs.homebatterycontrol.com/
+
+Home PV Control manages PV inverter power limits while HBC remains responsible for battery charging, discharging and strategy selection.
 
 > Home PV Control does **not** modify Home Battery Control files. It runs next to HBC.
 
