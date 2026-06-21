@@ -33,6 +33,14 @@ It is designed for:
 - smoothly increasing PV again when the house starts importing
 - systems with one inverter or many inverters
 
+## Requirements
+
+- Home Assistant
+- Node-RED
+- PV inverter(s) with writable power limit entities
+
+⚠️ Home PV Control is designed for PV inverters that support external power limit control (curtailment)
+
 ## Features
 
 | Feature | Status |
