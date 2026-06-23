@@ -4,9 +4,9 @@
 
 <p align="center">
   <a href="releases/v1.0.5/release.md"><img src="https://img.shields.io/badge/release-v1.0.5-blue" alt="release"></a>
-  <img src="https://img.shields.io/badge/Home%20Assistant-ready-41BDF5" alt="Home Assistant">
-  <img src="https://img.shields.io/badge/Node--RED-flow-8F0000" alt="Node-RED">
-  <img src="https://img.shields.io/badge/HBC-compatible-22C55E" alt="HBC compatible">
+  <a href="https://www.home-assistant.io/"><img src="https://img.shields.io/badge/Home%20Assistant-ready-41BDF5" alt="Home Assistant"></a>
+  <a href="https://nodered.org/"><img src="https://img.shields.io/badge/Node--RED-flow-8F0000" alt="Node-RED"></a>
+  <a href="https://github.com/gitcodebob/marstek-venus-rs485-node-red"><img src="https://img.shields.io/badge/HBC-compatible-22C55E" alt="HBC compatible"></a>
   <img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="GPL-3.0-or-later">
 </p>
 
