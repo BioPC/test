@@ -30,6 +30,11 @@ Home PV Control manages PV inverter power limits while HBC remains responsible f
 
 > Home PV Control does **not** modify Home Battery Control files. It runs next to HBC.
 
+## Designed for Dynamic Energy Contracts
+
+Home PV Control is primarily designed for households with dynamic electricity tariffs.
+Many of its advanced optimization features are specifically intended for dynamic pricing environments.
+
 ## What it does
 
 Home PV Control dynamically controls writable PV inverter limit entities.
@@ -207,11 +212,3 @@ By using this software, you acknowledge that:
 * The author is not responsible for any financial losses, equipment damage, data loss, regulatory issues, or other consequences resulting from the use of this project.
 
 Use this project at your own risk.
-
-
-
-## Designed for Dynamic Energy Contracts
-
-Home PV Control is primarily designed for households with dynamic electricity tariffs (such as Tibber and other EPEX-based providers).
-
-Many of its advanced optimization features are specifically intended for dynamic pricing environments.
