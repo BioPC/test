@@ -1,18 +1,28 @@
 <p align="center">
-  <img src="assets/banner.svg" alt="Home PV Control for HBC banner">
+  <img src="assets/banner.svg" alt="Home PV Control banner">
 </p>
 
 <p align="center">
-  <a href="releases/v1.0.0/release.md"><img src="https://img.shields.io/badge/release-v1.0.0-blue" alt="release"></a>
+  <a href="releases/v1.0.5/release.md"><img src="https://img.shields.io/badge/release-v1.0.5-blue" alt="release"></a>
   <img src="https://img.shields.io/badge/Home%20Assistant-ready-41BDF5" alt="Home Assistant">
   <img src="https://img.shields.io/badge/Node--RED-flow-8F0000" alt="Node-RED">
   <img src="https://img.shields.io/badge/HBC-compatible-22C55E" alt="HBC compatible">
   <img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="GPL-3.0-or-later">
 </p>
 
+## Requirements
+
+- Home Assistant
+- Node-RED
+- PV inverter(s) with writable power limit entities
+- HBC is optional and only required for battery strategy control
+
+⚠️ Home PV Control is designed for PV inverters that support external power limit control (curtailment). PV curtailment features require at least one writable inverter power limit entity.
+
+
 ## Home PV Control (HPVC)
 
-**Home PV Control** is a standalone photovoltaic export-control add-on for Home Assistant and Node-RED. It works independently or together with **Home Battery Control (HBC)**. Home PV Control manages PV inverter limits, while HBC remains responsible for battery control.
+**Home PV Control** is a standalone photovoltaic export-control add-on for Home Assistant and Node-RED. It works independently or together with **Home Battery Control (HBC)**.
 
 - 🌐 Documentation for HBC: https://docs.homebatterycontrol.com/
 
@@ -32,14 +42,6 @@ It is designed for:
 - keeping useful PV for house load
 - smoothly increasing PV again when the house starts importing
 - systems with one inverter or many inverters
-
-## Requirements
-
-- Home Assistant
-- Node-RED
-- PV inverter(s) with writable power limit entities
-
-⚠️ Home PV Control is designed for PV inverters that support external power limit control (curtailment)
 
 ## Features
 
@@ -121,7 +123,7 @@ Each inverter is clamped to its own `minimum_power`.
 
 Home PV Control evaluates on:
 
-- Every 1 minute: PV limit, restore, negative-price mode and HBC strategy.
+- Every 15 seconds: PV limit, restore, negative-price mode and HBC strategy.
 - On deploy/startup: one immediate evaluation.
 - When Home PV Control settings change: one immediate evaluation.
 
@@ -206,3 +208,10 @@ By using this software, you acknowledge that:
 
 Use this project at your own risk.
 
+
+
+## Designed for Dynamic Energy Contracts
+
+Home PV Control is primarily designed for households with dynamic electricity tariffs (such as Tibber and other EPEX-based providers).
+
+Many of its advanced optimization features are specifically intended for dynamic pricing environments.
