@@ -1,11 +1,3 @@
-# Home PV Control
-
-Current release: **v1.1.0**
-
-> v1.0.7 was never released. All planned v1.0.7 changes are included in v1.1.0, which is the direct upgrade path from v1.0.6.
-
-See [RELEASE_NOTES.md](RELEASE_NOTES.md), [CHANGELOG.md](CHANGELOG.md), and [releases/v1.1.0/release.md](releases/v1.1.0/release.md) for the full timeline of changes.
-
 <p align="center">
   <img src="assets/banner.png" alt="Home PV Control banner">
 </p>
