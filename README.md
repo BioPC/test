@@ -122,6 +122,7 @@ Each inverter is clamped to its own `minimum_power`.
 | Import Recalculation | `200 W` |
 | Minimum PV Power | `100 W` |
 | Night Restore | `10 W` |
+| Hidden PV Reveal Step | `100 W` |
 | Minimum PV Change | `1 min` |
 | Deadband | `25 W` |
 
@@ -184,12 +185,6 @@ See [HACS notes](docs/wiki/HACS.md).
 
 ## Roadmap
 
-- More dashboard examples
-- Node-RED trace/debug dashboard
-- Optional helper-based trigger configuration
-- Import/export examples for popular inverter brands
-- More safety checks around invalid inverter JSON
-
 ## Credits
 
 Inspired by the Home Assistant + Node-RED workflow of Home Battery Control.
@@ -213,25 +208,3 @@ By using this software, you acknowledge that:
 * The author is not responsible for any financial losses, equipment damage, data loss, regulatory issues, or other consequences resulting from the use of this project.
 
 Use this project at your own risk.
-
-Note: Hidden-PV reveal does not require extra battery sensor configuration in HPVC. If `input_number.house_battery_count` is missing, HPVC uses a safe 1-battery fallback and logs this in Insights.
-If the helper exists and is set to `0`, HPVC respects that value instead of forcing the fallback.
-
-### v1.1.0 note
-- HBC strategy notifications correctly distinguish entry thresholds from hysteresis exit thresholds.
-- Internal cleanup: battery reveal status variables are now initialized at function scope for safer target/status JSON updates.
-
-
-### Hidden PV reveal step
-
-When HBC strategy control is enabled, Home PV Control can gradually reveal hidden PV while export is small, PV is limited, and at least one active HBC battery is charging below its configured Marstek max charge power. The `input_number.pv_ems_hidden_pv_reveal_step` helper controls the maximum reveal per cooldown cycle (50–250 W, default 100 W). The feature is hidden and inactive when HBC strategy control is off.
-
-- Hidden PV Reveal ignores unavailable/missing HBC battery power sensors when checking charging state.
-- Hidden PV Reveal uses `number.marstek_mX_max_charge_power` when available and pauses when active batteries are at or near max charging power.
-
-- Hidden PV Reveal now logs a one-time pause when HBC batteries are at/near max charge power and a resume insight when charging capacity is available again.
-- Hidden PV Reveal logs a one-time completion insight when PV output has been fully restored.
-- Clarified Hidden PV Reveal diagnostics when the calculated reveal increase is below the PV deadband.
-
-- Debug JSON uses compact battery keys (`bat_w`, `bat_chg`, `chg_headroom`, `at_max_chg`) to stay within Home Assistant input_text limits.
-- Fixed hidden PV reveal scope so startup/waiting states cannot throw `revealHiddenPv is not defined`.
