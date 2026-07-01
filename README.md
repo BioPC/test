@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="releases/v1.1.0/release.md"><img src="https://img.shields.io/badge/release-v1.1.0-blue" alt="release"></a>
+  <a href="releases/v1.1.1/release.md"><img src="https://img.shields.io/badge/release-v1.1.1-blue" alt="release"></a>
   <a href="https://www.home-assistant.io/"><img src="https://img.shields.io/badge/Home%20Assistant-ready-41BDF5" alt="Home Assistant"></a>
   <a href="https://nodered.org/"><img src="https://img.shields.io/badge/Node--RED-flow-8F0000" alt="Node-RED"></a>
   <a href="https://github.com/gitcodebob/marstek-venus-rs485-node-red"><img src="https://img.shields.io/badge/HBC-compatible-22C55E" alt="HBC compatible"></a>
