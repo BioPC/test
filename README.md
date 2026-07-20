@@ -183,7 +183,7 @@ The Main tab keeps the top badges, dashboard title, and PV Master Control at the
 
 <p align="center">
   <a href="assets/screenshots/dashboard_main.png">
-    <img src="assets/screenshots/dashboard_main.png" alt="Main Dashboard" width="400">
+    <img src="assets/screenshots/dashboard_main.png" alt="Main Dashboard" width="220">
   </a>
 </p>
 
@@ -192,21 +192,21 @@ The former Debug view is now the Settings view and uses a cog icon. Press **Sett
 
 <p align="center">
   <a href="assets/screenshots/dashboard_settings.png">
-    <img src="assets/screenshots/dashboard_settings.png" alt="Settings" width="400">
+    <img src="assets/screenshots/dashboard_settings.png" alt="Settings" width="220">
   </a>
 </p>
 
 ### View report
 <p align="center">
   <a href="assets/screenshots/view_report.png">
-    <img src="assets/screenshots/view_report.png" alt="View report" width="400">
+    <img src="assets/screenshots/view_report.png" alt="View report" width="220">
   </a>
 </p>
 
 ### Node-RED Flow
 <p align="center">
   <a href="assets/screenshots/node_red_flow.png">
-    <img src="assets/screenshots/node_red_flow.png" alt="Node-RED Flow" width="400">
+    <img src="assets/screenshots/node_red_flow.png" alt="Node-RED Flow" width="220">
   </a>
 </p>
 
