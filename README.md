@@ -10,7 +10,6 @@
     <img src="https://img.shields.io/badge/PayPal-Support%20me-003087?logo=paypal&logoColor=white" alt="PayPal">
   </a>
 </p>
-
 <p align="center">
   <a href="https://buymeacoffee.com/YOURUSERNAME">
     <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support%20me-FFDD00?logo=buymeacoffee&logoColor=000000" alt="Buy Me a Coffee">
