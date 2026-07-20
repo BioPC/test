@@ -181,34 +181,20 @@ docs/
 ### Main Dashboard
 The Main tab keeps the top badges, dashboard title, and PV Master Control at the top. Operational information formerly shown on the Debug view—including Decision Details, Live Inputs, HBC status, control graphs, accuracy diagnostics, Price Zones, and Insights—is now shown on Main without requiring the Settings toggle. Existing HPVC- and HBC-dependent visibility remains unchanged.
 
-<p align="center">
-  <a href="assets/screenshots/dashboard_main.png">
-    <img src="assets/screenshots/dashboard_main.png" alt="Main Dashboard" width="220">
-  </a>
-</p>
+![Main Dashboard](assets/screenshots/dashboard_main.png)
 
 ### Settings
 The former Debug view is now the Settings view and uses a cog icon. Press **Settings** in PV Master Control to show or hide all settings on this tab.
 
-<p align="center">
-  <a href="assets/screenshots/dashboard_settings.png">
-    <img src="assets/screenshots/dashboard_settings.png" alt="Settings" width="220">
-  </a>
-</p>
+![Settings](assets/screenshots/dashboard_settings.png)
 
 ### View report
-<p align="center">
-  <a href="assets/screenshots/view_report.png">
-    <img src="assets/screenshots/view_report.png" alt="View report" width="220">
-  </a>
-</p>
+![View report – part 1](assets/screenshots/view_report-part-1.png)
+![View report – part 2](assets/screenshots/view_report-part-2.png)
+![View report – part 3](assets/screenshots/view_report-part-3.png)
 
 ### Node-RED Flow
-<p align="center">
-  <a href="assets/screenshots/node_red_flow.png">
-    <img src="assets/screenshots/node_red_flow.png" alt="Node-RED Flow" width="220">
-  </a>
-</p>
+![Node-RED Flow](assets/screenshots/node_red_flow.png)
 
 ## HACS note
 
