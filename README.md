@@ -9,17 +9,11 @@
   <a href="https://github.com/gitcodebob/marstek-venus-rs485-node-red"><img src="https://img.shields.io/badge/HBC-compatible-22C55E" alt="HBC compatible"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="GPL-3.0-or-later"></a>
   <a href="https://github.com/BioPC/home-pv-control/stargazers"><img src="https://img.shields.io/github/stars/BioPC/home-pv-control?style=social" alt="GitHub stars"></a>
+  <a href="https://www.buymeacoffee.com/YOURUSERNAME"><img src="https://img.shields.io/badge/%E2%98%95-Buy%20me%20a%20coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=000000" alt="Buy Me a Coffee"></a>
+  <a href="https://paypal.me/YOURUSERNAME"><img src="https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal Donate"></a>
 </p>
 
-<p align="center">
-  <a href="https://www.buymeacoffee.com/YOURUSERNAME">
-    <img src="https://img.shields.io/badge/☕-Buy%20me%20a%20coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=000000" alt="Buy Me a Coffee">
-  </a>
-  &nbsp;
-  <a href="https://paypal.me/YOURUSERNAME">
-    <img src="https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal Donate">
-  </a>
-</p>
+
 ## Requirements
 
 - Home Assistant
