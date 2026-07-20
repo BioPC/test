@@ -1,5 +1,3 @@
-
-
 <p align="center">
   <img src="assets/banner.png" alt="Home PV Control banner">
 </p>
@@ -13,7 +11,15 @@
   <a href="https://github.com/BioPC/home-pv-control/stargazers"><img src="https://img.shields.io/github/stars/BioPC/home-pv-control?style=social" alt="GitHub stars"></a>
 </p>
 
-
+<p align="center">
+  <a href="https://www.buymeacoffee.com/YOURUSERNAME">
+    <img src="https://img.shields.io/badge/☕-Buy%20me%20a%20coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=000000" alt="Buy Me a Coffee">
+  </a>
+  &nbsp;
+  <a href="https://paypal.me/YOURUSERNAME">
+    <img src="https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal Donate">
+  </a>
+</p>
 ## Requirements
 
 - Home Assistant
@@ -179,18 +185,6 @@ docs/
 The Main tab keeps the top badges, dashboard title, and PV Master Control at the top. Operational information formerly shown on the Debug view—including Decision Details, Live Inputs, HBC status, control graphs, accuracy diagnostics, Price Zones, and Insights—is now shown on Main without requiring the Settings toggle. Existing HPVC- and HBC-dependent visibility remains unchanged.
 
 ![Main Dashboard](assets/screenshots/dashboard_main.png)
-
-<p align="center">
-  <a href="https://www.buymeacoffee.com/YOURUSERNAME">
-    <img src="https://img.shields.io/badge/☕-Buy%20me%20a%20coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=000000">
-  </a>
-  &nbsp;
-  <a href="https://paypal.me/YOURUSERNAME">
-    <img src="https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white">
-  </a>
-</p>
-
-
 
 ### Settings
 The former Debug view is now the Settings view and uses a cog icon. Press **Settings** in PV Master Control to show or hide all settings on this tab.
