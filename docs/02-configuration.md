@@ -1,4 +1,8 @@
-# Configuration
+# Settings
+
+The dashboard Settings tab contains the sensor setup, inverter setup, control thresholds, HBC settings, and tuning controls that were previously shown on Main. Press **Settings** in PV Master Control to show or hide all cards on this tab. The tab and button both use a cog icon.
+
+Operational cards such as Live Inputs, accuracy, graphs, and Insights are now on Main and do not depend on the Settings toggle. Their HPVC- and HBC-specific visibility rules still apply.
 
 ## Entity helpers
 
@@ -48,20 +52,35 @@ Writable Home Assistant `number` entity used to set the inverter power limit.
 Normal maximum/full limit in watts.
 
 `minimum_power`  
-Lowest limit Home PV Control may set for this inverter.
+Lowest limit Home PV Control may set for this inverter. Must be zero or positive and lower than `full_power`; a negative value is reported as a configuration error rather than being silently ignored.
 
-## Recommended values
+## Default values
 
-| Setting | Recommended |
+These are the recommended defaults applied once by the first-run Home Assistant automation. They're a reasonable, tested starting point — adjust to your own setup once things are running.
+
+| Setting | Default |
 |---|---:|
-| PV Limiting Price | 0.00 €/kWh |
-| Start Limiting Export | -200 W |
-| Target Export | -25 W |
-| Import Recalculation | 200 W |
-| Minimum PV Power | 100 W |
-| Night Restore | 10 W |
-| Minimum PV Change | 1 min |
-| Deadband | 25 W |
+| Home PV Control Enabled | On |
+| Notifications | On |
+| HBC Strategy Control | Off (starts disabled; enable manually once HBC is configured) |
+| Settings | Off |
+| Number of PV Inverters | 1 |
+| PV Limiting Price | 0.025 €/kWh |
+| Battery Charge All-in Price | 0.10 €/kWh |
+| Expensive All-in Price | 0.35 €/kWh |
+| Battery Price Hysteresis | 0.02 €/kWh |
+| Export Start Threshold | -150 W |
+| Target Export Power | -25 W |
+| Import Restore Threshold | 150 W |
+| Min PV for Control | 100 W |
+| Night Restore PV Fallback Threshold | 10 W |
+| PV Cooldown | 60 sec |
+| PV Adjustment Deadband | 25 W |
+| PV1–PV10 Full Limit | 0 W (must be set per inverter) |
+| PV1–PV10 Low Limit | 0 W (must be set per inverter) |
+| Balanced Strategy | Dynamic 2 |
+| Expensive Strategy | Sell |
+| Battery Strategy Entity | `input_select.house_battery_strategy` |
 
 ## Notes
 
@@ -70,3 +89,44 @@ The Node-RED flow reads the configured entity IDs from `input_text` helpers, so 
 ## Entity configuration
 
 The grid power, prices, PV power, PV limit, and HBC strategy entities are plain `input_text` fields rather than dropdowns. Paste the entity ID directly into each field (for example `sensor.p1_meter_power` or `number.hms_2000_4t_limit_nonpersistent_absolute`). This avoids generating large dynamic dropdown option lists on installations with many entities. If a field is left empty or contains an invalid entity ID, Home PV Control treats that input as unconfigured and reports a configuration error rather than guessing.
+
+## Hidden PV Reveal
+
+Hidden PV Reveal uses the configured **Export Start**, **Target Export**, **Deadband**, **Cooldown**, and **Min PV for control** settings. When HBC Control is enabled, HPVC automatically calculates safe reveal amounts from available battery charging headroom. No additional Reveal setting is required.
+
+**Export Start** determines when PV limiting begins. **Target Export** is the grid target HPVC tries to maintain and the upper edge of the Reveal recovery window. Hidden PV Reveal is allowed only after export has recovered to at least Export Start, preventing additional PV from being revealed while export remains excessive.
+
+The required relationships are:
+
+- `Export Start < Target Export <= 0 W`
+- `Import Restore >= 0 W`
+
+Invalid combinations produce a configuration error and block inverter writes until corrected. A 75–100 W gap between Export Start and Target Export is recommended for smooth control.
+
+**Min PV for control** prevents new export-limiting actions when measured PV production is already low. It does not block Import Restore or Hidden PV Reveal.
+
+**Cooldown** defines the minimum time between inverter-limit writes. During cooldown, HPVC continues monitoring but sends no new PV-limit command.
+
+**Deadband** is the minimum power difference required before HPVC sends a new inverter limit. Normal control applies it per inverter. Hidden PV Reveal applies it once to the total reveal request before preserving the proportional inverter split.
+
+## Entity-name change in v1.3.0
+
+All helpers, template entities, dashboard references, and Node-RED references now use the `hpvc_*` prefix. Examples include:
+
+- `input_boolean.hpvc_enabled` → `input_boolean.hpvc_enabled`
+- `input_text.hpvc_grid_power_sensor` → `input_text.hpvc_grid_power_sensor`
+- `input_number.hpvc_export_start_threshold` → `input_number.hpvc_export_start_threshold`
+
+This is an entity-ID rename, not only a display-name change. Existing settings under the old helpers are not transferred automatically. Replace the config, flow, and dashboard together, then copy or re-enter the values you want to keep.
+
+## Restore defaults button
+
+The **PV Master Control** dashboard includes a full-width **Restore defaults** tile. It calls `script.hpvc_restore_defaults`, which directly reapplies the recommended configurable values. A confirmation dialog is shown before the action runs. It preserves configured sensor entities, inverter limit entity selections, and the active inverter count.
+
+The restore action resets the shipped HPVC defaults, but it does not populate installation-specific core sensor or inverter entity IDs. After restoring, verify the sensor entities, inverter limit entities, maximum powers, minimum powers, inverter count, and optional HBC strategy entity.
+
+## First-run defaults and restart persistence
+
+Home PV Control helpers do not use `initial:` values in the shipped YAML. This lets Home Assistant restore user-edited values after a restart.
+
+A Home Assistant first-run automation applies recommended defaults only when `input_boolean.hpvc_defaults_applied` is still off. After the defaults are applied, that flag is turned on and restored by Home Assistant on later restarts, so user changes are not overwritten.
