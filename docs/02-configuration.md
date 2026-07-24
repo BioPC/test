@@ -23,11 +23,11 @@ Example:
 sensor.p1_meter_power
 ```
 
-### Market / Export Price Sensor
+### Market/export Price Sensor
 
-Used for PV limiting decisions.
+Used for PV limiting decisions. Select either a raw market-price sensor or a net export-price sensor. The existing helper name is retained for compatibility.
 
-Usually this should be the market price without taxes.
+Use `€0.00/kWh` as a neutral starting point. With a net export-price sensor, zero normally represents the financial break-even point. With a raw market-price sensor, adjust the PV limit threshold for supplier fees, compensation, taxes, saldering/net-metering, and other local rules. If HBC Price Zones must convert raw market forecasts to estimated all-in prices, a raw market-price sensor is recommended; a net export-price sensor remains valid for PV limiting but may make that optional graph conversion uncertain.
 
 ### All-in Import Price Sensor
 
@@ -65,7 +65,7 @@ These are the recommended defaults applied once by the first-run Home Assistant 
 | HBC Strategy Control | Off (starts disabled; enable manually once HBC is configured) |
 | Settings | Off |
 | Number of PV Inverters | 1 |
-| PV Limiting Price | 0.025 €/kWh |
+| PV Limiting Price | 0.00 €/kWh |
 | Battery Charge All-in Price | 0.10 €/kWh |
 | Expensive All-in Price | 0.35 €/kWh |
 | Battery Price Hysteresis | 0.02 €/kWh |
@@ -81,6 +81,21 @@ These are the recommended defaults applied once by the first-run Home Assistant 
 | Balanced Strategy | Dynamic 2 |
 | Expensive Strategy | Sell |
 | Battery Strategy Entity | `input_select.house_battery_strategy` |
+
+> **Price guidance:** `0.00 €/kWh` is the neutral shipped default. It is normally the break-even threshold for a correctly calculated net export-price sensor. A raw market-price sensor may require a positive or negative threshold depending on supplier fees, compensation, taxes, saldering/net-metering, and local rules.
+
+### Netherlands example
+
+The package does not calculate Dutch taxes, saldering, or supplier fees. The following values are examples for a **raw market-price sensor excluding VAT**, not universal defaults:
+
+| Situation | Example PV limit price |
+|---|---:|
+| Remaining annual saldering allowance in 2026 | approximately `-0.09 €/kWh` |
+| No remaining saldering allowance / annual net surplus | approximately `+0.02 €/kWh` |
+| From 1 January 2027, without saldering | supplier-specific; for about 2.48 eurocents/kWh export fees, approximately `+0.02 €/kWh` |
+| Correctly calculated net export-price sensor | `0.00 €/kWh` |
+
+The `-0.09 €/kWh` example assumes Dutch 2026 saldering value and a market sensor excluding VAT. The `+0.02 €/kWh` example is not a general Dutch tariff: it applies only when the effective export fee is close to 2.48 eurocents per kWh. From 2027, use the actual compensation and fees of your supplier. Verify whether your sensor includes VAT and whether your supplier applies different fees or compensation before using either value.
 
 ## Notes
 
@@ -113,20 +128,20 @@ Invalid combinations produce a configuration error and block inverter writes unt
 
 All helpers, template entities, dashboard references, and Node-RED references now use the `hpvc_*` prefix. Examples include:
 
-- `input_boolean.hpvc_enabled` → `input_boolean.hpvc_enabled`
-- `input_text.hpvc_grid_power_sensor` → `input_text.hpvc_grid_power_sensor`
-- `input_number.hpvc_export_start_threshold` → `input_number.hpvc_export_start_threshold`
+- `input_boolean.pv_ems_enabled` → `input_boolean.hpvc_enabled`
+- `input_text.pv_ems_grid_power_sensor` → `input_text.hpvc_grid_power_sensor`
+- `input_number.pv_ems_export_start_threshold` → `input_number.hpvc_export_start_threshold`
 
 This is an entity-ID rename, not only a display-name change. Existing settings under the old helpers are not transferred automatically. Replace the config, flow, and dashboard together, then copy or re-enter the values you want to keep.
 
 ## Restore defaults button
 
-The **PV Master Control** dashboard includes a full-width **Restore defaults** tile. It calls `script.hpvc_restore_defaults`, which directly reapplies the recommended configurable values. A confirmation dialog is shown before the action runs. It preserves configured sensor entities, inverter limit entity selections, and the active inverter count.
+The **PV Master Control** dashboard includes a full-width **Restore defaults** tile. It calls `script.hpvc_restore_defaults`, which directly reapplies the recommended configurable values. A confirmation dialog is shown before the action runs. It preserves configured sensor entities, inverter limit entity selections, the active inverter count, and the user's current HBC Strategy Control on/off state.
 
 The restore action resets the shipped HPVC defaults, but it does not populate installation-specific core sensor or inverter entity IDs. After restoring, verify the sensor entities, inverter limit entities, maximum powers, minimum powers, inverter count, and optional HBC strategy entity.
 
 ## First-run defaults and restart persistence
 
-Home PV Control helpers do not use `initial:` values in the shipped YAML. This lets Home Assistant restore user-edited values after a restart.
+User-configurable Home PV Control helpers do not use `initial:` values in the shipped YAML, allowing Home Assistant to restore user-edited settings after a restart. The transient `hpvc_report_ready` and `hpvc_report_generating` helpers intentionally use `initial: false` so stale report states are not restored.
 
 A Home Assistant first-run automation applies recommended defaults only when `input_boolean.hpvc_defaults_applied` is still off. After the defaults are applied, that flag is turned on and restored by Home Assistant on later restarts, so user changes are not overwritten.

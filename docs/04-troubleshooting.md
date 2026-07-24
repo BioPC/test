@@ -48,7 +48,7 @@ Confirm that the v1.3.0-or-newer package is loaded and that `script.hpvc_restore
 Check:
 
 - Home PV Control Enabled is on
-- Market price is at or below PV Limiting Price
+- Market/export price is at or below PV Limiting Price
 - Grid power is more negative than Export Start Threshold
 - PV power is above Min PV for control
 - Cooldown has passed
@@ -126,9 +126,11 @@ If PV is still reduced while several batteries are charging, check the exported 
 
 ## Price-zone graph is empty
 
-Check that `sensor.hbc_energy_prices_data` has recent `prices`, `marks`, `start`, and `datapoints_per_hour` attributes.
+Check that `sensor.hbc_energy_prices_data` has recent `prices` or `marks` data and valid timestamps. HPVC places points and matches the current interval using the timestamps and interval information provided by the sensor; 15 minutes is used only when no interval can be determined. The price-column width is visually inferred from timestamp spacing.
 
-- HPVC first checks the configured All-in price sensor, then the Market price sensor, for forecast attributes.
+The HBC forecast values are interpreted as eurocents per kWh and converted to euros for the graph. A raw value of `5` must therefore appear as `0.050 €/kWh`, not `5.000 €/kWh`. HPVC then detects whether the current HBC point matches the configured Market or All-in sensor. Market data uses the learned `market × multiplier + fixed component` estimate when ready; during startup or initial learning, HPVC uses the current `All-in − Market` difference as a fallback. All-in data is unchanged. If the graph shows **Price type uncertain**, verify that both configured price sensors and the current HBC interval are available and synchronized. The 12-hour learning progress survives a normal Node-RED restart through the internal `input_text.hpvc_hbc_price_learning_json` helper. If the graph still shows euro-scale spikes after updating, reload the dashboard resources and clear the browser cache.
+
+- HPVC first checks the configured All-in price sensor, then the Market/export price sensor, for forecast attributes. The automatic Market → estimated all-in conversion is most reliable when the configured Market/export sensor is a raw market-price sensor; a net export-price sensor can make the detected forecast type uncertain.
 
 - The source must expose timestamps and prices through `marks`, `prices` plus `start`, `today` / `tomorrow`, or a forecast/rates attribute.
 - The graph is displayed when `input_boolean.hpvc_control_hbc_strategy` is on. It is operational content on Main and no longer depends on `input_boolean.hpvc_config`. The selected HBC strategy does not affect graph data.
@@ -169,8 +171,11 @@ The HTML support report is generated only when **Generate report** is pressed. W
 
 ## Reading the redesigned report
 
-Start with **Executive status** and **Decision evaluation**. These sections show the active control mode, the reason for the decision, whether export limiting or import restore triggered, and whether cooldown, deadband, minimum-PV, reveal response, or another guard prevented a write. Use **Sensor health** to identify missing, unavailable, or stable numeric inputs.
+Start with **Executive status** and **Decision evaluation**. These sections show the active control mode, the reason for the decision, whether the export-limiting or import-restore condition is met, whether PV is currently limited, and whether cooldown, deadband, minimum-PV, reveal response, or another guard prevented a write. Use **Sensor health** to identify missing, unavailable, or stable numeric inputs.
 ### The report time did not change
 
 The generated time changes only after **Generate report** is pressed and the new file is written. After the report opens, the tile automatically resets. Return to the dashboard and press **Generate report** for a new current snapshot.
+### Generate or View report state appears stuck
+
+Report generation now blocks overlapping button presses and automatically clears its generation lock on success or failure. Build, file publication, and report-state service errors all enter the same cleanup path. The View report webhook also retries after network errors and non-success HTTP responses.
 

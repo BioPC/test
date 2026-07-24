@@ -1,4 +1,4 @@
-# v1.0.2 - Maintenance release
+# v1.0.1 - Maintenance release
 
 ## Highlights
 
@@ -22,7 +22,6 @@ Then reload Home Assistant helpers/dashboard and re-import the Node-RED flow.
 ## Notes
 
 During negative all-in electricity prices, Home PV Control automatically reduces PV to the user-configured minimum limits. Set those minimum limits to `0 W` only if your inverter supports it.
-
 
 ### Internal fixes
 - Fixed legacy text entity fallback when dropdowns are not selected.

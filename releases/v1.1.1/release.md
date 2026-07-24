@@ -6,4 +6,3 @@
 - Keeps the existing helper names where applicable.
 - Changed recommended `initial:` values to all Home Assistant helpers.
 - Minor dashboard fixes and cleanup.
-

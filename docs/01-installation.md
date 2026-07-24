@@ -20,7 +20,7 @@ Version 1.3.0 changes active legacy Home Assistant helper entity IDs from `pv_em
 4. Reload packages or restart Home Assistant, then deploy Node-RED.
 5. Re-enter or copy your previous sensor entities, inverter entities, limits, thresholds, and strategy selections into the new `hpvc_*` helpers.
 
-Do not mix a v1.3.0-or-newer file with an older config, flow, or dashboard: the renamed entities must match across all three files. Home Assistant may leave the old `hpvc_*` helpers visible until the old package definitions are removed and Home Assistant is restarted.
+Do not mix a v1.3.0-or-newer file with an older config, flow, or dashboard: the renamed entities must match across all three files. Home Assistant may leave the old `pv_ems_*` helpers visible until the old package definitions are removed and Home Assistant is restarted.
 
 ## Step 1 - Copy Home Assistant package
 
@@ -83,13 +83,13 @@ Set these helpers from the dashboard:
 
 ## Step 5 - Test
 
-Start with conservative values:
+Start with the shipped defaults and adjust them for your installation:
 
-- PV Limiting Price: `0.00`
-- Start Limiting When Exporting More Than: `-200 W`
+- PV Limiting Price: `0.00 €/kWh`
+- Start Limiting When Exporting More Than: `-150 W`
 - Target Export Power: `-25 W`
-- Import Recalculation Threshold: `200 W`
-- Minimum Minutes Between PV Changes: `1`
+- Import Restore Threshold: `150 W`
+- PV Cooldown: `60 sec`
 - Deadband: `25 W`
 
 
@@ -98,7 +98,7 @@ Start with conservative values:
 Install **ApexCharts Card** through HACS before using the supplied dashboard. The dashboard references `custom:apexcharts-card` for the price charts.
 
 
-## Step 5 - Verify installation
+## Step 6 - Verify installation
 
 After completing the configuration, verify that:
 

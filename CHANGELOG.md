@@ -1,13 +1,32 @@
 # Changelog
 
 ## v1.3.0
-- Improved Target Accuracy factor attribution while retaining exactly four factors. Recent writes, threshold/deadband holds, inverter boundaries, and stable off-target control are now attributed to **Control response**; measured load and PV changes are separated using the estimated house-load change. **Other** is reserved for genuinely unclassified samples.
 
 ### Entity renaming and migration
 - Renamed all active runtime entities from `pv_ems_*` to `hpvc_*`.
 - Renamed diagnostic entities to `sensor.hpvc_diag_*`.
 - Renamed the Settings helper to `input_boolean.hpvc_config`.
 - Added migration and upgrade guidance for renamed helpers, dashboards, automations, and external references.
+
+### Price-source guidance
+- Renamed the configured **Market price** display label to **Market/export price** without changing `input_text.hpvc_market_price_sensor`.
+- Clarified that the same helper may contain either a raw market-price sensor or a net export-price sensor.
+- Changed the shipped PV limit price default and Node-RED fallback from `€0.02/kWh` to the neutral `€0.00/kWh`; the threshold remains fully adjustable and no entity IDs changed.
+- Added supplier- and country-aware guidance, including clearly marked Netherlands examples for 2026 saldering and non-saldering situations.
+
+### Latest fixes
+- Clarified report decision evaluation by separating the export-limiting condition from the actual current PV-limited state.
+- Corrected the high-SOC Reveal documentation and source comments to match the implemented 200/100/50/25 W SOC bands.
+- Enforced the documented 1,000-entry cap on the current-day Node-RED Insights log while preserving the newest entries.
+- Aligned the Node-RED Export Start and Import Restore safety fallbacks with the shipped `−150 W` and `150 W` defaults.
+- Cached one Home Assistant state snapshot per Node-RED evaluation for consistent reads and fewer global-context lookups.
+- Restored change-only publishing for status, reason, last action, and accuracy diagnostics to reduce unnecessary Home Assistant state writes.
+- Fixed `input_text.hpvc_last_action` change detection so repeated control adjustments with the same broad status still refresh when the reason or target changes.
+- Removed unused diagnostic and report calculations that had no runtime effect.
+- Fixed the support-report status dot so it reflects the actual HPVC enabled state.
+- Removed obsolete report parsing and unused HBC diagnostic context writes.
+- Fixed HTML support-report generation after the cleanup left the report header referencing the removed `reportLines` array.
+- Improved Target Accuracy attribution while retaining the existing four-factor structure.
 
 ### Charge Priority and multi-battery control
 - Added per-battery Charge Priority using each battery's SOC, charging power, and known charge headroom.
@@ -43,6 +62,7 @@
 - Recorded Reveal Accuracy only when `revealEffectiveness` is finite; inactive cycles remain unavailable instead of being counted as 0%.
 
 ### Reliability and control safety
+- Fixed **Restore defaults** so it preserves the user's current HBC Strategy Control on/off state instead of forcing HBC control off.
 - Separated configuration validation from temporary live-input readiness.
 - Required numeric grid, price, PV, and active inverter-limit values before control can run.
 - Prevented inverter writes while required live inputs are unavailable.
@@ -79,6 +99,15 @@
 - Kept the report workflow free of browser token handling and exposed Node-RED ports.
 
 ### Dashboard and onboarding
+- Fixed the HBC Price Zones tooltip marker so it uses the selected column’s actual zone colour and displays as a rounded dot.
+- Kept the original single-series HBC Price Zones presentation, including the horizontal **Now** annotation, original spacing, automatic Y-axis and per-column zone colours.
+- Added a one-minute chart refresh so the custom current-time annotation does not remain stale between 15-minute HBC price updates.
+- Preserved the 48-hour forecast and market-to-all-in conversion: a valid sensor-owned learned model is preferred, with the current `all-in − market` difference used as fallback while learning or relearning.
+- Synchronized the dynamic price-type indicator with the graph by using the same cents/euros normalization and the same finite-coefficient validation before reporting a learned conversion.
+- Kept the JavaScript generator in a literal YAML block (`|`) so line boundaries remain intact and the graph does not hang on **Loading…**.
+- Improved HBC Price Zones source handling: forecast values are normalized to €/kWh, the current timestamped interval is preferred, invalid or stale sources fall back safely, and exact zero prices remain valid.
+- Detected Market forecasts use a restart-safe learned all-in formula after at least 12 hours, eight distinct prices and €0.05/kWh spread; the graph stays live with the current `all-in − market` fallback while learning or relearning.
+- Learning uses averaged repeated values and the four lowest/highest distinct prices, preserves exact sensor ownership, and validates monthly with three aligned pairs; graph status, Insights and support-report diagnostics remain synchronized.
 - Reorganized Main, Settings, diagnostics, graphs, accuracy, and Insights.
 - Renamed the **Restore recommended settings** dashboard action to **Restore defaults** without changing its behavior.
 - Added guided first-install onboarding while keeping HBC optional.
@@ -196,7 +225,7 @@
 - Minor dashboard fixes and cleanup.
 - Added `input_text.hpvc_battery_strategy_entity` to the settings-changed watch list so editing the HBC strategy entity re-runs the flow immediately instead of waiting up to 15s.
 - Added explicit validation for a negative inverter minimum power (`low_limit`); it is now reported as a configuration error instead of silently dropping the inverter from control.
-- Aligned `hpvc_config.yaml` default values, the documentation's default-values table, and `hacs.json` domain list (removed unused `automation`, added `binary_sensor`) so shipped config, docs, and packaging metadata all agree.
+- Aligned `hpvc_config.yaml` default values, the documentation's default-values table, and the `hacs.json` domain list; added the required `binary_sensor` domain while retaining `automation` for the included Home Assistant automations.
 
 ## v1.1.0
 

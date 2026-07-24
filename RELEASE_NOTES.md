@@ -1,12 +1,31 @@
 # Home PV Control v1.3.0 — Release Notes
 
 ## Entity migration
-- Target Accuracy keeps its four existing factors—Control response, House load changes, PV availability, and Other—but now classifies expected control holds and inverter-response effects under Control response. House-load movement is estimated independently from PV movement, leaving Other as a true fallback.
 - Renamed all runtime entities to the `hpvc_*` prefix.
 - Renamed diagnostic entities to `sensor.hpvc_diag_*`.
 - Renamed the Settings helper to `input_boolean.hpvc_config`.
 - Existing installations must update external references.
 - Review migrated helper values before enabling HPVC.
+
+## Price-source guidance
+- Renamed the configured **Market price** display label to **Market/export price**.
+- Clarified that the configured field accepts either a raw market-price sensor or a net export-price sensor.
+- Changed the shipped PV limit price default and Node-RED fallback from `€0.02/kWh` to the neutral `€0.00/kWh`; the value remains fully adjustable and no entity IDs changed.
+- Added supplier- and country-aware guidance, including clearly marked Netherlands examples.
+
+## Latest fixes
+- Clarified report decision evaluation by separating the export-limiting condition from the actual current PV-limited state.
+- Corrected the high-SOC Reveal documentation and source comments to match the implemented 200/100/50/25 W SOC bands.
+- Enforced the documented 1,000-entry cap on the current-day Node-RED Insights log while preserving the newest entries.
+- Aligned the Node-RED Export Start and Import Restore safety fallbacks with the shipped `−150 W` and `150 W` defaults.
+- Cached one Home Assistant state snapshot per Node-RED evaluation for consistent reads and fewer global-context lookups.
+- Restored change-only publishing for status, reason, last action, and accuracy diagnostics to reduce unnecessary Home Assistant state writes.
+- Fixed Last action publishing so repeated adjustments with the same status still update when the control reason or target changes.
+- Removed unused diagnostic and report calculations that had no runtime effect.
+- Fixed the support-report status dot so it reflects the actual HPVC enabled state.
+- Removed obsolete report parsing and unused HBC diagnostic context writes.
+- Fixed HTML support-report generation after the cleanup left the report header referencing the removed `reportLines` array.
+- Improved Target Accuracy attribution while retaining its four existing factors.
 
 ## Charge Priority
 - Batteries are evaluated independently using SOC, charging power, telemetry validity, and charge headroom.
@@ -29,6 +48,7 @@
 - Stale grid telemetry now creates a Reveal Insight instead of affecting Reveal Accuracy.
 
 ## Reliability and safety
+- Restore defaults now preserves the user's current HBC Strategy Control on/off state instead of forcing it off.
 - HPVC now validates required inputs before controlling inverter limits.
 - Missing telemetry pauses control safely until recovery.
 - Improved restart handling, cooldown logic, validation, and `sun.sun` night restore.
@@ -47,6 +67,15 @@
 - Report workflow is **Generate → Generating → View**.
 
 ## Dashboard
+- Fixed the HBC Price Zones tooltip marker so it matches the selected green, yellow, red, or blue column and displays as a rounded dot.
+- Kept the original single-series HBC Price Zones presentation, including the horizontal **Now** annotation, original spacing, automatic Y-axis and per-column zone colours.
+- Added a one-minute chart refresh so the custom current-time annotation stays current between 15-minute HBC price updates.
+- Preserved the 48-hour forecast and market-to-all-in conversion: a valid sensor-owned learned model is preferred, with the current `all-in − market` difference used as fallback while learning or relearning.
+- Synchronized the dynamic price-type indicator with the graph by using the same cents/euros normalization and finite learned-coefficient checks.
+- Kept the generator in a literal YAML block (`|`) to prevent the former permanent **Loading…** failure.
+- Improved HBC Price Zones source handling: forecast values are normalized to €/kWh, the current timestamped interval is preferred, invalid or stale sources fall back safely, and exact zero prices remain valid.
+- Detected Market forecasts use a restart-safe learned all-in formula after at least 12 hours, eight distinct prices and €0.05/kWh spread; the graph stays live with the current `all-in − market` fallback while learning or relearning.
+- Learning uses averaged repeated values and the four lowest/highest distinct prices, preserves exact sensor ownership, and validates monthly with three aligned pairs; graph status, Insights and support-report diagnostics remain synchronized.
 - Reorganized Main, Settings, Diagnostics, Accuracy, Graphs, and Insights.
 - Renamed **Restore recommended settings** to **Restore defaults**.
 - Improved badge layout and conditional HBC visibility.
@@ -66,3 +95,4 @@
 - Update automations, dashboards, scripts, and external references using old entity names.
 - Review renamed helper values before enabling HPVC.
 - Generate and open a new report to verify the three-state report workflow.
+- Restored the complete original HBC Price Zones ApexCharts presentation block, including its exact horizontal `Now` annotation placement, chart spacing, single-series rendering and automatic rounded Y-axis layout; only the YAML JavaScript block style was changed from folded to literal to prevent the loading failure.

@@ -22,7 +22,7 @@ Home PV Control calculates a target total PV limit and then distributes that tar
 HPVC separates **configuration validity** from **live input readiness**.
 
 - A missing or malformed entity ID in an HPVC helper is a configuration problem. HPVC allows up to 90 seconds after a Home Assistant restart for helpers to restore; if the problem remains, the status becomes **Configuration error**.
-- A correctly configured grid, market-price, all-in-price, PV-power, or active inverter-limit entity that reports `unknown`, `unavailable`, an empty state, or a non-numeric value is a live-input outage. HPVC sends no inverter writes while any required live input is unavailable.
+- A correctly configured grid, market/export-price, all-in-price, PV-power, or active inverter-limit entity that reports `unknown`, `unavailable`, an empty state, or a non-numeric value is a live-input outage. HPVC sends no inverter writes while any required live input is unavailable.
 - During the first 90 seconds of a live-input outage, the status is **Waiting for inputs**. If the outage lasts longer, the status becomes **Inputs unavailable** and control remains paused until every required value is numeric again.
 - When the live inputs recover, HPVC resumes normal evaluation and records an input-restored Insight.
 
@@ -78,8 +78,8 @@ The EMS never sets an inverter below this value.
 
 PV is restored to full power when:
 
-- market price is unavailable
-- market price rises above the PV limiting price plus the configured exit hysteresis
+- market/export price is unavailable
+- market/export price rises above the PV limiting price plus the configured exit hysteresis
 - when `sun.sun` is available, it remains `below_horizon` for 120 continuous seconds; or
 - when `sun.sun` is unavailable, PV production remains below the night restore fallback threshold for 120 continuous seconds
 
@@ -89,7 +89,7 @@ The active 120-second timer resets immediately when its condition stops being tr
 
 Normal export limiting is allowed when:
 
-- market price is at or below the PV limiting price
+- market/export price is at or below the PV limiting price
 - PV production is above Min PV for control
 - grid power is more negative than Export Start
 - cooldown has passed
@@ -130,9 +130,9 @@ For multi-battery control, HPVC evaluates and tracks each battery independently.
 
 ### High-SOC repeated reveal probes
 
-The configured maximum charge power is only an upper limit; near a high state of charge, the battery BMS may intentionally accept less power. After each reveal, HPVC compares the increase in battery charging with any increase in grid export. From 90% SOC, reveal steps are capped at 100 W; from 95% SOC, they are capped at 50 W. If a high-SOC reveal mostly becomes extra export instead of battery charging, HPVC pauses reveal immediately. It resumes when SOC falls below 90% or charging power clearly recovers.
+The configured maximum charge power is only an upper limit; near a high state of charge, the battery BMS may intentionally accept less power. After each reveal, HPVC compares the increase in battery charging with any increase in grid export. From 90% SOC, reveal steps use progressively smaller ceilings: 200 W at 90–94%, 100 W at 95–96%, 50 W at 97–98%, 25 W at 99%, and 0 W at 100%. If a high-SOC reveal mostly becomes extra export instead of battery charging, HPVC pauses reveal immediately. It resumes when SOC falls below 90% or charging power clearly recovers.
 
-**Example:** A battery is at 92% SOC and charging at 500 W. HPVC reveals 100 W, but charging rises by only 10 W while export rises by 90 W. HPVC detects the weak charging response and pauses further reveal instead of repeating a limit → reveal → limit cycle.
+**Example:** A battery is at 92% SOC and charging at 500 W. HPVC reveals 200 W, but charging rises by only 20 W while export rises by 180 W. HPVC detects the weak charging response and pauses further reveal instead of repeating a limit → reveal → limit cycle.
 
 ## Reveal accuracy guard and stability score
 
@@ -165,7 +165,7 @@ When Hidden PV Reveal reaches the full region, HPVC verifies every inverter. If 
 
 ## First-run defaults and restart persistence
 
-Home PV Control helpers do not use `initial:` values in the shipped YAML. This lets Home Assistant restore user-edited values after a restart.
+User-configurable Home PV Control helpers do not use `initial:` values in the shipped YAML, allowing Home Assistant to restore user-edited settings after a restart. The transient `hpvc_report_ready` and `hpvc_report_generating` helpers intentionally use `initial: false` so stale report states are not restored.
 
 A Home Assistant first-run automation applies recommended defaults only when `input_boolean.hpvc_defaults_applied` is still off. After the defaults are applied, that flag is turned on and restored by Home Assistant on later restarts, so user changes are not overwritten.
 
@@ -187,7 +187,7 @@ In the HTML report, Master control and HBC control enabled Insights use the on s
 
 ### Restore defaults
 
-The **Restore defaults** button resets only the recommended HPVC control settings.
+The **Restore defaults** button resets only the recommended HPVC control settings. It preserves the user's current HBC Strategy Control on/off state.
 
 ```text
 Dashboard button
@@ -249,7 +249,7 @@ The report includes executive status, live inputs, decision evaluation, daily ac
 
 ## PV price hysteresis
 
-PV limiting enters immediately when the market price is at or below the configured PV limit price. Once active, it remains active through the hysteresis band and exits only when the market price rises above `PV limit price + price hysteresis`. Negative all-in-price mode remains the highest priority. During HBC **Charge**, full PV is restored only for meaningful, known maximum-power headroom below the high-SOC band. Small margins, unknown maximum-power data, and high-SOC batteries stay under normal export limiting with bounded adaptive Reveal. Charge startup and telemetry state are tracked per battery for 60 and 30 seconds; unknown SOC receives only a 15-second startup fallback. Internal 90/89% and 95/94% SOC hysteresis prevents boundary oscillation. These safeguards require no extra user input.
+PV limiting enters immediately when the configured market/export price is at or below the PV limit price. Once active, it remains active through the hysteresis band and exits only when that price rises above `PV limit price + price hysteresis`. Negative all-in-price mode remains the highest priority. During HBC **Charge**, full PV is restored only for meaningful, known maximum-power headroom below the high-SOC band. Small margins, unknown maximum-power data, and high-SOC batteries stay under normal export limiting with bounded adaptive Reveal. Charge startup and telemetry state are tracked per battery for 60 and 30 seconds; unknown SOC receives only a 15-second startup fallback. Internal 90/89% and 95/94% SOC hysteresis prevents boundary oscillation. These safeguards require no extra user input.
 
 ## HBC charge and expensive price hysteresis
 
@@ -267,7 +267,13 @@ For example, with Charge `0.10`, Expensive `0.35`, and hysteresis `0.02` €/kWh
 
 The dashboard displays a 48-hour Price Zones graph using `sensor.hbc_energy_prices_data`. The graph is shown on Main when HBC strategy control is enabled.
 
-The graph reads the forecast attributes published by HBC, including `marks` or raw `prices`, `start`, and `datapoints_per_hour` when available. HPVC does not create its own forecast proxy and does not require an additional forecast helper.
+The graph reads the forecast attributes published by HBC, including `marks` or raw `prices` with `start`. Point placement and current-interval matching use the timestamps and interval information supplied by `sensor.hbc_energy_prices_data`: explicit end times first, then the next point timestamp, then `datapoints_per_hour`, with 15 minutes only as a fallback. Because the card remains a price-column chart, ApexCharts visually infers each column width from timestamp spacing; explicit end times are used for matching but are not rendered as independent column-width values. HPVC does not create its own forecast proxy and does not require an additional forecast helper.
+
+HBC forecast values are supplied in eurocents per kWh. The dashboard divides every value by 100 before plotting it on the `€/kWh` axis. For example, `5` is displayed as `0.050 €/kWh`, and `-3` as `-0.030 €/kWh`.
+
+HPVC compares the current HBC forecast point with the configured Market and All-in price sensors. If HBC matches Market more closely, each forecast point uses the learned `market × multiplier + fixed component` estimate when the model is ready. Until enough varied samples exist, HPVC temporarily adds the current `All-in − Market` difference as a startup fallback. If HBC already matches All-in, no conversion is applied. When the Market and All-in match scores differ by less than `0.01 €/kWh`, the original HBC prices are shown and the graph reports **Price type uncertain**.
+
+The compact graph status is **Market → estimated all-in**, **All-in prices**, or **Price type uncertain**. The estimate applies the current `all-in − market` difference to all displayed market-price points. Insights log only a change of detected type, and the support report records the detected type and conversion.
 
 If HBC does not publish forecast data to `sensor.hbc_energy_prices_data` for the active strategy, the graph may remain empty or show **Loading**.
 
@@ -310,3 +316,7 @@ Target Accuracy continues to use four factors:
 - **Other**: only samples that cannot be explained by the three categories above.
 
 This changes factor attribution only. It does not change the Target Accuracy score, PV control decisions, thresholds, cooldown, inverter writes, HBC, or Hidden PV Reveal.
+
+### Learned HBC all-in estimate
+
+When HBC provides market prices, HPVC automatically learns an approximate relationship between the configured Market and All-in sensors. It collects changed, time-aligned pairs for at least 12 hours while retaining up to 96 readings. The graph remains available from the first moment: during learning or relearning, HPVC applies the current `All-in − Market` difference to every displayed market-price point. After at least eight changed pairs containing at least eight distinct Market prices spanning at least `€0.05/kWh`, and once the 12-hour collection period has completed, HPVC groups recurring Market prices, averages their corresponding All-in readings, and fits the formula from the four lowest and four highest distinct Market-price points; graph points then use `estimated all-in = market × learned multiplier + learned fixed component`. After learning, HPVC stores the formula and stops collecting training samples. Once every 30 days it validates the model using three changed, time-aligned pairs; it starts a fresh learning cycle only when their average error exceeds `€0.01/kWh`. The stored coefficients survive a normal Node-RED restart. The internal `input_text.hpvc_hbc_price_learning_json` helper also preserves the collection start, total pair count, four lowest distinct points, four highest distinct points, and partial monthly-validation pairs, so restarting Node-RED does not restart the 12-hour wait. No additional user-configurable input is required. The graph labels learned values as **Market → estimated all-in (learned)** because the result remains an estimate rather than an exact tariff reconstruction.
