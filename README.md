@@ -205,7 +205,7 @@ On-demand live support report with HTML viewing and TXT download.
 
 <p align="center">
   <a href="assets/screenshots/view_report.png">
-    <img src="assets/screenshots/view_report.png" alt="Home PV Control report" width="50%" title="Click to view full size">
+    <img src="assets/screenshots/view_report.png" alt="Home PV Control report" width="25%" title="Click to view full size">
   </a>
 </p>
 
