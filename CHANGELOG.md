@@ -9,12 +9,6 @@
 - Renamed the Settings helper to `input_boolean.hpvc_config`.
 - Added migration and upgrade guidance for renamed helpers, dashboards, automations, and external references.
 
-### Price-source guidance
-- Renamed the configured **Market price** display label to **Market/export price** without changing `input_text.hpvc_market_price_sensor`.
-- Clarified that the same helper may contain either a raw market-price sensor or a net export-price sensor.
-- Changed the shipped PV limit price default and Node-RED fallback from `€0.02/kWh` to the neutral `€0.00/kWh`; the threshold remains fully adjustable.
-- Added supplier- and country-aware guidance, including clearly marked Netherlands examples for 2026 saldering and non-saldering situations.
-
 ### Latest fixes
 - Corrected multi-battery Hidden PV Reveal documentation so eligible idle batteries are described as SOC-capped bootstrap contributors.
 - Removed an unused missing-sensor accumulator from support-report generation.
@@ -33,6 +27,26 @@
 - Removed obsolete report parsing and unused HBC diagnostic context writes.
 - Fixed HTML support-report generation after the cleanup left the report header referencing the removed `reportLines` array.
 - Improved Target Accuracy attribution while retaining the existing four-factor structure.
+
+### Upgrade notes
+- Replace the Home Assistant package, dashboard, and Node-RED flow together.
+- Update external references that still use `pv_ems_*`, `sensor.hpvc_debug_*`, or `input_boolean.hpvc_debug`.
+- Review renamed helper values before enabling HPVC.
+- Generate a new report after upgrading to verify the final three-state report workflow.
+
+### Reliability and control safety
+- Fixed **Restore defaults** so it preserves the user's current HBC Strategy Control on/off state instead of forcing HBC control off.
+- Separated configuration validation from temporary live-input readiness.
+- Required numeric grid, price, PV, and active inverter-limit values before control can run.
+- Prevented inverter writes while required live inputs are unavailable.
+- Resumed control automatically after all required values recover.
+- Preserved the intended priority of negative-price mode, Import Restore, export limiting, cooldown, and `sun.sun` night restore.
+- Improved restart handling, validation, cooldown behavior, and safe state cleanup.
+- Fixed the `rememberedMaxChargePowers is not defined` runtime error that stopped battery processing, inverter writes, and Insights.
+- Flattened multi-message output batching for the HBC detection/status port so Node-RED always receives a valid one-level message array.
+- Corrected Reveal Accuracy attribution to use the real `adjust` action instead of the unreachable `limit` action.
+- Added report build/write error handling that resets report-state helpers and creates a persistent notification.
+- Initialized report-state helpers to off after Home Assistant restart or reload, preventing stale View or Generating states.
 
 ### Charge Priority and multi-battery control
 - Added per-battery Charge Priority using each battery's SOC, charging power, and known charge headroom.
@@ -67,19 +81,11 @@
 - Counted overshoot only after grid power passes beyond Target Export and deadband.
 - Recorded Reveal Accuracy only when `revealEffectiveness` is finite; inactive cycles remain unavailable instead of being counted as 0%.
 
-### Reliability and control safety
-- Fixed **Restore defaults** so it preserves the user's current HBC Strategy Control on/off state instead of forcing HBC control off.
-- Separated configuration validation from temporary live-input readiness.
-- Required numeric grid, price, PV, and active inverter-limit values before control can run.
-- Prevented inverter writes while required live inputs are unavailable.
-- Resumed control automatically after all required values recover.
-- Preserved the intended priority of negative-price mode, Import Restore, export limiting, cooldown, and `sun.sun` night restore.
-- Improved restart handling, validation, cooldown behavior, and safe state cleanup.
-- Fixed the `rememberedMaxChargePowers is not defined` runtime error that stopped battery processing, inverter writes, and Insights.
-- Flattened multi-message output batching for the HBC detection/status port so Node-RED always receives a valid one-level message array.
-- Corrected Reveal Accuracy attribution to use the real `adjust` action instead of the unreachable `limit` action.
-- Added report build/write error handling that resets report-state helpers and creates a persistent notification.
-- Initialized report-state helpers to off after Home Assistant restart or reload, preventing stale View or Generating states.
+### Price-source guidance
+- Renamed the configured **Market price** display label to **Market/export price** without changing `input_text.hpvc_market_price_sensor`.
+- Clarified that the same helper may contain either a raw market-price sensor or a net export-price sensor.
+- Changed the shipped PV limit price default and Node-RED fallback from `€0.02/kWh` to the neutral `€0.00/kWh`; the threshold remains fully adjustable.
+- Added supplier- and country-aware guidance, including clearly marked Netherlands examples for 2026 saldering and non-saldering situations.
 
 ### Diagnostics and reports
 - Rebuilt the HTML and TXT support reports around one shared data model so labels, values, and ordering remain synchronized.
@@ -134,12 +140,6 @@
 - Updated the entity inventories for the final report helpers and workflow.
 - Synchronized the README, changelog, release notes, and v1.3.0 release page.
 - Removed obsolete references to periodic, automatic, event-driven, or token-based report generation.
-
-### Upgrade notes
-- Replace the Home Assistant package, dashboard, and Node-RED flow together.
-- Update external references that still use `pv_ems_*`, `sensor.hpvc_debug_*`, or `input_boolean.hpvc_debug`.
-- Review renamed helper values before enabling HPVC.
-- Generate a new report after upgrading to verify the final three-state report workflow.
 
 ## v1.2.0
 

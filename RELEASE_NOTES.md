@@ -8,12 +8,6 @@
 - Existing installations must update external references.
 - Review migrated helper values before enabling HPVC.
 
-## Price-source guidance
-- Renamed the configured **Market price** display label to **Market/export price**.
-- Clarified that the configured field accepts either a raw market-price sensor or a net export-price sensor.
-- Changed the shipped PV limit price default and Node-RED fallback from `€0.02/kWh` to the neutral `€0.00/kWh`; the value remains fully adjustable.
-- Added supplier- and country-aware guidance, including clearly marked Netherlands examples.
-
 ## Latest fixes
 - Corrected multi-battery Hidden PV Reveal documentation so eligible idle batteries are described as SOC-capped bootstrap contributors.
 - Removed an unused missing-sensor accumulator from support-report generation.
@@ -32,6 +26,25 @@
 - Removed obsolete report parsing and unused HBC diagnostic context writes.
 - Fixed HTML support-report generation after the cleanup left the report header referencing the removed `reportLines` array.
 - Improved Target Accuracy attribution while retaining its four existing factors.
+
+## Upgrade notes
+- Replace `home assistant/hpvc_config.yaml`.
+- Replace `home assistant/hpvc_dashboard.yaml`.
+- Re-import `node-red/hpvc_flow.json`.
+- Update automations, dashboards, scripts, and external references using old entity names.
+- Review renamed helper values before enabling HPVC.
+- Generate and open a new report to verify the three-state report workflow.
+- Restored the complete original HBC Price Zones ApexCharts presentation block, including its exact horizontal `Now` annotation placement, chart spacing, single-series rendering and automatic rounded Y-axis layout; only the YAML JavaScript block style was changed from folded to literal to prevent the loading failure.
+
+## Reliability and safety
+- Restore defaults now preserves the user's current HBC Strategy Control on/off state instead of forcing it off.
+- HPVC now validates required inputs before controlling inverter limits.
+- Missing telemetry pauses control safely until recovery.
+- Improved restart handling, cooldown logic, validation, and `sun.sun` night restore.
+- Fixed `rememberedMaxChargePowers is not defined`.
+- Fixed HBC status output batching.
+- Fixed Reveal Accuracy attribution.
+- Report failures now reset report helpers and create a persistent notification.
 
 ## Charge Priority
 - Batteries are evaluated independently using SOC, charging power, telemetry validity, and charge headroom.
@@ -53,15 +66,11 @@
 - Batteries are managed independently; tapering one battery does not pause the others.
 - Stale grid telemetry now creates a Reveal Insight instead of affecting Reveal Accuracy.
 
-## Reliability and safety
-- Restore defaults now preserves the user's current HBC Strategy Control on/off state instead of forcing it off.
-- HPVC now validates required inputs before controlling inverter limits.
-- Missing telemetry pauses control safely until recovery.
-- Improved restart handling, cooldown logic, validation, and `sun.sun` night restore.
-- Fixed `rememberedMaxChargePowers is not defined`.
-- Fixed HBC status output batching.
-- Fixed Reveal Accuracy attribution.
-- Report failures now reset report helpers and create a persistent notification.
+## Price-source guidance
+- Renamed the configured **Market price** display label to **Market/export price**.
+- Clarified that the configured field accepts either a raw market-price sensor or a net export-price sensor.
+- Changed the shipped PV limit price default and Node-RED fallback from `€0.02/kWh` to the neutral `€0.00/kWh`; the value remains fully adjustable.
+- Added supplier- and country-aware guidance, including clearly marked Netherlands examples.
 
 ## Diagnostics and reports
 - HTML and TXT reports now use the same data model.
@@ -94,11 +103,3 @@
 - Removed obsolete references to automatic report generation.
 - Standardized all v1.3.0 documentation.
 
-## Upgrade notes
-- Replace `home assistant/hpvc_config.yaml`.
-- Replace `home assistant/hpvc_dashboard.yaml`.
-- Re-import `node-red/hpvc_flow.json`.
-- Update automations, dashboards, scripts, and external references using old entity names.
-- Review renamed helper values before enabling HPVC.
-- Generate and open a new report to verify the three-state report workflow.
-- Restored the complete original HBC Price Zones ApexCharts presentation block, including its exact horizontal `Now` annotation placement, chart spacing, single-series rendering and automatic rounded Y-axis layout; only the YAML JavaScript block style was changed from folded to literal to prevent the loading failure.
