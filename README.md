@@ -205,10 +205,10 @@ On-demand live support report with HTML viewing and TXT download.
 
 <p align="center">
   <a href="assets/screenshots/view_report_top.png">
-    <img src="assets/screenshots/view_report_top.png" alt="Home PV Control report — upper section" width="49%" title="Click to view full size">
+    <img src="assets/screenshots/view_report_top.png" alt="Home PV Control report — upper section" width="25%" title="Click to view full size">
   </a>
   <a href="assets/screenshots/view_report_bottom.png">
-    <img src="assets/screenshots/view_report_bottom.png" alt="Home PV Control report — lower section" width="49%" title="Click to view full size">
+    <img src="assets/screenshots/view_report_bottom.png" alt="Home PV Control report — lower section" width="25%" title="Click to view full size">
   </a>
 </p>
 
@@ -216,7 +216,7 @@ On-demand live support report with HTML viewing and TXT download.
 
 <p align="center">
   <a href="assets/screenshots/node_red_flow.png">
-    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED flow" width="50%" title="Click to view full size">
+    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED flow" width="75%" title="Click to view full size">
   </a>
 </p>
 
