@@ -204,8 +204,11 @@ Entity selection, inverter configuration, control thresholds, and advanced optio
 On-demand live support report with HTML viewing and TXT download.
 
 <p align="center">
-  <a href="assets/screenshots/view_report.png">
-    <img src="assets/screenshots/view_report.png" alt="Home PV Control report" width="25%" title="Click to view full size">
+  <a href="assets/screenshots/view_report_top.png">
+    <img src="assets/screenshots/view_report_top.png" alt="Home PV Control report — upper section" width="49%" title="Click to view full size">
+  </a>
+  <a href="assets/screenshots/view_report_bottom.png">
+    <img src="assets/screenshots/view_report_bottom.png" alt="Home PV Control report — lower section" width="49%" title="Click to view full size">
   </a>
 </p>
 
