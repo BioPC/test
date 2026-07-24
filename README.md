@@ -41,6 +41,7 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 - [Documentation](#documentation)
 - [Screenshots](#screenshots)
 - [Support](#support)
+- [Support the project](#support-the-project)
 - [Repository structure](#repository-structure)
 - [License](#license)
 
@@ -211,6 +212,17 @@ Before opening an issue:
 4. Describe the expected behaviour and what actually happened.
 
 Use [GitHub Issues](https://github.com/BioPC/home-pv-control/issues) for reproducible bugs and feature requests.
+
+## Support the project
+
+Home PV Control is free and open source. If you find it useful, you can support continued development and testing.
+
+<p align="left">
+  <a href="https://ko-fi.com/markoceri"><img src="https://img.shields.io/badge/Ko--fi-Support%20me-FF5E5B?logo=ko-fi&logoColor=white" alt="Support on Ko-fi"></a>
+  <a href="https://paypal.me/markoceri"><img src="https://img.shields.io/badge/PayPal-Support%20me-003087?logo=paypal&logoColor=white" alt="Support with PayPal"></a>
+</p>
+
+GitHub also displays these options through the repository’s **Sponsor** button.
 
 ## Repository structure
 
