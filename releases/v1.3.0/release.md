@@ -7,19 +7,6 @@
 - Renamed the Settings helper to `input_boolean.hpvc_config`.
 - Added migration guidance for helpers and external references.
 
-## Price-source guidance
-- Renamed the configured **Market price** display label to **Market/export price**.
-- Clarified that the configured field accepts either a raw market-price sensor or a net export-price sensor.
-- Changed the shipped PV limit price default and Node-RED fallback from `€0.02/kWh` to the neutral `€0.00/kWh`; the value remains fully adjustable.
-- Added supplier- and country-aware guidance, including clearly marked Netherlands examples.
-
-## Runtime cleanup and publishing
-- Aligned the Node-RED Export Start and Import Restore safety fallbacks with the shipped `−150 W` and `150 W` defaults, including support-report fallbacks.
-- Cached one Home Assistant state snapshot per Node-RED evaluation and report build for consistent reads and fewer global-context lookups.
-- Restored change-only publishing for status, reason, Last action, and accuracy diagnostics to reduce unnecessary Home Assistant writes.
-- Made Last action use a combined status-and-reason signature so repeated adjustments with the same broad status still update when the reason or target changes.
-- Removed unused diagnostic and report calculations that had no runtime effect.
-
 ## Latest fixes
 - Corrected multi-battery Hidden PV Reveal documentation so eligible idle batteries are described as SOC-capped bootstrap contributors.
 - Removed an unused missing-sensor accumulator from support-report generation.
@@ -30,6 +17,18 @@
 - Fixed the support-report status dot so it reflects the actual HPVC enabled state.
 - Removed obsolete report parsing and unused HBC diagnostic context writes.
 - Fixed HTML support-report generation after the cleanup left the report header referencing the removed `reportLines` array.
+
+## Upgrade notes
+- Replace the Home Assistant package and dashboard, then re-import the Node-RED flow.
+- Update external references that still use old entity names.
+- Review renamed helper values before enabling HPVC.
+
+## Reliability and control safety
+- Separated invalid configuration from temporary live-input outages.
+- Prevented inverter writes until all required numeric inputs are available and resumed automatically after recovery.
+- Fixed the remembered maximum-charge map runtime error.
+- Fixed malformed Node-RED output batching and Reveal Accuracy action attribution.
+- Added safe report failure recovery and clean report-helper initialization after restart.
 
 ## Charge Priority and multi-battery control
 - Added independent per-battery Charge Priority using SOC, charging power, telemetry validity, and known headroom.
@@ -43,12 +42,11 @@
 - Kept normal export limiting and Import Restore active when priority charging is not justified.
 - Corrected Reveal Insights and made Reveal Accuracy measure movement toward Target Export.
 
-## Reliability and control safety
-- Separated invalid configuration from temporary live-input outages.
-- Prevented inverter writes until all required numeric inputs are available and resumed automatically after recovery.
-- Fixed the remembered maximum-charge map runtime error.
-- Fixed malformed Node-RED output batching and Reveal Accuracy action attribution.
-- Added safe report failure recovery and clean report-helper initialization after restart.
+## Price-source guidance
+- Renamed the configured **Market price** display label to **Market/export price**.
+- Clarified that the configured field accepts either a raw market-price sensor or a net export-price sensor.
+- Changed the shipped PV limit price default and Node-RED fallback from `€0.02/kWh` to the neutral `€0.00/kWh`; the value remains fully adjustable.
+- Added supplier- and country-aware guidance, including clearly marked Netherlands examples.
 
 ## Diagnostics and reports
 - Unified HTML and TXT reports around one synchronized data model.
@@ -74,6 +72,13 @@
 - Improved accuracy availability handling and simplified the current-day accuracy display.
 - Reorganized the Node-RED canvas into clearly labeled functional sections.
 
+## Runtime cleanup and publishing
+- Aligned the Node-RED Export Start and Import Restore safety fallbacks with the shipped `−150 W` and `150 W` defaults, including support-report fallbacks.
+- Cached one Home Assistant state snapshot per Node-RED evaluation and report build for consistent reads and fewer global-context lookups.
+- Restored change-only publishing for status, reason, Last action, and accuracy diagnostics to reduce unnecessary Home Assistant writes.
+- Made Last action use a combined status-and-reason signature so repeated adjustments with the same broad status still update when the reason or target changes.
+- Removed unused diagnostic and report calculations that had no runtime effect.
+
 ## Documentation
 - Removed the duplicated Wiki folder and consolidated documentation under `/docs`.
 - Reorganized the main documentation with consistent navigation, shipped-default wording, clearer installation steps, and symptom-based troubleshooting.
@@ -81,7 +86,3 @@
 - Removed obsolete report-generation descriptions.
 - Synchronized the changelog, release notes, and this release page.
 
-## Upgrade notes
-- Replace the Home Assistant package and dashboard, then re-import the Node-RED flow.
-- Update external references that still use old entity names.
-- Review renamed helper values before enabling HPVC.
