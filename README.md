@@ -24,7 +24,11 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 - Restore inverter output automatically when conditions improve
 - Operate independently or alongside Home Battery Control
 
-![Home PV Control dashboard](assets/screenshots/dashboard_main.png)
+<p align="center">
+  <a href="assets/screenshots/dashboard_main.png">
+    <img src="assets/screenshots/dashboard_main.png" alt="Home PV Control dashboard" width="50%" title="Click to view full size">
+  </a>
+</p>
 
 > [!IMPORTANT]
 > HPVC requires at least one writable inverter power-limit entity exposed to Home Assistant. It does not communicate directly with an inverter; compatibility depends on the Home Assistant integration providing readable PV power and writable limit entities.
@@ -166,7 +170,6 @@ The flow calculates a total target PV output, distributes it proportionally acro
 When upgrading from an older release, keep the Home Assistant package, Node-RED flow, and dashboard on the same version. Review:
 
 - entity-name migration;
-- diagnostic sensor migration from `sensor.hpvc_diag_market_price` to `sensor.hpvc_diag_market_export_price`;
 - dashboard entity references;
 - Node-RED flow replacement;
 - restored-default behaviour;
@@ -190,17 +193,29 @@ For Home Battery Control itself, see the [HBC documentation](https://docs.homeba
 
 Entity selection, inverter configuration, control thresholds, and advanced options.
 
-![Settings](assets/screenshots/dashboard_settings.png)
+<p align="center">
+  <a href="assets/screenshots/dashboard_settings.png">
+    <img src="assets/screenshots/dashboard_settings.png" alt="Home PV Control settings" width="50%" title="Click to view full size">
+  </a>
+</p>
 
 ### View report
 
 On-demand live support report with HTML viewing and TXT download.
 
-![View report](assets/screenshots/view_report.png)
+<p align="center">
+  <a href="assets/screenshots/view_report.png">
+    <img src="assets/screenshots/view_report.png" alt="Home PV Control report" width="50%" title="Click to view full size">
+  </a>
+</p>
 
 ### Node-RED flow
 
-![Node-RED flow](assets/screenshots/node_red_flow.png)
+<p align="center">
+  <a href="assets/screenshots/node_red_flow.png">
+    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED flow" width="50%" title="Click to view full size">
+  </a>
+</p>
 
 ## Support
 
