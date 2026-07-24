@@ -5,16 +5,22 @@
 ### Entity renaming and migration
 - Renamed all active runtime entities from `pv_ems_*` to `hpvc_*`.
 - Renamed diagnostic entities to `sensor.hpvc_diag_*`.
+- Migrated `sensor.hpvc_diag_market_price` to `sensor.hpvc_diag_market_export_price` and added an explicit fresh-install entity ID.
 - Renamed the Settings helper to `input_boolean.hpvc_config`.
 - Added migration and upgrade guidance for renamed helpers, dashboards, automations, and external references.
 
 ### Price-source guidance
 - Renamed the configured **Market price** display label to **Market/export price** without changing `input_text.hpvc_market_price_sensor`.
 - Clarified that the same helper may contain either a raw market-price sensor or a net export-price sensor.
-- Changed the shipped PV limit price default and Node-RED fallback from `€0.02/kWh` to the neutral `€0.00/kWh`; the threshold remains fully adjustable and no entity IDs changed.
+- Changed the shipped PV limit price default and Node-RED fallback from `€0.02/kWh` to the neutral `€0.00/kWh`; the threshold remains fully adjustable.
 - Added supplier- and country-aware guidance, including clearly marked Netherlands examples for 2026 saldering and non-saldering situations.
 
 ### Latest fixes
+- Corrected multi-battery Hidden PV Reveal documentation so eligible idle batteries are described as SOC-capped bootstrap contributors.
+- Removed an unused missing-sensor accumulator from support-report generation.
+- Reordered Decision evaluation so **PV currently limited** appears immediately before **Negative-price mode** in both HTML and TXT reports.
+- Removed the duplicate `/docs/wiki` content and consolidated all user documentation under `/docs`.
+- Reorganized installation, settings, How it works, and troubleshooting pages with consistent navigation, terminology, symptom-based troubleshooting, and current v1.3.0 behavior.
 - Clarified report decision evaluation by separating the export-limiting condition from the actual current PV-limited state.
 - Corrected the high-SOC Reveal documentation and source comments to match the implemented 200/100/50/25 W SOC bands.
 - Enforced the documented 1,000-entry cap on the current-day Node-RED Insights log while preserving the newest entries.

@@ -3,6 +3,7 @@
 ## Entity migration
 - Renamed all runtime entities to the `hpvc_*` prefix.
 - Renamed diagnostic entities to `sensor.hpvc_diag_*`.
+- Migrated `sensor.hpvc_diag_market_price` to `sensor.hpvc_diag_market_export_price` and added an explicit fresh-install entity ID.
 - Renamed the Settings helper to `input_boolean.hpvc_config`.
 - Existing installations must update external references.
 - Review migrated helper values before enabling HPVC.
@@ -10,10 +11,15 @@
 ## Price-source guidance
 - Renamed the configured **Market price** display label to **Market/export price**.
 - Clarified that the configured field accepts either a raw market-price sensor or a net export-price sensor.
-- Changed the shipped PV limit price default and Node-RED fallback from `€0.02/kWh` to the neutral `€0.00/kWh`; the value remains fully adjustable and no entity IDs changed.
+- Changed the shipped PV limit price default and Node-RED fallback from `€0.02/kWh` to the neutral `€0.00/kWh`; the value remains fully adjustable.
 - Added supplier- and country-aware guidance, including clearly marked Netherlands examples.
 
 ## Latest fixes
+- Corrected multi-battery Hidden PV Reveal documentation so eligible idle batteries are described as SOC-capped bootstrap contributors.
+- Removed an unused missing-sensor accumulator from support-report generation.
+- Reordered Decision evaluation so **PV currently limited** appears immediately before **Negative-price mode** in both HTML and TXT reports.
+- Removed the duplicated Wiki folder and consolidated documentation under `/docs`.
+- Improved documentation navigation, terminology, installation clarity, and symptom-based troubleshooting.
 - Clarified report decision evaluation by separating the export-limiting condition from the actual current PV-limited state.
 - Corrected the high-SOC Reveal documentation and source comments to match the implemented 200/100/50/25 W SOC bands.
 - Enforced the documented 1,000-entry cap on the current-day Node-RED Insights log while preserving the newest entries.

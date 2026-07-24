@@ -1,181 +1,155 @@
 # Troubleshooting
 
-## Installation
-- Configuration remains invalid.
-- Required entities are unavailable.
-- Dashboard or Restore Defaults button does not work after installation.
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
 
-## PV control
-- PV does not limit when expected.
-- PV does not restore.
-- Import while PV is limited.
-- Night restore behaviour.
+Use the generated support report first. **Executive summary**, **Decision evaluation**, **Sensor health**, **Inverters**, and **Today’s Insights** usually identify the blocking condition quickly.
 
-## Hidden PV Reveal
+## Installation and configuration
 
-If Hidden PV Reveal never activates, verify:
+### Entities are unavailable after upgrading to v1.3.0
 
-- HBC Control is enabled.
-- The selected HBC strategy supports Reveal.
-- At least one battery is charging.
-- The battery has remaining charge headroom.
-- Hidden PV is available.
-- Reveal is not paused.
-- Cooldown is inactive.
-- The grid is close enough to Target Export for a safe reveal.
+Replace the Home Assistant package, Node-RED flow, and dashboard together. Version 1.3.0 uses `hpvc_*` entity IDs; old `pv_ems_*` helpers are not migrated automatically.
 
-## Dashboard
-- Insights are empty.
-- Configuration card reports invalid.
+### Restore defaults does not appear or cannot run
 
-## Node-RED
-- Entity not found errors.
-- Write warnings or failed confirmations.
+Confirm that `script.hpvc_restore_defaults` exists and that the current dashboard YAML is loaded. Reload packages or restart Home Assistant after replacing `hpvc_config.yaml`.
 
+### Configuration error: invalid power thresholds
 
-## Entities are unavailable after upgrading to v1.3.0
+HPVC requires `Export Start < Target Export <= 0 W` and `Import Restore >= 0 W`. Writes remain blocked until corrected.
 
-Check whether the dashboard or Node-RED flow still references legacy `pv_ems_*` or `sensor.hpvc_debug_*` entities while the package creates `hpvc_*` and `sensor.hpvc_diag_*` entities. Replace all three shipped runtime files together. Then restart/reload Home Assistant and deploy the new flow. Re-enter the configured entity IDs and numeric values because old helper states are not automatically copied to the renamed helpers.
+### Node-RED says entity not found
 
-## Restore button does not appear or cannot run
+Check the exact entity IDs configured for grid power, prices, PV power, inverter limits, and the optional HBC strategy entity. Empty or invalid IDs are intentionally treated as configuration errors.
 
-Confirm that the v1.3.0-or-newer package is loaded and that `script.hpvc_restore_defaults` exists in Developer Tools → States. The dashboard tile depends on that script, which directly reapplies the recommended configurable values. Reload scripts/automations or restart Home Assistant after replacing the package.
+## PV limiting and restore
 
-# Troubleshooting
-
-## PV does not limit
+### PV does not limit
 
 Check:
 
-- Home PV Control Enabled is on
-- Market/export price is at or below PV Limiting Price
-- Grid power is more negative than Export Start Threshold
-- PV power is above Min PV for control
-- Cooldown has passed
-- PV inverter helpers is valid
-- Limit entities are writable `number` entities
+- HPVC is enabled;
+- configuration status is valid;
+- the Market/export price is at or below the configured PV limiting price;
+- grid export is more negative than Export Start;
+- measured PV is above Min PV for control;
+- cooldown is inactive;
+- the requested change exceeds Deadband;
+- inverter entities are writable and their full/minimum powers are correct.
 
-## PV restores to full at night
+### PV restores to full at night
 
-This is intended.
+This is expected. HPVC restores full limits after `sun.sun` remains `below_horizon` for the required period. If `sun.sun` is unavailable, it uses the configured night-PV fallback threshold.
 
-If night restore does not occur, check the active detection path. With `sun.sun` available, it must remain `below_horizon` for 120 seconds. Without `sun.sun`, total PV power must remain below the displayed fallback threshold for 120 seconds.
+### Import happens while PV is limited
 
-HPVC prefers `sun.sun` and restores after it remains `below_horizon` for 120 seconds. Only when `sun.sun` is unavailable does HPVC use the Night Restore PV Fallback Threshold. The dashboard hides that fallback input while the Sun entity is available.
+Import Restore can raise the inverter limits even when measured PV is below Min PV for control. Low measured production may itself be caused by the active inverter limit.
 
-## Import happens while PV is limited
+### Inverter targets look wrong
 
-Small import is allowed by design.
+Check inverter count, entity assignment, Full power, Minimum power, current limit, requested target, and Difference from target in the report. HPVC distributes the total target proportionally and clamps every inverter to its configured minimum and maximum.
 
-PV only recalculates upward when import rises above Import Recalculation Threshold.
+## Hidden PV Reveal and batteries
 
-Lower that threshold if you want more aggressive correction.
+### Multiple batteries still have charge headroom
 
-## Node-RED says entity not found
+HPVC evaluates configured batteries independently and combines the allowance of eligible batteries. Review each battery’s Status, Current reveal allowance, Telemetry, Reason, maximum charge power, SOC, and current charging power in the report.
 
-Check exact entity IDs in:
+Idle, unavailable, or non-charging batteries are normally excluded until they become eligible. A battery near full does not by itself block reveal when another eligible battery still has useful headroom.
 
-- sensor helpers
-- HBC strategy entity helper
-- PV inverter helpers
+### Current reveal allowance is much lower than raw charger headroom
 
-## Inverter targets look wrong
+Raw charger headroom is theoretical unused charging capacity. Current reveal allowance is the smaller amount HPVC is willing to test safely.
 
-Check:
+From 90% SOC onward, conservative probe ceilings apply:
 
-- full_power values
-- minimum_power values
-- configured inverter count and inverter entity helpers
-- PVx Full Limit helper values
-- PVx Low Limit helper values
+| SOC | Maximum probe |
+|---:|---:|
+| 90–94% | 200 W |
+| 95–96% | 100 W |
+| 97–98% | 50 W |
+| 99% | 25 W |
+| 100% | 0 W |
 
-## HBC strategy changes unexpectedly
+Target Export margin, remaining hidden PV, the internal probe cap, cooldown, deadband, and response evaluation can reduce it further.
 
-Turn off:
+### Poor-response pause is active
 
-```text
-input_boolean.hpvc_control_hbc_strategy
-```
-
-Then Home PV Control only controls PV limits and leaves HBC strategy untouched.
-
-## Insights card is empty
-
-Check that `input_text.hpvc_insight_1` through `input_text.hpvc_insight_20` exist, then deploy the supplied Node-RED flow and wait for the next HPVC evaluation.
-
-The current-day log is stored in Node-RED flow context. Without file-backed context storage, restarting Node-RED clears the accumulated Insight history.
-
-## No Write warning Insight appears
-
-Every inverter command records the requested entity/value pair in flow context. Verification runs on a later evaluation after at least the cooldown period. Successful writes are confirmed internally and do not create routine Insights. When a newer HPVC target replaces a pending write, the previous request is treated as superseded and does not create a warning. A **Write warning** is logged only when a request remains unconfirmed after the verification timeout without being replaced by a newer HPVC write. Confirm that the flow has been fully redeployed and that the configured number entities report their applied values.
-
-## Settings error: invalid power thresholds
-
-HPVC requires `Export Start < Target Export <= 0 W` and `Import Restore >= 0 W`. With the normal negative-export sign convention, Export Start must be more negative than Target Export. HPVC blocks inverter writes until the values are corrected.
-
-## Import restore does not appear to respect Min PV
-
-This is intentional: Min PV for control blocks new export limiting only. When PV is already limited and grid import exceeds Import Restore, HPVC may raise the inverter limits even if measured PV is below Min PV, because the low measured production may be caused by the active limit.
-## Multiple HBC batteries still have charge headroom
-
-HPVC sums the remaining charge headroom of all batteries that are actively charging. For each active battery it uses `Max Charge − current charging power`. Idle, unavailable, or non-charging batteries are excluded until HBC starts charging them.
-
-If PV is still reduced while several batteries are charging, check the exported report's per-battery **Status**, **Current reveal allowance**, **Telemetry**, and **Reason** fields, plus the **Effective active-battery headroom** value. For inverter issues, check **Current limit**, **Requested target**, **Difference**, **At min/max**, and **Last verification**., Target Export margin, remaining hidden PV, the internal 800 W cap, and reveal-response/taper messages. A nearly full battery does not by itself cap reveal when another actively charging battery still has useful headroom.
-
-
-
-## Price-zone graph is empty
-
-Check that `sensor.hbc_energy_prices_data` has recent `prices` or `marks` data and valid timestamps. HPVC places points and matches the current interval using the timestamps and interval information provided by the sensor; 15 minutes is used only when no interval can be determined. The price-column width is visually inferred from timestamp spacing.
-
-The HBC forecast values are interpreted as eurocents per kWh and converted to euros for the graph. A raw value of `5` must therefore appear as `0.050 €/kWh`, not `5.000 €/kWh`. HPVC then detects whether the current HBC point matches the configured Market or All-in sensor. Market data uses the learned `market × multiplier + fixed component` estimate when ready; during startup or initial learning, HPVC uses the current `All-in − Market` difference as a fallback. All-in data is unchanged. If the graph shows **Price type uncertain**, verify that both configured price sensors and the current HBC interval are available and synchronized. The 12-hour learning progress survives a normal Node-RED restart through the internal `input_text.hpvc_hbc_price_learning_json` helper. If the graph still shows euro-scale spikes after updating, reload the dashboard resources and clear the browser cache.
-
-- HPVC first checks the configured All-in price sensor, then the Market/export price sensor, for forecast attributes. The automatic Market → estimated all-in conversion is most reliable when the configured Market/export sensor is a raw market-price sensor; a net export-price sensor can make the detected forecast type uncertain.
-
-- The source must expose timestamps and prices through `marks`, `prices` plus `start`, `today` / `tomorrow`, or a forecast/rates attribute.
-- The graph is displayed when `input_boolean.hpvc_control_hbc_strategy` is on. It is operational content on Main and no longer depends on `input_boolean.hpvc_config`. The selected HBC strategy does not affect graph data.
-
-### Price Zones remains on Loading
-
-- Verify that HBC is running and that `sensor.hbc_energy_prices_data` contains current forecast attributes. Some HBC strategies may not publish or refresh this data.
-
-## Advanced diagnostic data is invalid or truncated
-
-`input_text.hpvc_last_targets_json` must always contain valid JSON and is limited by Home Assistant to 255 characters.
-
-In v1.3.0 the payload uses abbreviated keys to stay below that limit. If an unexpected future change makes it too long, HPVC stores a smaller valid JSON object with `err: "diagnostic_payload_reduced"` instead of cutting the JSON mid-field.
-
-## Live Inputs does not show inverter 6–10
-
-The Main-tab **Live Inputs** card supports PV1 through PV10. A row is shown only when `input_number.hpvc_inverter_count` includes that slot.
+HPVC paused further probes after an ineffective or unsafe response. **Response evaluation: Pending** means the previous reveal is still inside its settling/evaluation cycle.
 
 ### Excess export while HBC is in Charge
 
-HPVC evaluates and tracks every battery independently. Full PV remains available only when at least one battery has meaningful below-high-SOC headroom and a valid maximum-charge-power value. Small margins or missing maximum-power data use bounded Reveal instead. High-SOC mode enters at 90% and clears below 89%; the 95% band clears below 94%. Startup and telemetry grace are per battery (60 and 30 seconds), so one charging battery cannot hide another. If SOC is unavailable, startup fallback is limited to 15 seconds. Verify each configured battery power, SOC, and maximum-charge-power entity when the behavior differs from this.
+Verify every battery’s power, SOC, and maximum-charge-power entity. Unavailable or nonnumeric telemetry is excluded. Unchanged numeric values are not automatically treated as stale because Home Assistant timestamps represent value changes, not guaranteed connectivity loss.
 
-A battery is not excluded merely because its numeric SOC or power value has not changed for more than 120 seconds. Home Assistant timestamps indicate value changes, not necessarily lost connectivity. Unavailable or nonnumeric telemetry is excluded. After a reveal, battery-response credit still requires a new power sample; otherwise HPVC uses PV and grid response. If maximum charge power briefly becomes unavailable, HPVC retains the last valid value; `unknown` should appear only when no valid value has ever been read.
+## Dashboard and graphs
 
-The interim battery-eligibility package could raise `ReferenceError: rememberedMaxChargePowers is not defined`. Use the corrected package, where this map is initialized before battery processing.
+### Insights card is empty
 
+Confirm that `input_text.hpvc_insight_1` through `input_text.hpvc_insight_20` exist, deploy the supplied flow, and wait for the next evaluation. Without file-backed Node-RED context, a Node-RED restart clears accumulated current-day Insight history.
 
-### Why is Current reveal allowance much lower than Raw charger headroom?
+### Live Inputs does not show inverter 6–10
 
-**Raw charger headroom** is the theoretical unused charging capacity: maximum charge power minus the battery’s current charging power. **Current reveal allowance** is the smaller amount HPVC is willing to test at that moment. It is not fixed and it is not limited to the battery's current charging power. From 90% SOC onward, HPVC uses conservative probe ceilings: 200 W at 90–94%, 100 W at 95–96%, 50 W at 97–98%, 25 W at 99%, and 0 W at 100%. Target Export margin can make the actual reveal smaller. After each reveal, the response guard checks whether battery charging increased without unsafe export. A safe response allows another probe; weak absorption with export leakage is treated as real tapering and pauses further probes. The status **charging (high SOC)** by itself does not claim that tapering has been detected.
+Rows appear only for slots included by `input_number.hpvc_inverter_count`.
 
-The HTML support report is generated only when **Generate report** is pressed. Wait for the same tile to change to **View report**, which confirms the file write completed. No background refresh is performed. Opening **View report** automatically resets the tile before the next fresh snapshot. The matching TXT snapshot is downloaded from the **Download report** button inside the generated HTML.
+### Price Zones remains on Loading or is empty
 
+Check that `sensor.hbc_energy_prices_data` contains valid timestamped forecast data through `marks`, `prices` plus `start`, `today`/`tomorrow`, or another supported forecast/rates attribute.
 
-- **Poor-response pause: Active** means HPVC paused further reveal probes after an ineffective or unsafe response.
-- **Response evaluation: Pending** means a previous reveal is still inside its settling/evaluation cycle.
-- The inverter diagnostics card is derived from existing runtime values; no extra entities are needed.
+The graph:
 
-## Reading the redesigned report
+- interprets HBC cent values as €/kWh;
+- uses supplied timestamps and interval information;
+- shows up to 48 hours when the sensor provides 192 quarter-hour points;
+- can convert raw market forecasts to estimated all-in prices;
+- displays **Price type uncertain** when current values cannot be classified reliably.
 
-Start with **Executive status** and **Decision evaluation**. These sections show the active control mode, the reason for the decision, whether the export-limiting or import-restore condition is met, whether PV is currently limited, and whether cooldown, deadband, minimum-PV, reveal response, or another guard prevented a write. Use **Sensor health** to identify missing, unavailable, or stable numeric inputs.
+After HBC publishes tomorrow’s prices, the Home Assistant frontend may briefly retain the earlier 24-hour render. The card refreshes periodically; a manual browser refresh forces the latest 48-hour dataset immediately.
+
+If values appear at the wrong scale, reload dashboard resources and clear the frontend cache.
+
+## Reports
+
+### Generate report does not change to View report
+
+Wait for report publication to finish. Generation uses a lock to prevent overlapping requests and an atomic temporary-file publish step. Errors should clear the lock, reset the helper states, and create a persistent notification.
+
 ### The report time did not change
 
-The generated time changes only after **Generate report** is pressed and the new file is written. After the report opens, the tile automatically resets. Return to the dashboard and press **Generate report** for a new current snapshot.
+The report is an on-demand snapshot. Press **Generate report** again and wait for **View report** before reopening it.
+
 ### Generate or View report state appears stuck
 
-Report generation now blocks overlapping button presses and automatically clears its generation lock on success or failure. Build, file publication, and report-state service errors all enter the same cleanup path. The View report webhook also retries after network errors and non-success HTTP responses.
+Reload the dashboard and check Node-RED for a report-generation error. The View-report webhook retries after network and non-success HTTP responses. Restart Node-RED only after saving any diagnostic information you need.
 
+### Decision evaluation says Triggered while PV currently limited says No
+
+This is valid. **Triggered** means the threshold condition is currently true. **PV currently limited** shows the actual control state. Cooldown, deadband, minimum PV, price mode, configuration errors, unavailable inputs, or another guard may prevent a new write.
+
+### Current action says No inverter change
+
+The report now shows the actual recorded action. It does not infer Reduce PV or Increase PV solely from a triggered condition.
+
+### TXT export differs from HTML
+
+Both formats use the same report model. Generate a fresh report, then download TXT from that HTML snapshot. If an older file remains open, refresh only after generating a new report.
+
+## Node-RED and diagnostics
+
+### No Write warning Insight appears
+
+Successful writes are confirmed internally and do not generate routine Insights. A warning is logged only when a requested value remains unconfirmed after the verification timeout and has not been superseded by a newer HPVC target.
+
+### Advanced diagnostic data is invalid or truncated
+
+`input_text.hpvc_last_targets_json` is limited to 255 characters. HPVC uses compact keys and stores a reduced but valid JSON object with `err: "diagnostic_payload_reduced"` rather than cutting JSON mid-field.
+
+## HBC strategy changes unexpectedly
+
+Turn off `input_boolean.hpvc_control_hbc_strategy`. HPVC will continue controlling PV limits while leaving HBC strategy selection untouched.
+
+
+## Market/export diagnostic sensor is unavailable
+
+Confirm the package created `sensor.hpvc_diag_market_export_price`. Upgraded installations may still have the retired `sensor.hpvc_diag_market_price` entity in the registry; update custom references and remove the old entity only after confirming the new sensor works.
+
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)

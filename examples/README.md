@@ -23,7 +23,7 @@ This allows reveal to use the combined capacity of multiple actively charging ba
 
 ### HBC multi-battery charge headroom
 
-HBC can charge multiple batteries in the same cycle. Adaptive Hidden PV Reveal therefore sums the remaining charge headroom of all batteries that are **actively charging**. Batteries that are idle, unavailable, or not currently accepting charge are not included.
+HBC can charge multiple batteries in the same cycle. Adaptive Hidden PV Reveal sums usable headroom from all eligible batteries. Actively charging batteries contribute known remaining charge headroom, while eligible idle batteries may contribute an SOC-capped initial probe. Discharging, full, unavailable, or nonnumeric batteries contribute zero.
 
 **Example:** M1 is charging at 470 W with a 2200 W maximum (1730 W headroom), while M2 is charging at 2175 W with a 2200 W maximum (25 W headroom). HPVC uses 1755 W combined headroom, still limited by Target Export margin, hidden PV, response checks, and the internal 800 W cap.
 
@@ -38,9 +38,9 @@ Night restore uses `sun.sun` when available and waits for `below_horizon` to rem
 
 User-configurable Home PV Control helpers do not use `initial:` values in the shipped YAML, allowing Home Assistant to restore user-edited settings after a restart. The transient `hpvc_report_ready` and `hpvc_report_generating` helpers intentionally use `initial: false` so stale report states are not restored.
 
-A Home Assistant first-run automation applies the recommended defaults only while `input_boolean.hpvc_defaults_applied` is off. After the defaults are applied, the automation turns this marker on. Home Assistant restores that state after later restarts, so user changes are not overwritten.
+A Home Assistant first-run automation applies the shipped defaults only while `input_boolean.hpvc_defaults_applied` is off. After the defaults are applied, the automation turns this marker on. Home Assistant restores that state after later restarts, so user changes are not overwritten.
 
-The dashboard's **Restore defaults** tile runs `script.hpvc_restore_defaults`, allowing the recommended values to be applied again manually after confirmation.
+The dashboard's **Restore defaults** tile runs `script.hpvc_restore_defaults`, allowing the shipped values to be applied again manually after confirmation.
 
 
 ## Price forecast graph

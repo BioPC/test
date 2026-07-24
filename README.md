@@ -144,7 +144,7 @@ These values are safe starting points, not universal recommendations. Review the
 | Import restore | `150 W` |
 | Min PV for control | `100 W` |
 | Night restore PV fallback threshold | `10 W` |
-| Cooldown | `60 sec` |
+| Cooldown | `60 s` |
 | Deadband | `25 W` |
 
 > **PV limiting price guidance:** Use €0.00/kWh with a net export-price sensor. For a raw market-price sensor, adjust for fees, compensation, and local rules.
@@ -166,6 +166,7 @@ The flow calculates a total target PV output, distributes it proportionally acro
 When upgrading from an older release, keep the Home Assistant package, Node-RED flow, and dashboard on the same version. Review:
 
 - entity-name migration;
+- diagnostic sensor migration from `sensor.hpvc_diag_market_price` to `sensor.hpvc_diag_market_export_price`;
 - dashboard entity references;
 - Node-RED flow replacement;
 - restored-default behaviour;
@@ -179,7 +180,6 @@ See the [v1.3.0 release notes](releases/v1.3.0/release.md).
 - [Settings](docs/02-configuration.md)
 - [How it works](docs/03-how-it-works.md)
 - [Troubleshooting](docs/04-troubleshooting.md)
-- [Wiki index](docs/wiki/Home.md)
 - [Changelog](CHANGELOG.md)
 
 For Home Battery Control itself, see the [HBC documentation](https://docs.homebatterycontrol.com/).
@@ -242,7 +242,7 @@ docs/
   02-configuration.md
   03-how-it-works.md
   04-troubleshooting.md
-  wiki/
+  README.md             # Documentation index
 
 releases/
   v1.3.0/
@@ -250,9 +250,7 @@ releases/
 
 ## HACS note
 
-This is not a normal Python Home Assistant integration. HACS can expose repository files and documentation through a custom repository, but it does not install HPVC as a standard integration.
-
-See [HACS notes](docs/wiki/HACS.md).
+HPVC is not a standard Home Assistant integration. Adding the repository to HACS may expose its files and documentation, but the Home Assistant package, Node-RED flow, and dashboard must still be installed manually.
 
 ## Credits
 

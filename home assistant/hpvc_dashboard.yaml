@@ -401,7 +401,7 @@ views:
           - type: entities
             title: 📡 Live Inputs
             entities:
-              - entity: sensor.hpvc_diag_market_price
+              - entity: sensor.hpvc_diag_market_export_price
                 name: Market/export price
               - entity: sensor.hpvc_diag_all_in_price
                 name: All-in price

@@ -513,7 +513,8 @@ input_button:
 template:
 - sensor:
   - name: HPVC Diag Market/Export Price
-    unique_id: hpvc_diag_market_price
+    default_entity_id: sensor.hpvc_diag_market_export_price
+    unique_id: hpvc_diag_market_export_price
     unit_of_measurement: €/kWh
     icon: mdi:cash
     state: '{{ states(states(''input_text.hpvc_market_price_sensor'')) | float(0) }}'

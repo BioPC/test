@@ -1,6 +1,8 @@
 # How it works
 
-## Runtime sequence
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
+
+## Control overview
 
 HPVC follows this execution order:
 
@@ -17,7 +19,7 @@ HPVC follows this execution order:
 Home PV Control calculates a target total PV limit and then distributes that target over all configured inverters.
 
 
-## Input readiness and startup safety
+## Input validation and startup safety
 
 HPVC separates **configuration validity** from **live input readiness**.
 
@@ -29,7 +31,7 @@ HPVC separates **configuration validity** from **live input readiness**.
 HPVC never substitutes `0 W` for unavailable grid/PV measurements and never substitutes the configured full limit for an unavailable inverter-limit state. This prevents restart-time or integration-outage decisions from being made with invented values.
 
 
-## Target calculation
+## PV target calculation
 
 ```text
 target_total = pv_power + grid_power - target_grid_power
@@ -45,7 +47,7 @@ Target export = -25 W
 target_total = 2500 - 600 + 25 = 1925 W
 ```
 
-## Splitting over inverters
+## Inverter target distribution
 
 The target is split proportionally by `full_power`.
 
@@ -68,13 +70,13 @@ PV2 = 1500 W
 
 both get 50%.
 
-## Minimum power
+### Per-inverter minimum power
 
 Every inverter has its own `minimum_power`.
 
 The EMS never sets an inverter below this value.
 
-## Restore conditions
+## Restore and recovery
 
 PV is restored to full power when:
 
@@ -85,7 +87,7 @@ PV is restored to full power when:
 
 The active 120-second timer resets immediately when its condition stops being true. The PV threshold is ignored whenever `sun.sun` is available, and its dashboard input is hidden. This gives normal installations a predictable sunset restore while preserving an automatic fallback for installations without the Sun entity.
 
-## Dynamic adjustment conditions
+## Dynamic limiting conditions
 
 Normal export limiting is allowed when:
 
@@ -97,11 +99,11 @@ Normal export limiting is allowed when:
 
 Import recovery and Hidden PV Reveal may raise limits even when measured PV is below Min PV for control. This is intentional because an active inverter limit can itself suppress the measured PV value.
 
-## Import recalculation
+### Import recalculation
 
 When PV is already limited and grid import rises above Import Restore, HPVC recalculates upward instead of blindly restoring every inverter to full. For this recovery calculation it uses at least the current combined inverter limit as the available-PV baseline, so low measured PV does not prevent recovery.
 
-## Automatic Adaptive Hidden PV Reveal
+## Hidden PV Reveal
 
 
 Active HBC batteries are displayed in a table matching the inverter table, with columns for Battery, Status, SOC, Actual power, Max charge power, Raw charger headroom, Current reveal allowance, Telemetry, and Reason.
@@ -124,7 +126,7 @@ The PV Adjustment Deadband is applied to the total reveal request. Once that tot
 
 ### Multiple charging batteries
 
-HBC can distribute charging power across multiple batteries in one cycle. HPVC sums `Max Charge − current charging power` for every battery that is actively charging. Idle or unavailable batteries are excluded because they have not yet shown that they are accepting charge.
+HBC can distribute charging power across multiple batteries in one cycle. HPVC sums usable headroom per eligible battery. Actively charging batteries contribute their known remaining charge headroom, while eligible idle batteries may contribute an SOC-capped initial probe. Discharging, full, unavailable, or nonnumeric batteries contribute zero.
 
 For multi-battery control, HPVC evaluates and tracks each battery independently. Each battery contributes only its own usable probe headroom. Eligible idle batteries may bootstrap the first probe; discharging, full, unavailable, and nonnumeric batteries contribute zero without blocking other valid batteries. Below 90% SOC, Current reveal allowance uses raw charger headroom subject to the global adaptive cap. From 90% onward, it uses an SOC-based probe ceiling: 200 W at 90–94%, 100 W at 95–96%, 50 W at 97–98%, 25 W at 99%, and 0 W at 100%. The current charging power is feedback, not a hard ceiling. After each reveal, the response guard measures battery-charge increase and grid export. A battery-charge increase is counted only when its power entity has received a new sample after the reveal; an unchanged old numeric value remains eligible telemetry but is not response evidence. A safe response permits another probe; weak absorption with export leakage is treated as actual tapering and pauses further probes. A battery with unknown maximum charge power contributes no Reveal headroom. Full-PV Charge Priority is allowed only for meaningful headroom from a battery below the high-SOC band, backed by a valid maximum-charge-power value, or during that same battery's startup/telemetry grace. Small margins and unknown maximum-power data use normal export limiting with bounded Reveal. High-SOC mode enters at 90% and leaves below 89%; the 95% band leaves below 94%. A high-SOC battery or an active taper pause can never cancel the startup grace or useful headroom of a separate lower-SOC battery.
 
@@ -158,16 +160,18 @@ When the all-in import price is zero or negative, HPVC forces PV to minimum outp
 
 When Hidden PV Reveal reaches the full region, HPVC verifies every inverter. If any inverter remains slightly below its exact full limit, it sends one final per-inverter restore command.
 
-## Operational diagnostics
+## Runtime diagnostics
 
 `input_text.hpvc_last_targets_json` stores the compact latest-calculation JSON used by diagnostics and support reports.
 
 
-## First-run defaults and restart persistence
+## Persistence and safeguards
+
+The v1.3.0 diagnostic price sensor is `sensor.hpvc_diag_market_export_price`. Existing installations that previously used `sensor.hpvc_diag_market_price` must update dashboard or external references and may remove the old entity from the Home Assistant entity registry after confirming the new sensor is available.
 
 User-configurable Home PV Control helpers do not use `initial:` values in the shipped YAML, allowing Home Assistant to restore user-edited settings after a restart. The transient `hpvc_report_ready` and `hpvc_report_generating` helpers intentionally use `initial: false` so stale report states are not restored.
 
-A Home Assistant first-run automation applies recommended defaults only when `input_boolean.hpvc_defaults_applied` is still off. After the defaults are applied, that flag is turned on and restored by Home Assistant on later restarts, so user changes are not overwritten.
+A Home Assistant first-run automation applies the shipped defaults only when `input_boolean.hpvc_defaults_applied` is still off. After the defaults are applied, that flag is turned on and restored by Home Assistant on later restarts, so user changes are not overwritten.
 
 ### Reveal deadband handling
 
@@ -223,7 +227,7 @@ HPVC immediately performs a new evaluation
 - Node-RED flow configuration
 - Home Assistant or Node-RED runtime
 
-### On-demand report workflow
+## Report generation and diagnostics
 
 ```text
 Generate report pressed
@@ -247,9 +251,47 @@ A write/build error is caught by Node-RED. Both report-state helpers are turned 
 
 The report includes executive status, live inputs, decision evaluation, daily accuracy, inverter diagnostics, HBC/battery diagnostics, settings, sensor health, and all current-day Insights. The **Download report** button creates the matching TXT snapshot in the browser.
 
+### Report presentation
+
+- **Download report** saves the current diagnostic report as a UTF-8 `.txt` file with a timestamped filename.
+- The HTML report uses the same data as the downloaded TXT report.
+- The report includes current status, inverter and battery tables, control settings, HBC/Hidden PV Reveal information, and current-day Insights.
+- Battery tables match the inverter table layout and hide entity IDs for cleaner presentation.
+- Hidden PV Reveal uses its own Insight type, while normal PV limiting and restore actions use `PV limit`.
+
+## Accuracy and factor attribution
+
+- Target accuracy is sampled every 15-second evaluation only while HPVC is enabled, inputs are valid, PV is actively limited for normal target tracking, cooldown is inactive, and neither negative-price minimum mode nor night restore is active.
+- Reveal accuracy measures improvement in grid error relative to Target Export. Overshoot is recorded only when grid power passes beyond Target Export by more than the configured deadband. PV absorption is retained as a separate diagnostic, and cycles without an evaluated reveal response remain unavailable rather than counting as 0%.
+- Daily averages weight each eligible sample equally.
+- Diagnostic percentages are estimated contributing factors inferred from structured controller events and Insights. They are not direct physical measurements. The complete loss is distributed across the four published factors for that accuracy metric; no additional residual factor is created.
+- Runtime, report, and dashboard battery totals support up to 10 configured HBC batteries.
+
+For battery eligibility, HPVC uses fresh live power telemetry as the authoritative signal. SOC is still required to be numerically available, but its timestamp may be older because SOC naturally changes slowly. HPVC also remembers the last valid maximum charge-power setting when that entity is temporarily unavailable.
+
+
+### Decision and response diagnostics
+The report separates **Poor-response pause** (a guard pause caused by ineffective reveal response) from **Response evaluation** (a reveal awaiting its settling/evaluation window). The inverter diagnostics card uses the existing inverter configuration, live limits, calculated targets, and write-verification context only.
+
+### Unified HTML and TXT model
+
+HPVC builds one internal report model and renders it as HTML and TXT. This prevents fields from appearing in only one format. Diagnostic values are read from existing helpers, configured entities, runtime debug state, inverter calculations, battery diagnostics, write-verification context, and Insights.
+
+### Target Accuracy factors
+
+Target Accuracy continues to use four factors:
+
+- **Control response**: recent inverter writes, inverter minimum/maximum boundaries, threshold or deadband holding, and stable off-target operation while a limit is physically binding.
+- **House load changes**: a meaningful change in estimated house load (`PV power + grid power`) that dominates the simultaneous PV movement.
+- **PV availability**: meaningful PV movement while inverter limits and estimated house load remain comparatively stable.
+- **Other**: only samples that cannot be explained by the three categories above.
+
+This changes factor attribution only. It does not change the Target Accuracy score, PV control decisions, thresholds, cooldown, inverter writes, HBC, or Hidden PV Reveal.
+
+
 ## PV price hysteresis
 
-PV limiting enters immediately when the configured market/export price is at or below the PV limit price. Once active, it remains active through the hysteresis band and exits only when that price rises above `PV limit price + price hysteresis`. Negative all-in-price mode remains the highest priority. During HBC **Charge**, full PV is restored only for meaningful, known maximum-power headroom below the high-SOC band. Small margins, unknown maximum-power data, and high-SOC batteries stay under normal export limiting with bounded adaptive Reveal. Charge startup and telemetry state are tracked per battery for 60 and 30 seconds; unknown SOC receives only a 15-second startup fallback. Internal 90/89% and 95/94% SOC hysteresis prevents boundary oscillation. These safeguards require no extra user input.
+PV limiting enters immediately when the configured market/export price is at or below the PV limiting price. Once active, it remains active through the hysteresis band and exits only when that price rises above `PV limiting price + price hysteresis`. Negative all-in-price mode remains the highest priority. During HBC **Charge**, full PV is restored only for meaningful, known maximum-power headroom below the high-SOC band. Small margins, unknown maximum-power data, and high-SOC batteries stay under normal export limiting with bounded adaptive Reveal. Charge startup and telemetry state are tracked per battery for 60 and 30 seconds; unknown SOC receives only a 15-second startup fallback. Internal 90/89% and 95/94% SOC hysteresis prevents boundary oscillation. These safeguards require no extra user input.
 
 ## HBC charge and expensive price hysteresis
 
@@ -273,50 +315,13 @@ HBC forecast values are supplied in eurocents per kWh. The dashboard divides eve
 
 HPVC compares the current HBC forecast point with the configured Market and All-in price sensors. If HBC matches Market more closely, each forecast point uses the learned `market × multiplier + fixed component` estimate when the model is ready. Until enough varied samples exist, HPVC temporarily adds the current `All-in − Market` difference as a startup fallback. If HBC already matches All-in, no conversion is applied. When the Market and All-in match scores differ by less than `0.01 €/kWh`, the original HBC prices are shown and the graph reports **Price type uncertain**.
 
-The compact graph status is **Market → estimated all-in**, **All-in prices**, or **Price type uncertain**. The estimate applies the current `all-in − market` difference to all displayed market-price points. Insights log only a change of detected type, and the support report records the detected type and conversion.
+The compact graph status is **Market → estimated all-in**, **All-in prices**, or **Price type uncertain**. When the learned model is ready, every market-price point uses the learned multiplier and fixed component. Until then, the current `All-in − Market` difference is used only as a temporary startup or relearning fallback. Insights log only a change of detected type, and the support report records the detected type and conversion.
 
 If HBC does not publish forecast data to `sensor.hbc_energy_prices_data` for the active strategy, the graph may remain empty or show **Loading**.
 
 
-## Report and Insight presentation
-
-- **Download report** saves the current diagnostic report as a UTF-8 `.txt` file with a timestamped filename.
-- The HTML report uses the same data as the downloaded TXT report.
-- The report includes current status, inverter and battery tables, control settings, HBC/Hidden PV Reveal information, and current-day Insights.
-- Battery tables match the inverter table layout and hide entity IDs for cleaner presentation.
-- Hidden PV Reveal uses its own Insight type, while normal PV limiting and restore actions use `PV limit`.
-
-### Accuracy calculation and diagnostics
-
-- Target accuracy is sampled every 15-second evaluation only while HPVC is enabled, inputs are valid, PV is actively limited for normal target tracking, cooldown is inactive, and neither negative-price minimum mode nor night restore is active.
-- Reveal accuracy measures improvement in grid error relative to Target Export. Overshoot is recorded only when grid power passes beyond Target Export by more than the configured deadband. PV absorption is retained as a separate diagnostic, and cycles without an evaluated reveal response remain unavailable rather than counting as 0%.
-- Daily averages weight each eligible sample equally.
-- Diagnostic percentages are estimated contributing factors inferred from structured controller events and Insights. They are not direct physical measurements. The complete loss is distributed across the four published factors for that accuracy metric; no additional residual factor is created.
-- Runtime, report, and dashboard battery totals support up to 10 configured HBC batteries.
-
-For battery eligibility, HPVC uses fresh live power telemetry as the authoritative signal. SOC is still required to be numerically available, but its timestamp may be older because SOC naturally changes slowly. HPVC also remembers the last valid maximum charge-power setting when that entity is temporarily unavailable.
-
-The HTML support report is generated strictly on demand. Press **Generate report** to capture current control, configuration, diagnostics, Insight, inverter, and battery values. After the file write completes, the same dashboard position becomes **View report**. No background trigger regenerates the file. Opening **View report** automatically resets the tile before the next fresh snapshot. The matching TXT snapshot is downloaded from the **Download report** button inside the generated HTML.
-
-
-### Report diagnostics
-The report separates **Poor-response pause** (a guard pause caused by ineffective reveal response) from **Response evaluation** (a reveal awaiting its settling/evaluation window). The inverter diagnostics card uses the existing inverter configuration, live limits, calculated targets, and write-verification context only.
-
-## Unified diagnostic report
-
-HPVC builds one internal report model and renders it as HTML and TXT. This prevents fields from appearing in only one format. Diagnostic values are read from existing helpers, configured entities, runtime debug state, inverter calculations, battery diagnostics, write-verification context, and Insights.
-
-### Target Accuracy factor attribution
-
-Target Accuracy continues to use four factors:
-
-- **Control response**: recent inverter writes, inverter minimum/maximum boundaries, threshold or deadband holding, and stable off-target operation while a limit is physically binding.
-- **House load changes**: a meaningful change in estimated house load (`PV power + grid power`) that dominates the simultaneous PV movement.
-- **PV availability**: meaningful PV movement while inverter limits and estimated house load remain comparatively stable.
-- **Other**: only samples that cannot be explained by the three categories above.
-
-This changes factor attribution only. It does not change the Target Accuracy score, PV control decisions, thresholds, cooldown, inverter writes, HBC, or Hidden PV Reveal.
-
-### Learned HBC all-in estimate
+## Learned HBC all-in estimate
 
 When HBC provides market prices, HPVC automatically learns an approximate relationship between the configured Market and All-in sensors. It collects changed, time-aligned pairs for at least 12 hours while retaining up to 96 readings. The graph remains available from the first moment: during learning or relearning, HPVC applies the current `All-in − Market` difference to every displayed market-price point. After at least eight changed pairs containing at least eight distinct Market prices spanning at least `€0.05/kWh`, and once the 12-hour collection period has completed, HPVC groups recurring Market prices, averages their corresponding All-in readings, and fits the formula from the four lowest and four highest distinct Market-price points; graph points then use `estimated all-in = market × learned multiplier + learned fixed component`. After learning, HPVC stores the formula and stops collecting training samples. Once every 30 days it validates the model using three changed, time-aligned pairs; it starts a fresh learning cycle only when their average error exceeds `€0.01/kWh`. The stored coefficients survive a normal Node-RED restart. The internal `input_text.hpvc_hbc_price_learning_json` helper also preserves the collection start, total pair count, four lowest distinct points, four highest distinct points, and partial monthly-validation pairs, so restarting Node-RED does not restart the 12-hour wait. No additional user-configurable input is required. The graph labels learned values as **Market → estimated all-in (learned)** because the result remains an estimate rather than an exact tariff reconstruction.
+
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
