@@ -4,7 +4,6 @@
 
 Home PV Control can run independently or alongside Home Battery Control. Use Steps 1–6 for a fresh installation. Existing installations should also read the upgrade section before replacing files.
 
-
 ## Requirements
 
 - Home Assistant
