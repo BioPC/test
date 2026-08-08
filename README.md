@@ -30,7 +30,7 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 
 <p align="center">
   <a href="assets/screenshots/main.png">
-    <img src="assets/screenshots/main.png" alt="Home PV Control main dashboard" width="70%" title="Click to view full size">
+    <img src="assets/screenshots/main.png" alt="Home PV Control main dashboard" width="60%" title="Click to view full size">
   </a>
 </p>
 
@@ -183,7 +183,7 @@ For Home Battery Control itself, see the [HBC documentation](https://docs.homeba
 
 <p align="center">
   <a href="assets/screenshots/settings.png">
-    <img src="assets/screenshots/settings.png" alt="Home PV Control settings dashboard" width="60%" title="Click to view full size">
+    <img src="assets/screenshots/settings.png" alt="Home PV Control settings dashboard" width="50%" title="Click to view full size">
   </a>
 </p>
 
@@ -192,20 +192,20 @@ For Home Battery Control itself, see the [HBC documentation](https://docs.homeba
 The report preview is split into four parts for readability. Click any image to open that part at its original resolution.
 
 <p align="center">
-  <a href="assets/screenshots/report_part_1.png"><img src="assets/screenshots/report_part_1.png" alt="HPVC support report — part 1" width="25%" title="Click to view full size"></a>
-  <a href="assets/screenshots/report_part_2.png"><img src="assets/screenshots/report_part_2.png" alt="HPVC support report — part 2" width="25%" title="Click to view full size"></a>
+  <a href="assets/screenshots/report_part_1.png"><img src="assets/screenshots/report_part_1.png" alt="HPVC support report — part 1" width="20%" title="Click to view full size"></a>
+  <a href="assets/screenshots/report_part_2.png"><img src="assets/screenshots/report_part_2.png" alt="HPVC support report — part 2" width="20%" title="Click to view full size"></a>
 </p>
 
 <p align="center">
-  <a href="assets/screenshots/report_part_3.png"><img src="assets/screenshots/report_part_3.png" alt="HPVC support report — part 3" width="25%" title="Click to view full size"></a>
-  <a href="assets/screenshots/report_part_4.png"><img src="assets/screenshots/report_part_4.png" alt="HPVC support report — part 4" width="25%" title="Click to view full size"></a>
+  <a href="assets/screenshots/report_part_3.png"><img src="assets/screenshots/report_part_3.png" alt="HPVC support report — part 3" width="20%" title="Click to view full size"></a>
+  <a href="assets/screenshots/report_part_4.png"><img src="assets/screenshots/report_part_4.png" alt="HPVC support report — part 4" width="20%" title="Click to view full size"></a>
 </p>
 
 ### Node-RED architecture overview
 
 <p align="center">
   <a href="assets/screenshots/node_red_flow.png">
-    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED architecture overview" width="75%" title="Click to view full size">
+    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED architecture overview" width="50%" title="Click to view full size">
   </a>
 </p>
 
