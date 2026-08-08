@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="releases/v1.3.0/release.md"><img src="https://img.shields.io/badge/release-v1.3.0-blue" alt="Release v1.3.0"></a>
+  <a href="releases/v1.4.0/release.md"><img src="https://img.shields.io/badge/release-v1.4.0-blue" alt="Release v1.4.0"></a>
   <a href="https://www.home-assistant.io/"><img src="https://img.shields.io/badge/Home%20Assistant-ready-41BDF5" alt="Home Assistant ready"></a>
   <a href="https://nodered.org/"><img src="https://img.shields.io/badge/Node--RED-flow-8F0000" alt="Node-RED flow"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="GPL-3.0-or-later"></a>
@@ -17,21 +17,22 @@
 
 # Home PV Control
 
-Home PV Control (HPVC) dynamically limits and restores PV inverter output in Home Assistant using Node-RED. It supports dynamic electricity prices, multiple inverters, optional Home Battery Control integration, and battery-aware Hidden PV Reveal.
+Home PV Control (HPVC) dynamically limits and restores PV inverter output in Home Assistant using Node-RED. It supports dynamic electricity prices, multiple inverters, optional Home Battery Control integration, and multi-battery HBC charging priority.
 
 - Prevent unwanted or uneconomic PV export
 - Preserve useful PV for household consumption
 - Restore inverter output automatically when conditions improve
 - Operate independently or alongside Home Battery Control
 
-<p align="center">
-  <a href="assets/screenshots/dashboard_main.png">
-    <img src="assets/screenshots/dashboard_main.png" alt="Home PV Control dashboard" width="50%" title="Click to view full size">
-  </a>
-</p>
 
 > [!IMPORTANT]
 > HPVC requires at least one writable inverter power-limit entity exposed to Home Assistant. It does not communicate directly with an inverter; compatibility depends on the Home Assistant integration providing readable PV power and writable limit entities.
+
+<p align="center">
+  <a href="assets/screenshots/main.png">
+    <img src="assets/screenshots/main.png" alt="Home PV Control main dashboard" width="85%" title="Click to view full size">
+  </a>
+</p>
 
 ## Contents
 
@@ -44,6 +45,7 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 - [Upgrading](#upgrading)
 - [Documentation](#documentation)
 - [Screenshots](#screenshots)
+- [Operational diagnostics](docs/03-how-it-works.md#charge-priority-degraded-operation-and-diagnostics)
 - [Support](#support)
 - [Support the project](#support-the-project)
 - [Repository structure](#repository-structure)
@@ -85,26 +87,22 @@ See the full [installation guide](docs/01-installation.md), including ApexCharts
 | Ready-to-import Home Assistant dashboard | ✅ |
 | Multi-inverter support | ✅ |
 | Per-inverter minimum and maximum limits | ✅ |
-| Proportional PV target distribution | ✅ |
+| Direction-preserving multi-inverter target distribution | ✅ |
 | Dynamic export limiting and import recovery | ✅ |
-| Negative-price handling | ✅ |
+| Negative all-in-price override: minimum-PV lock with confirmed HBC grid charging | ✅ |
 | `sun.sun` night restore with PV fallback | ✅ |
-| Optional HBC strategy selection | ✅ |
-| Multi-battery Hidden PV Reveal | ✅ |
+| Optional HBC execution tracking and Charge Priority | ✅ |
+| Multi-battery HBC charging priority in PV-restricting contexts | ✅ |
 | On-demand HTML and TXT support reports | ✅ |
 | HBC files remain untouched | ✅ |
-
-Built-in safeguards include cooldown and deadband handling, per-inverter clamps, invalid-input checks, night restore, and atomic report publication.
 
 ## Requirements
 
 - Home Assistant
-- Node-RED with the Home Assistant nodes installed
+- Node-RED with `node-red-contrib-home-assistant-websocket` **0.80.3 or newer**
 - One or more PV inverters with writable power-limit entities
 - ApexCharts Card for the supplied dashboard graphs
-- Home Battery Control only for HBC strategy integration and HBC-assisted Hidden PV Reveal
-
-The HPVC control flow itself does not require ApexCharts; ApexCharts is required only by the supplied dashboard graphs.
+- Home Battery Control only for optional HBC execution tracking and battery Charge Priority
 
 ## Architecture
 
@@ -117,10 +115,9 @@ flowchart LR
     PV[PV power sensor]
     HPVC[Home PV Control<br/>Node-RED flow]
     LIMITS[PV inverter limits]
-    REVEAL[Hidden PV Reveal]
 
     HBC --> BAT
-    HBC -. Optional strategy selection .-> HPVC
+    HBC -->|Selected and executing strategy| HPVC
 
     PRICE --> HPVC
     GRID --> HPVC
@@ -128,10 +125,7 @@ flowchart LR
     BAT --> HPVC
 
     HPVC --> LIMITS
-    HPVC --> REVEAL
 ```
-
-Home PV Control can optionally select the HBC strategy, but HBC continues to control the batteries. Hidden PV Reveal uses the combined reveal allowance of all eligible HBC batteries.
 
 ## Shipped defaults
 
@@ -140,15 +134,13 @@ These values are safe starting points, not universal recommendations. Review the
 | Setting | Shipped default |
 |---|---:|
 | PV limiting price | `0.00 €/kWh` |
-| Charge price | `0.10 €/kWh` |
-| Expensive price | `0.35 €/kWh` |
 | Price hysteresis | `0.02 €/kWh` |
 | Export start | `-150 W` |
-| Target export | `-25 W` |
+| Target export | `0 W` |
 | Import restore | `150 W` |
 | Min PV for control | `100 W` |
-| Night restore PV fallback threshold | `10 W` |
-| Cooldown | `60 s` |
+| Night restore PV threshold | `10 W` |
+| Cooldown | `30 s` |
 | Deadband | `25 W` |
 
 > **PV limiting price guidance:** Use €0.00/kWh with a net export-price sensor. For a raw market-price sensor, adjust for fees, compensation, and local rules.
@@ -159,11 +151,9 @@ See [Settings](docs/02-configuration.md#marketexport-price-sensor) for sensor gu
 
 HPVC evaluates:
 
-- every 15 seconds for limiting, restore, negative-price mode, and HBC strategy decisions;
+- every 10 seconds for limiting, restore, negative-price mode, and HBC Charge Priority;
 - once immediately after deploy or startup;
 - once when relevant HPVC settings change.
-
-The flow calculates a total target PV output, distributes it proportionally across configured inverters, and clamps every inverter to its configured minimum and maximum. See [How it works](docs/03-how-it-works.md) for the complete decision order and safeguards.
 
 ## Upgrading
 
@@ -175,7 +165,7 @@ When upgrading from an older release, keep the Home Assistant package, Node-RED 
 - restored-default behaviour;
 - release-specific compatibility notes.
 
-See the [v1.3.0 release notes](releases/v1.3.0/release.md).
+See the [v1.4.0 release notes](releases/v1.4.0/release.md).
 
 ## Documentation
 
@@ -189,38 +179,38 @@ For Home Battery Control itself, see the [HBC documentation](https://docs.homeba
 
 ## Screenshots
 
-### Settings
-
-Entity selection, inverter configuration, control thresholds, and advanced options.
+### Settings dashboard
 
 <p align="center">
-  <a href="assets/screenshots/dashboard_settings.png">
-    <img src="assets/screenshots/dashboard_settings.png" alt="Home PV Control settings" width="50%" title="Click to view full size">
+  <a href="assets/screenshots/settings.png">
+    <img src="assets/screenshots/settings.png" alt="Home PV Control settings dashboard" width="85%" title="Click to view full size">
   </a>
 </p>
 
-### View report
+### Support report
 
-On-demand live support report with HTML viewing and TXT download.
+The report preview is split into four parts for readability. Click any image to open that part at its original resolution.
 
 <p align="center">
-  <a href="assets/screenshots/view_report_top.png">
-    <img src="assets/screenshots/view_report_top.png" alt="Home PV Control report — upper section" width="25%" title="Click to view full size">
-  </a>
-  <a href="assets/screenshots/view_report_bottom.png">
-    <img src="assets/screenshots/view_report_bottom.png" alt="Home PV Control report — lower section" width="25%" title="Click to view full size">
-  </a>
+  <a href="assets/screenshots/report_part_1.png"><img src="assets/screenshots/report_part_1.png" alt="HPVC support report — part 1" width="48%" title="Click to view full size"></a>
+  <a href="assets/screenshots/report_part_2.png"><img src="assets/screenshots/report_part_2.png" alt="HPVC support report — part 2" width="48%" title="Click to view full size"></a>
 </p>
 
-### Node-RED flow
+<p align="center">
+  <a href="assets/screenshots/report_part_3.png"><img src="assets/screenshots/report_part_3.png" alt="HPVC support report — part 3" width="48%" title="Click to view full size"></a>
+  <a href="assets/screenshots/report_part_4.png"><img src="assets/screenshots/report_part_4.png" alt="HPVC support report — part 4" width="48%" title="Click to view full size"></a>
+</p>
+
+### Node-RED architecture overview
 
 <p align="center">
   <a href="assets/screenshots/node_red_flow.png">
-    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED flow" width="75%" title="Click to view full size">
+    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED architecture overview" width="75%" title="Click to view full size">
   </a>
 </p>
-
 ## Support
+
+The report contains telemetry and entity IDs and is published at `/local/hpvc/support-report.html`.
 
 Before opening an issue:
 
@@ -233,14 +223,12 @@ Use [GitHub Issues](https://github.com/BioPC/home-pv-control/issues) for reprodu
 
 ## Support the project
 
-Home PV Control is free and open source. If you find it useful, you can support continued development and testing.
+Home PV Control is free and open source. If you find it useful, you can support continued development.
 
 <p align="left">
   <a href="https://ko-fi.com/mperez"><img src="https://img.shields.io/badge/Ko--fi-Support%20me-FF5E5B?logo=ko-fi&logoColor=white" alt="Support on Ko-fi"></a>
   <a href="https://paypal.me/MPerezCabrera"><img src="https://img.shields.io/badge/PayPal-Support%20me-003087?logo=paypal&logoColor=white" alt="Support with PayPal"></a>
 </p>
-
-GitHub also displays these options through the repository’s **Sponsor** button.
 
 ## Repository structure
 
@@ -250,10 +238,15 @@ home assistant/
   hpvc_dashboard.yaml   # Separate Home Assistant dashboard
 
 node-red/
-  hpvc_flow.json        # Node-RED flow
+  hpvc_flow.json        # Importable Node-RED flow with four v1.4.0 tabs
+
+examples/
+  hoymiles-opendtu-2-inverters.reference.json
 
 assets/
-  screenshots/          # README and documentation images
+  banner.png
+  logo.svg
+  screenshots/          # Current Node-RED architecture image
 
 docs/
   01-installation.md
@@ -264,11 +257,12 @@ docs/
 
 releases/
   v1.3.0/
+  v1.4.0/
 ```
 
-## HACS note
+## Installation format
 
-HPVC is not a standard Home Assistant integration. Adding the repository to HACS may expose its files and documentation, but the Home Assistant package, Node-RED flow, and dashboard must still be installed manually.
+HPVC is distributed as a manual GitHub release ZIP, not as a HACS custom integration, plugin, theme, or template repository. The package therefore intentionally contains no `hacs.json`; install the Home Assistant package, Node-RED flow, and dashboard manually as described above.
 
 ## Credits
 
@@ -287,7 +281,7 @@ By using this software, you acknowledge that:
 - You are responsible for verifying that your inverter, Home Assistant, and Node-RED configuration are compatible and correctly configured.
 - Incorrect configuration may reduce solar production, produce unexpected inverter behaviour, or fail to achieve the intended energy-management strategy.
 - The software is provided “as is” without warranty of any kind.
-- Always test changes safely before using them in a production energy system.
+- Always verify configuration changes safely before using them in a production energy system.
 - The author is not responsible for financial loss, equipment damage, data loss, regulatory issues, or other consequences resulting from use of this project.
 
 Use this project at your own risk.

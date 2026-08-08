@@ -10,43 +10,58 @@ views:
       badges_position: top
       badges_wrap: wrap
       card:
-        type: markdown
-        text_only: true
-        content: >-
-          ## Home PV Control (v1.3.0)
+        type: vertical-stack
+        cards:
+          - type: markdown
+            text_only: true
+            content: >
+              <div align="center">
 
-          #### Standalone PV optimization for dynamic energy contracts. Optional
-          HBC integration.
+
+              ## Home PV Control (v1.4.0)
+
+              #### Standalone PV optimization for dynamic energy contracts.
+              Optional HBC integration.
+
+              </div>
+          - type: markdown
+            text_only: true
+            content: |
+              <div align="center">
+                <sup>
+                  <font color="#888888">
+                    ☆ &nbsp; Like this project? Consider giving a star! &nbsp; ›
+                  </font>
+                </sup>
+                &nbsp;
+                <a href="https://github.com/BioPC/home-pv-control">
+                  <img src="https://img.shields.io/github/stars/BioPC/home-pv-control?style=flat&logo=github&label=Stars&logoColor=white&color=3a3a3a&labelColor=242424">
+                </a>
+              </div>
+            tap_action:
+              action: url
+              url_path: https://github.com/BioPC/home-pv-control
     badges:
       - type: entity
         show_name: true
         show_state: true
         show_icon: true
         entity: input_text.hpvc_status
-        name: Status
+        name: HPVC Status
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
+            state: 'on'
       - type: entity
         show_name: true
         show_state: true
         show_icon: true
-        entity: sensor.hpvc_diag_hbc_strategy
-        name: HBC strategy
+        entity: binary_sensor.hpvc_negative_price_mode
+        name: Negative Price
         visibility:
           - condition: state
-            entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
-          - condition: state
-            entity: input_boolean.hpvc_control_hbc_strategy
-            state: "on"
-          - condition: state
-            entity: sensor.hpvc_diag_hbc_strategy
-            state_not:
-              - unknown
-              - unavailable
-              - ""
+            entity: binary_sensor.hpvc_negative_price_mode
+            state_not: 'off'
       - type: entity
         show_name: true
         show_state: true
@@ -56,7 +71,7 @@ views:
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
+            state: 'on'
       - type: entity
         show_name: true
         show_state: true
@@ -66,20 +81,44 @@ views:
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
+            state: 'on'
           - condition: state
             entity: input_boolean.hpvc_control_hbc_strategy
-            state: "on"
+            state: 'on'
+      - type: entity
+        entity: input_select.house_battery_strategy
+        show_name: true
+        name: HBC Srategy
+        visibility:
+          - condition: state
+            entity: input_boolean.hpvc_control_hbc_strategy
+            state: 'on'
+      - type: entity
+        entity: input_text.house_battery_strategy_active_sub_strategy
+        show_name: true
+        name: HBC executing
+        visibility:
+          - condition: state
+            entity: input_boolean.hpvc_control_hbc_strategy
+            state: 'on'
+          - condition: or
+            conditions:
+              - condition: state
+                entity: input_select.house_battery_strategy
+                state: Dynamic
+              - condition: state
+                entity: input_select.house_battery_strategy
+                state: Timed
     sections:
       - type: grid
-        columns: 2
+        columns: 1
         square: false
         cards:
           - type: conditional
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_onboarding_complete
-                state: "off"
+                state: 'off'
             card:
               type: markdown
               content: >-
@@ -100,17 +139,20 @@ views:
 
                 Open the <b>Settings</b> tab using the <b>⚙️ Settings</b> button
                 in the navigation bar and complete the required configuration.
-                Once setup is complete, return to the <b>Main</b> tab and press
-                <b>Enable HPVC</b> to start Home PV Control.
-
-                </ha-alert>
+                Once setup and all required live inputs are valid, HPVC switches
+                on automatically. </ha-alert>
 
                 <p><b>Setup progress:</b></p>
 
                 {% for label, ent in core %}
 
-                {% set valid = ent not in bad and '.' in ent and states(ent) not
-                in bad %}
+                {% set normalized = ent | trim | lower %}
+
+                {% set configured = normalized not in bad and (normalized |
+                regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) %}
+
+                {% set valid = configured and states(normalized) not in bad and
+                is_number(states(normalized)) %}
 
                 {% if valid %}{% set ns.done = ns.done + 1 %}✅{% else %}❌{%
                 endif %} **{{ label }}**
@@ -120,13 +162,20 @@ views:
                 {% set count = states('input_number.hpvc_inverter_count') |
                 int(0) %}
 
-                {% set inv = namespace(valid=count > 0) %}
+                {% set inv = namespace(valid=count > 0, entities=[]) %}
 
                 {% for i in range(1, count + 1) %}
                   {% set ent = states('input_text.hpvc_pv' ~ i ~ '_limit_number') %}
+                  {% set normalized = ent | trim | lower %}
                   {% set full = states('input_number.hpvc_pv' ~ i ~ '_full_limit') | float(0) %}
                   {% set low = states('input_number.hpvc_pv' ~ i ~ '_low_limit') | float(-1) %}
-                  {% if ent in bad or '.' not in ent or states(ent) in bad or full <= 0 or low < 0 or low >= full %}{% set inv.valid = false %}{% endif %}
+                  {% set configured = normalized not in bad and (normalized | regex_match('^number[.][a-z0-9_]+$')) and normalized not in inv.entities and full > 0 and low >= 0 and low < full %}
+                  {% set live = configured and states(normalized) not in bad and is_number(states(normalized)) %}
+                  {% if not live %}
+                    {% set inv.valid = false %}
+                  {% else %}
+                    {% set inv.entities = inv.entities + [normalized] %}
+                  {% endif %}
                 {% endfor %}
 
                 {% set ns.total = ns.total + 1 %}
@@ -135,13 +184,149 @@ views:
                 endif %} **Inverter setup**
 
                 <p><b>{{ ns.done }}/{{ ns.total }} complete</b></p>
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: input_boolean.hpvc_onboarding_complete
+                state: 'on'
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity: binary_sensor.hpvc_configuration_valid
+                    state: 'off'
+                  - condition: state
+                    entity: binary_sensor.hpvc_required_inputs_ready
+                    state: 'off'
+            card:
+              type: markdown
+              content: >-
+                {% set bad = ['unknown', 'unavailable', 'none',
+                'select_entity_first', ''] %}
+
+                {% set config_ok =
+                  is_state('binary_sensor.hpvc_configuration_valid', 'on')
+                %}
+
+                {% set inputs_ok =
+                  is_state('binary_sensor.hpvc_required_inputs_ready', 'on')
+                %}
+
+                {% set core = [
+                  ('Grid power', states('input_text.hpvc_grid_power_sensor')),
+                  ('Market/export price', states('input_text.hpvc_market_price_sensor')),
+                  ('All-in price', states('input_text.hpvc_all_in_price_sensor')),
+                  ('Solar power', states('input_text.hpvc_pv_power_sensor'))
+                ] %}
+
+                <ha-alert title="Home PV Control unavailable"
+                alert-type="warning"> {% if not config_ok and not inputs_ok %}
+                One or more required configuration values or live inputs are
+                missing, invalid, unavailable, or unknown. Open <b>Settings</b>
+                and correct the items marked with ❌. HPVC remains off until the
+                configuration and all required inputs are healthy. {% elif not
+                config_ok %} One or more required configuration values are
+                missing or invalid. Open <b>Settings</b> and correct the items
+                marked with ❌. {% elif
+                is_state('input_boolean.hpvc_auto_resume_pending', 'on') %} A
+                required live input is unavailable, unknown, or invalid. HPVC
+                was switched off automatically and will switch on again after
+                the configuration and all required inputs have remained healthy
+                for 5 seconds. {% elif is_state('input_boolean.hpvc_enabled',
+                'on') %} A required live input is unavailable, unknown, or
+                invalid. HPVC is being switched off automatically for safety. {%
+                else %} A required live input is unavailable, unknown, or
+                invalid. HPVC is off. It will resume automatically only if it
+                was running before the problem. A manual switch-off remains off.
+                {% endif %} </ha-alert>
+
+                <p><b>Configuration and required inputs:</b></p>
+
+                {% for label, ent in core %}
+                  {% set normalized = ent | trim | lower %}
+                  {% set configured =
+                    normalized not in bad
+                    and (normalized | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$'))
+                  %}
+                  {% set live =
+                    configured
+                    and states(normalized) not in bad
+                    and is_number(states(normalized))
+                  %}
+                  {% set valid = configured and live %}
+
+                  {% if valid %}✅{% else %}❌{% endif %} **{{ label }}**
+                  {% if configured %} — `{{ normalized }}`{% endif %}
+                {% endfor %}
+
+                {% set count =
+                  states('input_number.hpvc_inverter_count') | int(0)
+                %}
+
+                {% set inv = namespace(entities=[]) %}
+
+                {% for i in range(1, count + 1) %}
+                  {% set ent =
+                    states('input_text.hpvc_pv' ~ i ~ '_limit_number') | trim
+                  %}
+                  {% set normalized = ent | lower %}
+                  {% set full =
+                    states('input_number.hpvc_pv' ~ i ~ '_full_limit') | float(0)
+                  %}
+                  {% set low =
+                    states('input_number.hpvc_pv' ~ i ~ '_low_limit') | float(-1)
+                  %}
+
+                  {% set configured =
+                    normalized not in bad
+                    and (normalized | regex_match('^number[.][a-z0-9_]+$'))
+                    and normalized not in inv.entities
+                    and full > 0
+                    and low >= 0
+                    and low < full
+                  %}
+
+                  {% set live =
+                    configured
+                    and states(normalized) not in bad
+                    and is_number(states(normalized))
+                  %}
+
+                  {% set valid = configured and live %}
+
+                  {% if configured %}
+                    {% set inv.entities = inv.entities + [normalized] %}
+                  {% endif %}
+
+                  {% if valid %}✅{% else %}❌{% endif %} **PV{{ i }} limit**
+                  {% if normalized not in bad %} — `{{ normalized }}`{% endif %}
+                {% endfor %}
+
+                {% set export_start =
+                  states('input_number.hpvc_export_start_threshold') | float(999999)
+                %}
+
+                {% set target_export =
+                  states('input_number.hpvc_export_stop_threshold') | float(999999)
+                %}
+
+                {% set import_restore =
+                  states('input_number.hpvc_import_restore_threshold') | float(-1)
+                %}
+
+                {% set thresholds_valid =
+                  export_start < target_export
+                  and target_export <= 0
+                  and import_restore >= 0
+                %}
+
+                {% if thresholds_valid %}✅{% else %}❌{% endif %} **Power control
+                settings**
             grid_options:
               columns: 12
               rows: auto
-        visibility:
-          - condition: state
-            entity: input_boolean.hpvc_onboarding_complete
-            state: "off"
+        grid_options:
+          columns: 12
+          rows: auto
       - type: grid
         columns: 2
         square: false
@@ -163,19 +348,26 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_onboarding_complete
-                state: "on"
+                state: 'on'
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "off"
+                state: 'off'
               - condition: state
                 entity: input_boolean.hpvc_enabled
-                state: "off"
+                state: 'off'
+              - condition: state
+                entity: binary_sensor.hpvc_required_inputs_ready
+                state: 'on'
+              - condition: state
+                entity: input_boolean.hpvc_auto_resume_pending
+                state: 'off'
             card:
               type: markdown
               text_only: true
               content: >-
-                <ha-alert title="Setup complete" alert-type="success"> Press
-                <b>Enable HPVC</b> in <b>PV Master Control</b> to start Home PV
+                <ha-alert title="HPVC manually disabled" alert-type="info"> All
+                required inputs are ready, but HPVC is off because it was
+                switched off manually. Press <b>Enable HPVC</b> to start Home PV
                 Control. Press <b>Settings</b> whenever you need to change the
                 configuration. </ha-alert>
             grid_options:
@@ -195,10 +387,10 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_enabled
-                state: "on"
+                state: 'on'
               - condition: state
                 entity: binary_sensor.hpvc_hbc_available
-                state: "on"
+                state: 'on'
             card:
               type: tile
               entity: input_boolean.hpvc_control_hbc_strategy
@@ -212,7 +404,7 @@ views:
             conditions:
               - condition: state
                 entity: binary_sensor.hpvc_hbc_available
-                state: "off"
+                state: 'off'
             card:
               type: tile
               entity: input_boolean.hpvc_control_hbc_strategy
@@ -239,9 +431,9 @@ views:
           - type: conditional
             conditions:
               - entity: input_boolean.hpvc_report_ready
-                state: "off"
+                state: 'off'
               - entity: input_boolean.hpvc_report_generating
-                state: "off"
+                state: 'off'
             card:
               type: tile
               entity: input_button.hpvc_export_report
@@ -273,7 +465,7 @@ views:
           - type: conditional
             conditions:
               - entity: input_boolean.hpvc_report_generating
-                state: "on"
+                state: 'on'
             card:
               type: tile
               entity: input_boolean.hpvc_report_generating
@@ -299,9 +491,9 @@ views:
           - type: conditional
             conditions:
               - entity: input_boolean.hpvc_report_ready
-                state: "on"
+                state: 'on'
               - entity: input_boolean.hpvc_report_generating
-                state: "off"
+                state: 'off'
             card:
               type: tile
               entity: input_boolean.hpvc_report_ready
@@ -311,10 +503,10 @@ views:
               hide_state: true
               tap_action:
                 action: url
-                url_path: /local/hpvc/support-report.html?v=130-on-demand-auto-reset
+                url_path: /local/hpvc/support-report.html?v=140-mobile-fresh-report
               icon_tap_action:
                 action: url
-                url_path: /local/hpvc/support-report.html?v=130-on-demand-auto-reset
+                url_path: /local/hpvc/support-report.html?v=140-mobile-fresh-report
               hold_action:
                 action: none
               icon_hold_action:
@@ -329,7 +521,7 @@ views:
           - type: conditional
             conditions:
               - entity: script.hpvc_restore_defaults
-                state: "off"
+                state: 'off'
             card:
               type: tile
               entity: script.hpvc_restore_defaults
@@ -351,7 +543,7 @@ views:
           - type: conditional
             conditions:
               - entity: script.hpvc_restore_defaults
-                state: "on"
+                state: 'on'
             card:
               type: tile
               entity: script.hpvc_restore_defaults
@@ -377,25 +569,34 @@ views:
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
+            state: 'on'
       - type: grid
-        cards:
-          - type: entities
-            title: 💡 Decision Details
-            entities:
-              - entity: input_text.hpvc_status
-                name: Status
-              - entity: input_text.hpvc_reason
-                name: Reason
-              - entity: input_text.hpvc_last_action
-                name: Last action
-              - entity: sensor.hpvc_last_calculation
-                name: Last calculation
-            show_header_toggle: false
+        columns: 1
+        square: false
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
+            state: 'on'
+        cards:
+          - type: grid
+            columns: 1
+            square: false
+            visibility:
+              - condition: state
+                entity: input_boolean.hpvc_onboarding_complete
+                state: 'on'
+            cards:
+              - type: markdown
+                title: 💡 Decision Details
+                content: |
+                  ℹ️ **Status**  
+                  {{ states('input_text.hpvc_status') }}
+
+                  💬 **Reason**  
+                  {{ states('input_text.hpvc_reason') }}
+
+                  🕒 **Status since**  
+                  {{ states('input_text.hpvc_last_action') }}
       - type: grid
         cards:
           - type: entities
@@ -487,21 +688,32 @@ views:
           - type: conditional
             conditions:
               - entity: input_boolean.hpvc_enabled
-                state: "on"
+                state: 'on'
               - entity: input_boolean.hpvc_control_hbc_strategy
-                state: "on"
+                state: 'on'
               - condition: state
                 entity: sensor.hpvc_diag_hbc_strategy
                 state_not:
                   - unknown
                   - unavailable
-                  - ""
+                  - ''
             card:
               type: entities
               title: 🔋 HBC Live Status
+              show_header_toggle: false
               entities:
                 - entity: sensor.hpvc_diag_hbc_strategy
                   name: HBC strategy
+                - type: simple-entity
+                  entity: input_text.house_battery_strategy_active_sub_strategy
+                  name: HBC sub-strategy
+                  icon: mdi:battery-sync
+                  tap_action:
+                    action: none
+                  hold_action:
+                    action: none
+                  double_tap_action:
+                    action: none
                 - type: conditional
                   conditions:
                     - condition: numeric_state
@@ -598,136 +810,67 @@ views:
                   row:
                     entity: sensor.marstek_m6_ac_power
                     name: Battery M6 power
-                - type: conditional
-                  conditions:
-                    - condition: numeric_state
-                      entity: input_number.house_battery_count
-                      above: 6
-                  row:
-                    entity: sensor.marstek_m7_battery_state_of_charge
-                    name: Battery M7 SOC
-                - type: conditional
-                  conditions:
-                    - condition: numeric_state
-                      entity: input_number.house_battery_count
-                      above: 6
-                  row:
-                    entity: sensor.marstek_m7_ac_power
-                    name: Battery M7 power
-                - type: conditional
-                  conditions:
-                    - condition: numeric_state
-                      entity: input_number.house_battery_count
-                      above: 7
-                  row:
-                    entity: sensor.marstek_m8_battery_state_of_charge
-                    name: Battery M8 SOC
-                - type: conditional
-                  conditions:
-                    - condition: numeric_state
-                      entity: input_number.house_battery_count
-                      above: 7
-                  row:
-                    entity: sensor.marstek_m8_ac_power
-                    name: Battery M8 power
-                - type: conditional
-                  conditions:
-                    - condition: numeric_state
-                      entity: input_number.house_battery_count
-                      above: 8
-                  row:
-                    entity: sensor.marstek_m9_battery_state_of_charge
-                    name: Battery M9 SOC
-                - type: conditional
-                  conditions:
-                    - condition: numeric_state
-                      entity: input_number.house_battery_count
-                      above: 8
-                  row:
-                    entity: sensor.marstek_m9_ac_power
-                    name: Battery M9 power
-                - type: conditional
-                  conditions:
-                    - condition: numeric_state
-                      entity: input_number.house_battery_count
-                      above: 9
-                  row:
-                    entity: sensor.marstek_m10_battery_state_of_charge
-                    name: Battery M10 SOC
-                - type: conditional
-                  conditions:
-                    - condition: numeric_state
-                      entity: input_number.house_battery_count
-                      above: 9
-                  row:
-                    entity: sensor.marstek_m10_ac_power
-                    name: Battery M10 power
-              show_header_toggle: false
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
+            state: 'on'
       - type: grid
+        columns: 1
+        square: false
         cards:
-          - type: vertical-stack
-            cards:
-              - type: entities
-                title: 📊 Control states
-                show_header_toggle: false
-                entities:
-                  - entity: binary_sensor.hpvc_pv_limited
-                    name: PV limited
-                  - type: conditional
-                    conditions:
-                      - entity: input_boolean.hpvc_control_hbc_strategy
-                        state: "on"
-                    row:
-                      entity: binary_sensor.hpvc_pv_reveal_active
-                      name: PV revealed
-                  - entity: binary_sensor.hpvc_cooldown_active
-                    name: Cooldown
-                  - entity: binary_sensor.hpvc_at_minimum_pv
-                    name: At minimum PV
-                  - entity: binary_sensor.hpvc_negative_price_mode
-                    name: Negative price
+          - type: entities
+            title: 📊 Control States
+            show_header_toggle: false
+            entities:
+              - entity: binary_sensor.hpvc_pv_limited
+                name: PV limited
+              - entity: binary_sensor.hpvc_cooldown_active
+                name: Cooldown
               - type: conditional
                 conditions:
                   - entity: input_boolean.hpvc_control_hbc_strategy
-                    state: "on"
-                card:
-                  type: history-graph
-                  hours_to_show: 6
-                  entities:
-                    - entity: binary_sensor.hpvc_pv_limited
-                      name: PV limited
-                    - entity: binary_sensor.hpvc_pv_reveal_active
-                      name: PV revealed
-                    - entity: binary_sensor.hpvc_cooldown_active
-                      name: Cooldown
-                    - entity: binary_sensor.hpvc_at_minimum_pv
-                      name: At minimum PV
-                    - entity: binary_sensor.hpvc_negative_price_mode
-                      name: Negative price
-              - type: conditional
-                conditions:
-                  - entity: input_boolean.hpvc_control_hbc_strategy
-                    state: "off"
-                card:
-                  type: history-graph
-                  hours_to_show: 6
-                  entities:
-                    - entity: binary_sensor.hpvc_pv_limited
-                      name: PV limited
-                    - entity: binary_sensor.hpvc_cooldown_active
-                      name: Cooldown
-                    - entity: binary_sensor.hpvc_at_minimum_pv
-                      name: At minimum PV
-                    - entity: binary_sensor.hpvc_negative_price_mode
-                      name: Negative price
-        visibility:
-          - condition: state
-            entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
+                    state: 'on'
+                row:
+                  entity: binary_sensor.hpvc_charge_priority_active
+                  name: Charge priority
+              - entity: binary_sensor.hpvc_at_minimum_pv
+                name: At minimum PV
+              - entity: binary_sensor.hpvc_negative_price_mode
+                name: Negative price
+          - type: conditional
+            conditions:
+              - entity: input_boolean.hpvc_control_hbc_strategy
+                state: 'on'
+            card:
+              type: history-graph
+              hours_to_show: 6
+              entities:
+                - entity: binary_sensor.hpvc_pv_limited
+                  name: PV limited
+                - entity: binary_sensor.hpvc_charge_priority_active
+                  name: Charge priority
+                - entity: binary_sensor.hpvc_cooldown_active
+                  name: Cooldown
+                - entity: binary_sensor.hpvc_at_minimum_pv
+                  name: At minimum PV
+                - entity: binary_sensor.hpvc_negative_price_mode
+                  name: Negative price
+          - type: conditional
+            conditions:
+              - entity: input_boolean.hpvc_control_hbc_strategy
+                state: 'off'
+            card:
+              type: history-graph
+              hours_to_show: 6
+              entities:
+                - entity: binary_sensor.hpvc_pv_limited
+                  name: PV limited
+                - entity: binary_sensor.hpvc_cooldown_active
+                  name: Cooldown
+                - entity: binary_sensor.hpvc_at_minimum_pv
+                  name: At minimum PV
+                - entity: binary_sensor.hpvc_negative_price_mode
+                  name: Negative price
       - type: grid
         columns: 2
         square: false
@@ -759,6 +902,12 @@ views:
 
 
                   <h1><b>{{ value }}{{ unit }}</b></h1>
+
+                  {% set sample_raw =
+                  states('sensor.hpvc_daily_target_accuracy_samples') %} {% if
+                  sample_raw not in ['unknown', 'unavailable', 'none', ''] %}
+                  <div style="opacity:.72; margin-top:-8px;">{{ sample_raw |
+                  int(0) }} valid samples today</div> {% endif %}
 
 
                   </center>
@@ -848,677 +997,1108 @@ views:
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
-      - type: grid
-        cards:
-          - type: conditional
-            conditions:
-              - entity: input_boolean.hpvc_control_hbc_strategy
-                state: "on"
-            card:
-              type: vertical-stack
-              cards:
-                - type: markdown
-                  content: >
-                    {% set raw = states('sensor.hpvc_daily_reveal_accuracy') %}
-
-                    {% set has_data = raw not in ['unknown', 'unavailable',
-                    'none', ''] %}
-
-                    {% set value = raw if has_data else 'No data collected
-                    today' %}
-
-                    {% set unit =
-                    (state_attr('sensor.hpvc_daily_reveal_accuracy',
-                    'unit_of_measurement') or '%') if has_data else '' %}
-
-
-                    <center>
-
-
-                    <span style="font-size:18px;">
-                      <ha-icon icon="mdi:bullseye-arrow"></ha-icon>&nbsp;&nbsp;&nbsp;
-                      <b>Daily Reveal Accuracy</b>
-                    </span>
-
-
-                    <h1><b>{{ value }}{{ unit }}</b></h1>
-
-
-                    </center>
-                - type: markdown
-                  text_only: true
-                  content: >
-                    {% set raw = states('sensor.hpvc_daily_reveal_accuracy') %}
-
-                    {% set has_data = raw not in ['unknown', 'unavailable',
-                    'none', ''] %}
-
-                    {% set value = raw | float(0) %}
-
-
-                    {% if not has_data %}
-
-                    <ha-alert title="No data collected today" alert-type="info">
-
-                    No valid Reveal Accuracy samples have been collected today.
-
-                    </ha-alert>
-
-                    {% elif value >= 90 %}
-
-                    <ha-alert title="Excellent" alert-type="success">
-
-                    Hidden PV Reveal is performing very accurately today.
-
-                    </ha-alert>
-
-                    {% elif value >= 80 %}
-
-                    <ha-alert title="Great" alert-type="success">
-
-                    Hidden PV Reveal is performing well today.
-
-                    </ha-alert>
-
-                    {% elif value >= 65 %}
-
-                    <ha-alert title="Good" alert-type="info">
-
-                    Hidden PV Reveal is generally accurate, with some losses.
-
-                    </ha-alert>
-
-                    {% elif value >= 50 %}
-
-                    <ha-alert title="Fair" alert-type="warning">
-
-                    Hidden PV Reveal accuracy is lower than normal today.
-
-                    </ha-alert>
-
-                    {% else %}
-
-                    <ha-alert title="Needs attention" alert-type="error">
-
-                    Accuracy is low. Review the estimated factors below to see
-                    what affected performance today.
-
-                    </ha-alert>
-
-                    {% endif %}
-                - type: heading
-                  heading: Estimated accuracy-loss factors
-                - type: grid
-                  columns: 2
-                  square: false
-                  cards:
-                    - type: tile
-                      entity: sensor.hpvc_reveal_interrupted_impact
-                      name: Interrupted reveal
-                      icon: mdi:pause-circle-outline
-                      vertical: false
-                      hide_state: false
-                    - type: tile
-                      entity: sensor.hpvc_reveal_overshoot_impact
-                      name: Reveal overshoot
-                      icon: mdi:arrow-up-bold-circle-outline
-                      vertical: false
-                      hide_state: false
-                    - type: tile
-                      entity: sensor.hpvc_reveal_limited_pv_response_impact
-                      name: Limited PV response
-                      icon: mdi:solar-power-variant-outline
-                      vertical: false
-                      hide_state: false
-                    - type: tile
-                      entity: sensor.hpvc_reveal_other_impact
-                      name: Other
-                      icon: mdi:dots-horizontal-circle-outline
-                      vertical: false
-                      hide_state: false
+            state: 'on'
+      - type: custom:apexcharts-card
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
-      - type: grid
-        cards:
-          - type: conditional
-            conditions:
-              - entity: input_boolean.hpvc_control_hbc_strategy
-                state: "off"
-            card:
-              type: history-graph
-              title: ⚡ Power flow
-              hours_to_show: 6
-              entities:
-                - entity: sensor.hpvc_diag_grid_power
-                  name: Grid
-                - entity: sensor.hpvc_diag_pv_power
-                  name: PV
-          - type: conditional
-            conditions:
-              - entity: input_boolean.hpvc_control_hbc_strategy
-                state: "on"
-            card:
-              type: history-graph
-              title: ⚡ Power flow
-              hours_to_show: 6
-              entities:
-                - entity: sensor.hpvc_diag_grid_power
-                  name: Grid
-                - entity: sensor.hpvc_diag_pv_power
-                  name: PV
-                - entity: sensor.hpvc_total_hbc_charging_power
-                  name: HBC charge
-                - entity: sensor.hpvc_reveal_request
-                  name: PV reveal request
+            state: 'on'
+          - condition: state
+            entity: input_boolean.hpvc_control_hbc_strategy
+            state: 'off'
+        update_interval: 5s
+        graph_span: 6h
+        header:
+          show: true
+          title: ⚡ Power Flow
+          show_states: true
+          colorize_states: true
+        yaxis:
+          - id: main
+            min: auto
+            max: auto
+            decimals: 0
+            apex_config:
+              title:
+                text: W
+          - id: raw_header
+            show: false
+            min: -50000
+            max: 50000
+            decimals: 0
+        apex_config:
+          chart:
+            height: 300
+            stacked: false
+            toolbar:
+              show: false
+            zoom:
+              enabled: false
+            pan:
+              enabled: false
+            animations:
+              enabled: false
+          stroke:
+            curve: smooth
+            connectNulls: false
+          fill:
+            opacity: 0.55
+          markers:
+            size: 0
+            hover:
+              size: 5
+              sizeOffset: 0
+          tooltip:
+            shared: true
+            intersect: false
+            followCursor: true
+            theme: false
+            custom: |
+              EVAL:function({ series, dataPointIndex }) {
+                const colors = [
+                  '#3B82F6',
+                  '#22C55E',
+                  '#F59E0B'
+                ];
+
+                const names = [
+                  'Grid import',
+                  'Grid export',
+                  'Solar'
+                ];
+
+                let rows = '';
+
+                // Only the first three visible graph series belong in the tooltip.
+                for (let i = 0; i < 3; i++) {
+                  const value =
+                    series[i] && dataPointIndex < series[i].length
+                      ? series[i][dataPointIndex]
+                      : null;
+
+                  const display =
+                    value === null ||
+                    value === undefined ||
+                    !Number.isFinite(value)
+                      ? '—'
+                      : Math.round(value).toLocaleString() + ' W';
+
+                  rows +=
+                    '<div style="display:flex;align-items:center;gap:6px;margin:2px 0;">' +
+                      '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' +
+                        colors[i] +
+                        ';flex-shrink:0;"></span>' +
+                      '<span style="color:var(--secondary-text-color);min-width:88px;font-weight:700;">' +
+                        names[i] +
+                        '</span>' +
+                      '<span style="font-weight:700;margin-left:auto;">' +
+                        display +
+                      '</span>' +
+                    '</div>';
+                }
+
+                return (
+                  '<div style="padding:8px 10px;font-size:10px;width:max-content;max-width:240px;box-sizing:border-box;background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 35%,transparent);backdrop-filter:blur(1px);border-radius:6px;border:1px solid var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:600;">' +
+                    rows +
+                  '</div>'
+                );
+              }
+          grid:
+            borderColor: var(--divider-color)
+            strokeDashArray: 2
+            xaxis:
+              lines:
+                show: true
+            yaxis:
+              lines:
+                show: true
+          xaxis:
+            labels:
+              datetimeUTC: false
+              datetimeFormatter:
+                hour: HH:mm
+                day: d MMM
+              style:
+                fontSize: 11px
+            tooltip:
+              formatter: |
+                EVAL:function(value) {
+                  const date = new Date(value);
+
+                  const months = [
+                    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                  ];
+
+                  const pad = number =>
+                    String(number).padStart(2, '0');
+
+                  return (
+                    pad(date.getDate()) +
+                    ' ' +
+                    months[date.getMonth()] +
+                    ' · ' +
+                    pad(date.getHours()) +
+                    ':' +
+                    pad(date.getMinutes())
+                  );
+                }
+          dataLabels:
+            enabled: false
+          legend:
+            show: false
+          annotations:
+            yaxis:
+              - 'y': 0
+                borderColor: var(--secondary-text-color)
+                strokeDashArray: 0
+        series:
+          - entity: sensor.hpvc_diag_grid_power
+            name: Grid import
+            yaxis_id: main
+            type: area
+            color: '#3B82F6'
+            opacity: 0.55
+            stroke_width: 2
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: false
+              legend_value: false
+            transform: |
+              const value = Number(x);
+
+              if (
+                !Number.isFinite(value) ||
+                Math.abs(value) > 50000
+              ) {
+                return null;
+              }
+
+              return value > 0 ? value : 0;
+            group_by:
+              func: avg
+              duration: 5min
+              fill: zero
+              start_with_last: false
+          - entity: sensor.hpvc_diag_grid_power
+            name: Grid export
+            yaxis_id: main
+            type: area
+            color: '#22C55E'
+            opacity: 0.55
+            stroke_width: 2
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: false
+              legend_value: false
+            transform: |
+              const value = Number(x);
+
+              if (
+                !Number.isFinite(value) ||
+                Math.abs(value) > 50000
+              ) {
+                return null;
+              }
+
+              return value < 0 ? value : 0;
+            group_by:
+              func: avg
+              duration: 5min
+              fill: zero
+              start_with_last: false
+          - entity: sensor.hpvc_diag_pv_power
+            name: Solar graph
+            yaxis_id: main
+            type: area
+            color: '#F59E0B'
+            opacity: 0.55
+            stroke_width: 2
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: false
+              legend_value: false
+            transform: |
+              const value = Number(x);
+
+              if (
+                !Number.isFinite(value) ||
+                value < 0 ||
+                value > 50000
+              ) {
+                return null;
+              }
+
+              return value;
+            group_by:
+              func: avg
+              duration: 5min
+              fill: zero
+              start_with_last: false
+          - entity: sensor.hpvc_diag_grid_power
+            name: Import
+            yaxis_id: raw_header
+            type: line
+            color: '#3B82F6'
+            opacity: 0
+            stroke_width: 0
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: true
+              name_in_header: true
+              legend_value: false
+            data_generator: |
+              const value = Number(entity.state);
+
+              if (
+                !Number.isFinite(value) ||
+                Math.abs(value) > 50000
+              ) {
+                return [];
+              }
+
+              return [[Date.now(), value > 0 ? value : 0]];
+          - entity: sensor.hpvc_diag_grid_power
+            name: Export
+            yaxis_id: raw_header
+            type: line
+            color: '#22C55E'
+            opacity: 0
+            stroke_width: 0
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: true
+              name_in_header: true
+              legend_value: false
+            data_generator: |
+              const value = Number(entity.state);
+
+              if (
+                !Number.isFinite(value) ||
+                Math.abs(value) > 50000
+              ) {
+                return [];
+              }
+
+              return [[Date.now(), value < 0 ? value : 0]];
+          - entity: sensor.hpvc_diag_pv_power
+            name: Solar
+            yaxis_id: raw_header
+            type: line
+            color: '#F59E0B'
+            opacity: 0
+            stroke_width: 0
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: true
+              name_in_header: true
+              legend_value: false
+            data_generator: |
+              const value = Number(entity.state);
+
+              if (
+                !Number.isFinite(value) ||
+                value < 0 ||
+                value > 50000
+              ) {
+                return [];
+              }
+
+              return [[Date.now(), value]];
+        card_mod:
+          style: |
+            ha-card .apexcharts-tooltip,
+            ha-card .apexcharts-tooltip.apexcharts-theme-light,
+            ha-card .apexcharts-tooltip.apexcharts-theme-dark {
+              background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
+              background-color: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
+              backdrop-filter: blur(1px) !important;
+              -webkit-backdrop-filter: blur(1px) !important;
+              border: 1px solid var(--divider-color) !important;
+              color: var(--primary-text-color) !important;
+              box-shadow: var(--ha-card-box-shadow, none) !important;
+            }
+
+            ha-card .apexcharts-tooltip-text,
+            ha-card .apexcharts-tooltip-text-y-label,
+            ha-card .apexcharts-tooltip-text-y-value,
+            ha-card .apexcharts-tooltip-series-group {
+              color: var(--primary-text-color) !important;
+            }
+
+            ha-card .apexcharts-xaxistooltip {
+              background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
+              backdrop-filter: blur(1px) !important;
+              -webkit-backdrop-filter: blur(1px) !important;
+              border: 1px solid var(--divider-color) !important;
+              color: var(--primary-text-color) !important;
+              box-shadow: var(--ha-card-box-shadow, none) !important;
+            }
+
+            ha-card .apexcharts-xaxistooltip-bottom::before,
+            ha-card .apexcharts-xaxistooltip-bottom::after {
+              border-bottom-color: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
+            }
+      - type: custom:apexcharts-card
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
-      - type: grid
-        cards:
-          - type: conditional
-            conditions:
-              - entity: input_boolean.hpvc_enabled
-                state: "on"
-              - entity: input_boolean.hpvc_control_hbc_strategy
-                state: "on"
-              - condition: state
-                entity: sensor.hpvc_diag_hbc_strategy
-                state_not:
-                  - unknown
-                  - unavailable
-                  - ""
-            card:
-              type: vertical-stack
-              cards:
-                - type: markdown
-                  content: >-
-                    {% set prices = state_attr('sensor.hbc_energy_prices_data',
-                    'prices') %} {% set marks =
-                    state_attr('sensor.hbc_energy_prices_data', 'marks') %} {%
-                    set today_prices =
-                    state_attr('sensor.hbc_energy_prices_data', 'today') %} {%
-                    set tomorrow_prices =
-                    state_attr('sensor.hbc_energy_prices_data', 'tomorrow') %}
-                    {% set forecast =
-                    state_attr('sensor.hbc_energy_prices_data', 'forecast') %}
-                    {% set start = state_attr('sensor.hbc_energy_prices_data',
-                    'start') %} {% set pph =
-                    state_attr('sensor.hbc_energy_prices_data',
-                    'datapoints_per_hour') | float(0) %} {% set fallback_seconds
-                    = 3600 / pph if pph > 0 else 900 %} {% set market_entity =
-                    states('input_text.hpvc_market_price_sensor') %} {% set
-                    all_in_entity =
-                    states('input_text.hpvc_all_in_price_sensor') %} {% set
-                    market = states(market_entity) | float(none) %} {% set
-                    all_in = states(all_in_entity) | float(none) %} {% set model
-                    = states('input_text.hpvc_hbc_price_model_json') |
-                    from_json(default={}) %} {% set model_market_entity =
-                    states('input_text.hpvc_hbc_price_model_market_entity') %}
-                    {% set model_all_in_entity =
-                    states('input_text.hpvc_hbc_price_model_all_in_entity') %}
-                    {% set model_slope = model.get('a', none) | float(none) %}
-                    {% set model_intercept = model.get('b', none) | float(none)
-                    %} {% set model_ready =
-                      model.get('r', false)
-                      and model_market_entity == market_entity
-                      and model_all_in_entity == all_in_entity
-                      and model_slope is not none
-                      and model_intercept is not none
-                    %} {% set now_ts = as_timestamp(now()) %} {% set ns =
-                    namespace(current=none, points=[]) %}
+            state: 'on'
+          - condition: state
+            entity: input_boolean.hpvc_control_hbc_strategy
+            state: 'on'
+        update_interval: 5s
+        graph_span: 6h
+        header:
+          show: true
+          title: ⚡ Power Flow
+          show_states: true
+          colorize_states: true
+        yaxis:
+          - id: main
+            min: auto
+            max: auto
+            decimals: 0
+            apex_config:
+              title:
+                text: W
+          - id: raw_header
+            show: false
+            min: -50000
+            max: 50000
+            decimals: 0
+        apex_config:
+          chart:
+            height: 300
+            stacked: false
+            toolbar:
+              show: false
+            zoom:
+              enabled: false
+            pan:
+              enabled: false
+            animations:
+              enabled: false
+          stroke:
+            curve: smooth
+            connectNulls: false
+          fill:
+            opacity: 0.55
+          markers:
+            size: 0
+            hover:
+              size: 5
+              sizeOffset: 0
+          tooltip:
+            shared: true
+            intersect: false
+            followCursor: true
+            theme: false
+            custom: |
+              EVAL:function({ series, dataPointIndex }) {
+                const colors = [
+                  '#3B82F6',
+                  '#22C55E',
+                  '#F59E0B',
+                  '#EC4899'
+                ];
 
-                    {% macro point_time(item) -%}
-                      {{ item.start | default(item.time, true) | default(item.from, true) | default(item.start_time, true) | default(item.datetime, true) }}
-                    {%- endmacro %} {% macro point_end(item) -%}
-                      {{ item.end | default(item.to, true) | default(item.end_time, true) }}
-                    {%- endmacro %} {% macro point_price(item) -%}
-                      {%- if item.price is defined and item.price is not none -%}
-                        {{ item.price }}
-                      {%- elif item.value is defined and item.value is not none -%}
-                        {{ item.value }}
-                      {%- elif item.total is defined and item.total is not none -%}
-                        {{ item.total }}
-                      {%- elif item.per_kwh is defined and item.per_kwh is not none -%}
-                        {{ item.per_kwh }}
-                      {%- elif item.electricity_price is defined and item.electricity_price is not none -%}
-                        {{ item.electricity_price }}
-                      {%- endif -%}
-                    {%- endmacro %}
+                const names = [
+                  'Grid import',
+                  'Grid export',
+                  'Solar',
+                  'Battery charge'
+                ];
 
-                    {% set mark_list = marks if marks is sequence and marks is
-                    not string else [] %} {% for item in mark_list if item is
-                    mapping %}
-                      {% set st = as_timestamp(point_time(item), none) %}
-                      {% set en = as_timestamp(point_end(item), none) %}
-                      {% set pr = point_price(item) | float(none) %}
-                      {% if st is not none and pr is not none %}
-                        {% set ns.points = ns.points + [dict(start=st, explicit_end=en, price=pr)] %}
-                      {% endif %}
-                    {% endfor %} {% set ordered = ns.points |
-                    sort(attribute='start') %} {% for item in ordered if
-                    ns.current is none %}
-                      {% set next_item = ordered[loop.index0 + 1] if loop.index0 + 1 < ordered | count else none %}
-                      {% set next_start = next_item.start if next_item is not none else none %}
-                      {% set end_ts = item.explicit_end if item.explicit_end is not none and item.explicit_end > item.start else (next_start if next_start is not none and next_start > item.start else item.start + fallback_seconds) %}
-                      {% if now_ts >= item.start and now_ts < end_ts %}
-                        {% set ns.current = item.price %}
-                      {% endif %}
-                    {% endfor %}
+                let rows = '';
 
-                    {% if ns.current is none and prices is sequence and prices
-                    is not string and start %}
-                      {% set prices_start_ts = as_timestamp(start, none) %}
-                      {% if prices_start_ts is not none and now_ts >= prices_start_ts %}
-                        {% set index = ((now_ts - prices_start_ts) / fallback_seconds) | int %}
-                        {% if index >= 0 and index < prices | count %}
-                          {% set point = prices[index] %}
-                          {% set ns.current = (point_price(point) if point is mapping else point) | float(none) %}
-                        {% endif %}
-                      {% endif %}
-                    {% endif %}
+                // Only the first four visible graph series belong in the tooltip.
+                for (let i = 0; i < 4; i++) {
+                  const value =
+                    series[i] && dataPointIndex < series[i].length
+                      ? series[i][dataPointIndex]
+                      : null;
 
-                    {% if ns.current is none %}
-                      {% set today_list = today_prices if today_prices is sequence and today_prices is not string else [] %}
-                      {% set tomorrow_list = tomorrow_prices if tomorrow_prices is sequence and tomorrow_prices is not string else [] %}
-                      {% set forecast_list = forecast if forecast is sequence and forecast is not string else [] %}
-                      {% set ns.points = [] %}
-                      {% for item in today_list + tomorrow_list + forecast_list if item is mapping %}
-                        {% set st = as_timestamp(point_time(item), none) %}
-                        {% set en = as_timestamp(point_end(item), none) %}
-                        {% set pr = point_price(item) | float(none) %}
-                        {% if st is not none and pr is not none %}
-                          {% set ns.points = ns.points + [dict(start=st, explicit_end=en, price=pr)] %}
-                        {% endif %}
-                      {% endfor %}
-                      {% set ordered = ns.points | sort(attribute='start') %}
-                      {% for item in ordered if ns.current is none %}
-                        {% set next_item = ordered[loop.index0 + 1] if loop.index0 + 1 < ordered | count else none %}
-                        {% set next_start = next_item.start if next_item is not none else none %}
-                        {% set end_ts = item.explicit_end if item.explicit_end is not none and item.explicit_end > item.start else (next_start if next_start is not none and next_start > item.start else item.start + fallback_seconds) %}
-                        {% if now_ts >= item.start and now_ts < end_ts %}
-                          {% set ns.current = item.price %}
-                        {% endif %}
-                      {% endfor %}
-                    {% endif %}
+                  const display =
+                    value === null ||
+                    value === undefined ||
+                    !Number.isFinite(value)
+                      ? '—'
+                      : Math.round(value).toLocaleString() + ' W';
 
-                    {% set hbc_raw = ns.current | float(none) %} {% set
-                    hbc_price = (hbc_raw / 100 if hbc_raw | abs > 5 else
-                    hbc_raw) if hbc_raw is not none else none %} {% if hbc_price
-                    is not none and market is not none and all_in is not none
-                    and all_in >= market %}
-                      {% set md = (hbc_price - market) | abs %}
-                      {% set ad = (hbc_price - all_in) | abs %}
-                      {% if (md - ad) | abs < 0.01 %}
-                        **Price type uncertain**
-                      {% elif md < ad %}
-                        {% if model_ready %}
-                          **Market → estimated all-in (learned)**
-                        {% else %}
-                          **Market → estimated all-in (+€{{ (all_in - market) | round(3) }}/kWh)**
-                        {% endif %}
-                      {% else %}
-                        **All-in prices**
-                      {% endif %}
-                    {% else %}
-                      **Price type uncertain**
-                    {% endif %}
-                - type: custom:apexcharts-card
-                  header:
-                    show: true
-                    show_states: false
-                    title: 💰 HBC Price Zones
-                  graph_span: 48h
-                  update_interval: 1min
-                  span:
-                    start: day
-                  apex_config:
-                    annotations:
-                      xaxis:
-                        - x: EVAL:new Date().getTime()
-                          borderColor: "#009ac7"
-                          strokeDashArray: 0
-                          label:
-                            text: Now
-                            orientation: horizontal
-                            offsetY: -12
-                            style:
-                              background: "#009ac7"
-                              color: "#ffffff"
-                    plotOptions:
-                      bar:
-                        borderRadius: 2
-                        columnWidth: 90%
-                    legend:
-                      show: false
-                    xaxis:
-                      type: datetime
-                      labels:
-                        datetimeUTC: false
-                        format: HH:mm
-                        rotate: -45
-                        rotateAlways: true
-                    yaxis:
-                      decimalsInFloat: 3
-                      title:
-                        text: €/kWh
-                    tooltip:
-                      custom: >
-                        EVAL:function({ series, seriesIndex, dataPointIndex, w
-                        }) {
-                          const point =
-                            w.config.series?.[seriesIndex]?.data?.[dataPointIndex] || {};
-                          const timestamp =
-                            w.globals.seriesX?.[seriesIndex]?.[dataPointIndex];
-                          const value = series?.[seriesIndex]?.[dataPointIndex];
-                          const markerColor = point.fillColor ||
-                            w.globals.colors?.[seriesIndex] || '#ff9800';
-                          const date = new Date(timestamp);
-                          const dateText = Number.isFinite(date.getTime())
-                            ? date.toLocaleString(undefined, {
-                                weekday: 'short',
-                                day: '2-digit',
-                                month: 'short',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: false
-                              })
-                            : '';
-                          const valueText = Number.isFinite(Number(value))
-                            ? Number(value).toFixed(3) + ' €/kWh'
-                            : '—';
+                  rows +=
+                    '<div style="display:flex;align-items:center;gap:6px;margin:2px 0;">' +
+                      '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' +
+                        colors[i] +
+                        ';flex-shrink:0;"></span>' +
+                      '<span style="color:var(--secondary-text-color);min-width:88px;font-weight:700;">' +
+                        names[i] +
+                        '</span>' +
+                      '<span style="font-weight:700;margin-left:auto;">' +
+                        display +
+                      '</span>' +
+                    '</div>';
+                }
 
-                          return `
-                            <div class="apexcharts-tooltip-title">${dateText}</div>
-                            <div class="apexcharts-tooltip-series-group apexcharts-active"
-                                 style="display:flex;">
-                              <span class="apexcharts-tooltip-marker"
-                                    style="background:${markerColor};width:12px;height:12px;border-radius:50%;display:inline-block;"></span>
-                              <div class="apexcharts-tooltip-text">
-                                <div class="apexcharts-tooltip-y-group">
-                                  <span class="apexcharts-tooltip-text-y-label">Price: </span>
-                                  <span class="apexcharts-tooltip-text-y-value">${valueText}</span>
-                                </div>
-                              </div>
-                            </div>`;
-                        }
-                  series:
-                    - entity: sensor.hbc_energy_prices_data
-                      name: Price
-                      type: column
-                      float_precision: 3
-                      show:
-                        legend_value: false
-                      data_generator: >
-                        const attrs = entity.attributes || {};
+                return (
+                  '<div style="padding:8px 10px;font-size:10px;width:max-content;max-width:240px;box-sizing:border-box;background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 35%,transparent);backdrop-filter:blur(1px);border-radius:6px;border:1px solid var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:600;">' +
+                    rows +
+                  '</div>'
+                );
+              }
+          grid:
+            borderColor: var(--divider-color)
+            strokeDashArray: 2
+            xaxis:
+              lines:
+                show: true
+            yaxis:
+              lines:
+                show: true
+          xaxis:
+            labels:
+              datetimeUTC: false
+              datetimeFormatter:
+                hour: HH:mm
+                day: d MMM
+              style:
+                fontSize: 11px
+            tooltip:
+              formatter: |
+                EVAL:function(value) {
+                  const date = new Date(value);
 
-                        const charge = parseFloat(
-                          hass.states['input_number.hpvc_battery_charge_price']?.state
-                        );
+                  const months = [
+                    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                  ];
 
-                        const expensive = parseFloat(
-                          hass.states['input_number.hpvc_battery_expensive_price']?.state
-                        );
+                  const pad = number =>
+                    String(number).padStart(2, '0');
 
-                        const chargePrice = Number.isFinite(charge) ? charge :
-                        0.10;
+                  return (
+                    pad(date.getDate()) +
+                    ' ' +
+                    months[date.getMonth()] +
+                    ' · ' +
+                    pad(date.getHours()) +
+                    ':' +
+                    pad(date.getMinutes())
+                  );
+                }
+          dataLabels:
+            enabled: false
+          legend:
+            show: false
+          annotations:
+            yaxis:
+              - 'y': 0
+                borderColor: var(--secondary-text-color)
+                strokeDashArray: 0
+        series:
+          - entity: sensor.hpvc_diag_grid_power
+            name: Grid import
+            yaxis_id: main
+            type: area
+            color: '#3B82F6'
+            opacity: 0.55
+            stroke_width: 2
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: false
+              legend_value: false
+            transform: |
+              const value = Number(x);
 
-                        const expensivePrice = Number.isFinite(expensive)
-                          ? expensive : 0.35;
+              if (
+                !Number.isFinite(value) ||
+                Math.abs(value) > 50000
+              ) {
+                return null;
+              }
 
-                        const now = Date.now();
+              return value > 0 ? value : 0;
+            group_by:
+              func: avg
+              duration: 5min
+              fill: zero
+              start_with_last: false
+          - entity: sensor.hpvc_diag_grid_power
+            name: Grid export
+            yaxis_id: main
+            type: area
+            color: '#22C55E'
+            opacity: 0.55
+            stroke_width: 2
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: false
+              legend_value: false
+            transform: |
+              const value = Number(x);
 
-                        const today = new Date();
+              if (
+                !Number.isFinite(value) ||
+                Math.abs(value) > 50000
+              ) {
+                return null;
+              }
 
-                        today.setHours(0, 0, 0, 0);
+              return value < 0 ? value : 0;
+            group_by:
+              func: avg
+              duration: 5min
+              fill: zero
+              start_with_last: false
+          - entity: sensor.hpvc_diag_pv_power
+            name: Solar graph
+            yaxis_id: main
+            type: area
+            color: '#F59E0B'
+            opacity: 0.55
+            stroke_width: 2
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: false
+              legend_value: false
+            transform: |
+              const value = Number(x);
 
-                        const tomorrow = new Date(today);
+              if (
+                !Number.isFinite(value) ||
+                value < 0 ||
+                value > 50000
+              ) {
+                return null;
+              }
 
-                        tomorrow.setDate(tomorrow.getDate() + 1);
+              return value;
+            group_by:
+              func: avg
+              duration: 5min
+              fill: zero
+              start_with_last: false
+          - entity: sensor.hpvc_total_hbc_charging_power
+            name: Battery charge graph
+            yaxis_id: main
+            type: area
+            color: '#EC4899'
+            opacity: 0.55
+            stroke_width: 2
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: false
+              legend_value: false
+            transform: |
+              const value = Number(x);
 
+              if (
+                !Number.isFinite(value) ||
+                value < 0 ||
+                value > 50000
+              ) {
+                return null;
+              }
 
-                        const valueOf = item => {
-                          if (typeof item === 'number') return item;
-                          if (!item || typeof item !== 'object') return Number(item);
-                          return Number(
-                            item.price ?? item.value ?? item.total ??
-                            item.per_kwh ?? item.electricity_price
-                          );
-                        };
+              return value;
+            group_by:
+              func: avg
+              duration: 5min
+              fill: zero
+              start_with_last: false
+          - entity: sensor.hpvc_diag_grid_power
+            name: Import
+            yaxis_id: raw_header
+            type: line
+            color: '#3B82F6'
+            opacity: 0
+            stroke_width: 0
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: true
+              name_in_header: true
+              legend_value: false
+            data_generator: |
+              const value = Number(entity.state);
 
+              if (
+                !Number.isFinite(value) ||
+                Math.abs(value) > 50000
+              ) {
+                return [];
+              }
 
-                        const timeOf = item =>
-                          item?.start ?? item?.time ?? item?.from ??
-                          item?.start_time ?? item?.datetime;
+              return [[Date.now(), value > 0 ? value : 0]];
+          - entity: sensor.hpvc_diag_grid_power
+            name: Export
+            yaxis_id: raw_header
+            type: line
+            color: '#22C55E'
+            opacity: 0
+            stroke_width: 0
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: true
+              name_in_header: true
+              legend_value: false
+            data_generator: |
+              const value = Number(entity.state);
 
-                        const explicitEndOf = item =>
-                          item?.end ?? item?.to ?? item?.end_time;
+              if (
+                !Number.isFinite(value) ||
+                Math.abs(value) > 50000
+              ) {
+                return [];
+              }
 
-                        const pph = Number(attrs.datapoints_per_hour);
+              return [[Date.now(), value < 0 ? value : 0]];
+          - entity: sensor.hpvc_diag_pv_power
+            name: Solar
+            yaxis_id: raw_header
+            type: line
+            color: '#F59E0B'
+            opacity: 0
+            stroke_width: 0
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: true
+              name_in_header: true
+              legend_value: false
+            data_generator: |
+              const value = Number(entity.state);
 
-                        const fallbackIntervalMs = Number.isFinite(pph) && pph >
-                        0
-                          ? 60 * 60 * 1000 / pph
-                          : 15 * 60 * 1000;
+              if (
+                !Number.isFinite(value) ||
+                value < 0 ||
+                value > 50000
+              ) {
+                return [];
+              }
 
-                        const normalizePrice = value => {
-                          const raw = Number(value);
-                          if (!Number.isFinite(raw)) return NaN;
-                          return Math.abs(raw) > 5 ? raw / 100 : raw;
-                        };
+              return [[Date.now(), value]];
+          - entity: sensor.hpvc_total_hbc_charging_power
+            name: Charge
+            yaxis_id: raw_header
+            type: line
+            color: '#EC4899'
+            opacity: 0
+            stroke_width: 0
+            unit: W
+            float_precision: 0
+            extend_to: false
+            show:
+              in_header: true
+              name_in_header: true
+              legend_value: false
+            data_generator: |
+              const value = Number(entity.state);
 
+              if (
+                !Number.isFinite(value) ||
+                value < 0 ||
+                value > 50000
+              ) {
+                return [];
+              }
 
-                        const normalizeTimestamped = source => {
-                          const sorted = source
-                            .filter(item => item && timeOf(item) != null)
-                            .map(item => ({
-                              start: Date.parse(timeOf(item)),
-                              explicitEnd: Date.parse(explicitEndOf(item)),
-                              price: valueOf(item),
-                              is_now: Boolean(item.is_now)
-                            }))
-                            .filter(item =>
-                              Number.isFinite(item.start) &&
-                              Number.isFinite(Number(item.price))
-                            )
-                            .sort((a, b) => a.start - b.start);
+              return [[Date.now(), value]];
+        card_mod:
+          style: |
+            ha-card .apexcharts-tooltip,
+            ha-card .apexcharts-tooltip.apexcharts-theme-light,
+            ha-card .apexcharts-tooltip.apexcharts-theme-dark {
+              background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
+              background-color: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
+              backdrop-filter: blur(1px) !important;
+              -webkit-backdrop-filter: blur(1px) !important;
+              border: 1px solid var(--divider-color) !important;
+              color: var(--primary-text-color) !important;
+              box-shadow: var(--ha-card-box-shadow, none) !important;
+            }
 
-                          return sorted.map((item, index) => {
-                            const nextStart = sorted[index + 1]?.start;
-                            const end = Number.isFinite(item.explicitEnd) &&
-                              item.explicitEnd > item.start
-                              ? item.explicitEnd
-                              : (Number.isFinite(nextStart) && nextStart > item.start
-                                ? nextStart
-                                : item.start + fallbackIntervalMs);
-                            return { ...item, end };
-                          });
-                        };
+            ha-card .apexcharts-tooltip-text,
+            ha-card .apexcharts-tooltip-text-y-label,
+            ha-card .apexcharts-tooltip-text-y-value,
+            ha-card .apexcharts-tooltip-series-group {
+              color: var(--primary-text-color) !important;
+            }
 
+            ha-card .apexcharts-xaxistooltip {
+              background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
+              backdrop-filter: blur(1px) !important;
+              -webkit-backdrop-filter: blur(1px) !important;
+              border: 1px solid var(--divider-color) !important;
+              color: var(--primary-text-color) !important;
+              box-shadow: var(--ha-card-box-shadow, none) !important;
+            }
 
-                        const markIntervals = Array.isArray(attrs.marks)
-                          ? normalizeTimestamped(attrs.marks)
-                          : [];
-
-                        let priceIntervals = [];
-
-                        if (Array.isArray(attrs.prices) && attrs.prices.length)
-                        {
-                          const start = Date.parse(attrs.start);
-                          if (Number.isFinite(start)) {
-                            priceIntervals = attrs.prices
-                              .map((value, index) => ({
-                                start: start + index * fallbackIntervalMs,
-                                end: start + (index + 1) * fallbackIntervalMs,
-                                price: valueOf(value),
-                                is_now: false
-                              }))
-                              .filter(iv => Number.isFinite(Number(iv.price)));
-                          }
-                        }
-
-
-                        const combined = [
-                          ...(Array.isArray(attrs.today) ? attrs.today : []),
-                          ...(Array.isArray(attrs.tomorrow) ? attrs.tomorrow : []),
-                          ...(Array.isArray(attrs.forecast) ? attrs.forecast : [])
-                        ];
-
-                        const combinedIntervals =
-                        normalizeTimestamped(combined);
-
-
-                        const candidates = [
-                          markIntervals,
-                          priceIntervals,
-                          combinedIntervals
-                        ].filter(list => list.length > 0);
-
-
-                        const containsNow = list => list.some(iv =>
-                          now >= iv.start && now < iv.end
-                        );
-
-                        const intervals = candidates.find(containsNow) ??
-                          candidates[0] ?? [];
-
-                        const marketEntity =
-                          hass.states['input_text.hpvc_market_price_sensor']?.state;
-                        const allInEntity =
-                          hass.states['input_text.hpvc_all_in_price_sensor']?.state;
-                        const marketNow =
-                        parseFloat(hass.states[marketEntity]?.state);
-
-                        const allInNow =
-                        parseFloat(hass.states[allInEntity]?.state);
-
-
-                        let learnedModel = {};
-
-                        try {
-                          learnedModel = JSON.parse(
-                            hass.states['input_text.hpvc_hbc_price_model_json']?.state || '{}'
-                          );
-                        } catch (error) {
-                          learnedModel = {};
-                        }
-
-
-                        const modelMarketEntity =
-                          hass.states['input_text.hpvc_hbc_price_model_market_entity']?.state || '';
-                        const modelAllInEntity =
-                          hass.states['input_text.hpvc_hbc_price_model_all_in_entity']?.state || '';
-                        const modelEntitiesMatch =
-                          modelMarketEntity === marketEntity &&
-                          modelAllInEntity === allInEntity;
-                        const modelSlope = Number(learnedModel.a);
-
-                        const modelIntercept = Number(learnedModel.b);
-
-                        const learnedFormulaValid = learnedModel.r === true &&
-                          modelEntitiesMatch &&
-                          Number.isFinite(modelSlope) &&
-                          Number.isFinite(modelIntercept);
-
-                        const currentInterval = intervals.find(iv =>
-                          now >= iv.start && now < iv.end
-                        );
-
-                        const hbcCurrent = currentInterval
-                          ? normalizePrice(currentInterval.price)
-                          : NaN;
-
-                        let priceType = 'uncertain';
-
-                        let conversion = 0;
-
-                        if (Number.isFinite(hbcCurrent) &&
-                        Number.isFinite(marketNow) &&
-                            Number.isFinite(allInNow) && allInNow >= marketNow) {
-                          const marketDiff = Math.abs(hbcCurrent - marketNow);
-                          const allInDiff = Math.abs(hbcCurrent - allInNow);
-                          if (Math.abs(marketDiff - allInDiff) >= 0.01) {
-                            if (marketDiff < allInDiff) {
-                              priceType = 'market';
-                              conversion = allInNow - marketNow;
-                            } else {
-                              priceType = 'all_in';
-                            }
-                          }
-                        }
-
-
-                        const colorForPrice = (price, isNow) => {
-                          if (isNow) return '#009ac7';
-                          if (price <= chargePrice) return '#4caf50';
-                          if (price < expensivePrice) return '#ffc107';
-                          return '#f44336';
-                        };
-
-
-                        return intervals.map(iv => {
-                          const rawPrice = normalizePrice(iv.price);
-                          const price = priceType === 'market'
-                            ? (learnedFormulaValid
-                              ? rawPrice * modelSlope + modelIntercept
-                              : rawPrice + conversion)
-                            : rawPrice;
-                          const isNow = Boolean(iv.is_now) ||
-                            (now >= iv.start && now < iv.end);
-                          let color = colorForPrice(price, isNow);
-                          if (iv.start >= tomorrow.getTime()) color += '60';
-
-                          return {
-                            x: iv.start,
-                            y: price,
-                            fillColor: color
-                          };
-                        }).filter(point =>
-                          Number.isFinite(point.x) && Number.isFinite(point.y)
-                        );
-                - type: markdown
-                  content: >
-                    | Zone | All-in price |
-
-                    |:---|---:|
-
-                    | 🟢 **Charge** | ≤ €{{
-                    states('input_number.hpvc_battery_charge_price') |
-                    float(0.10) | round(3) }}/kWh |
-
-                    | 🟡 **Balanced** ({{
-                    states('input_select.hpvc_balanced_strategy') }}) | €{{
-                    states('input_number.hpvc_battery_charge_price') |
-                    float(0.10) | round(3) }}–€{{
-                    states('input_number.hpvc_battery_expensive_price') |
-                    float(0.35) | round(3) }}/kWh |
-
-                    | 🔴 **Expensive** ({{
-                    states('input_select.hpvc_expensive_strategy') }}) | ≥ €{{
-                    states('input_number.hpvc_battery_expensive_price') |
-                    float(0.35) | round(3) }}/kWh |
+            ha-card .apexcharts-xaxistooltip-bottom::before,
+            ha-card .apexcharts-xaxistooltip-bottom::after {
+              border-bottom-color: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
+            }
+      - type: custom:apexcharts-card
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
+            state: 'on'
+          - condition: state
+            entity: input_boolean.hpvc_control_hbc_strategy
+            state: 'on'
+        header:
+          show: true
+          show_states: true
+          colorize_states: true
+          title: 💰 HBC Price Intervals
+        graph_span: 48h
+        update_interval: 1min
+        span:
+          start: day
+        apex_config:
+          chart:
+            animations:
+              enabled: false
+            toolbar:
+              show: false
+            zoom:
+              enabled: false
+            pan:
+              enabled: false
+          annotations:
+            xaxis:
+              - x: EVAL:new Date().getTime()
+                borderColor: '#009ac7'
+                strokeDashArray: 0
+                label:
+                  text: Now
+                  orientation: horizontal
+                  offsetY: -12
+                  style:
+                    background: '#009ac7'
+                    color: '#ffffff'
+          plotOptions:
+            bar:
+              borderRadius: 2
+              columnWidth: 100%
+          grid:
+            borderColor: var(--divider-color)
+            strokeDashArray: 2
+            xaxis:
+              lines:
+                show: true
+            yaxis:
+              lines:
+                show: true
+          legend:
+            show: false
+          xaxis:
+            type: datetime
+            labels:
+              datetimeUTC: false
+              format: HH:mm
+              rotate: -45
+              rotateAlways: true
+            tooltip:
+              enabled: true
+              formatter: |
+                EVAL:function(value) {
+                  const date = new Date(value);
+
+                  const pad = number =>
+                    String(number).padStart(2, '0');
+
+                  return (
+                    pad(date.getHours()) +
+                    ':' +
+                    pad(date.getMinutes())
+                  );
+                }
+            crosshairs:
+              show: true
+              stroke:
+                width: 1
+                dashArray: 3
+          yaxis:
+            decimalsInFloat: 0
+            title:
+              text: cent / kWh
+          tooltip:
+            enabled: true
+            shared: false
+            intersect: true
+            followCursor: false
+            theme: false
+            x:
+              show: false
+            marker:
+              show: true
+            'y':
+              title:
+                formatter: |
+                  EVAL:function() {
+                    return '';
+                  }
+              formatter: |
+                EVAL:function(value) {
+                  return Number.isFinite(Number(value))
+                    ? Number(value).toFixed(1) + ' ct/kWh'
+                    : '—';
+                }
+        series:
+          - entity: sensor.hbc_energy_prices_data
+            name: Current high price
+            color: '#ff9800'
+            unit: ct/kWh
+            float_precision: 1
+            extend_to: false
+            show:
+              in_chart: false
+              in_header: true
+              name_in_header: false
+              null_in_header: false
+              legend_value: false
+            data_generator: |
+              const marks = entity.attributes.marks || [];
+              const now = Date.now();
+
+              const current =
+                marks.find(interval => interval.is_now) ||
+                marks.find((interval, index) => {
+                  const start =
+                    new Date(interval.start).getTime();
+
+                  const nextStart =
+                    index < marks.length - 1
+                      ? new Date(marks[index + 1].start).getTime()
+                      : start + (15 * 60 * 1000);
+
+                  return now >= start && now < nextStart;
+                });
+
+              if (
+                !current ||
+                current.mark !== 'high' ||
+                !Number.isFinite(Number(current.price))
+              ) {
+                return [];
+              }
+
+              return [[now, Number(current.price)]];
+          - entity: sensor.hbc_energy_prices_data
+            name: Current low price
+            color: '#4caf50'
+            unit: ct/kWh
+            float_precision: 1
+            extend_to: false
+            show:
+              in_chart: false
+              in_header: true
+              name_in_header: false
+              null_in_header: false
+              legend_value: false
+            data_generator: |
+              const marks = entity.attributes.marks || [];
+              const now = Date.now();
+
+              const current =
+                marks.find(interval => interval.is_now) ||
+                marks.find((interval, index) => {
+                  const start =
+                    new Date(interval.start).getTime();
+
+                  const nextStart =
+                    index < marks.length - 1
+                      ? new Date(marks[index + 1].start).getTime()
+                      : start + (15 * 60 * 1000);
+
+                  return now >= start && now < nextStart;
+                });
+
+              if (
+                !current ||
+                current.mark !== 'low' ||
+                !Number.isFinite(Number(current.price))
+              ) {
+                return [];
+              }
+
+              return [[now, Number(current.price)]];
+          - entity: sensor.hbc_energy_prices_data
+            name: Current normal price
+            color: '#9e9e9e'
+            unit: ct/kWh
+            float_precision: 1
+            extend_to: false
+            show:
+              in_chart: false
+              in_header: true
+              name_in_header: false
+              null_in_header: false
+              legend_value: false
+            data_generator: |
+              const marks = entity.attributes.marks || [];
+              const now = Date.now();
+
+              const current =
+                marks.find(interval => interval.is_now) ||
+                marks.find((interval, index) => {
+                  const start =
+                    new Date(interval.start).getTime();
+
+                  const nextStart =
+                    index < marks.length - 1
+                      ? new Date(marks[index + 1].start).getTime()
+                      : start + (15 * 60 * 1000);
+
+                  return now >= start && now < nextStart;
+                });
+
+              if (
+                !current ||
+                current.mark === 'high' ||
+                current.mark === 'low' ||
+                !Number.isFinite(Number(current.price))
+              ) {
+                return [];
+              }
+
+              return [[now, Number(current.price)]];
+          - entity: sensor.hbc_energy_prices_data
+            name: Price
+            type: column
+            float_precision: 1
+            show:
+              in_header: false
+              legend_value: false
+            data_generator: |
+              const marks = entity.attributes.marks || [];
+
+              const colours = {
+                high: '#ff9800',
+                low: '#4caf50'
+              };
+
+              const startOfTomorrow = new Date();
+              startOfTomorrow.setHours(24, 0, 0, 0);
+
+              const tomorrowTimestamp =
+                startOfTomorrow.getTime();
+
+              const withOpacity = (hex, opacity) => {
+                const value = hex.replace('#', '');
+
+                const red =
+                  parseInt(value.slice(0, 2), 16);
+
+                const green =
+                  parseInt(value.slice(2, 4), 16);
+
+                const blue =
+                  parseInt(value.slice(4, 6), 16);
+
+                return `rgba(${red}, ${green}, ${blue}, ${opacity})`;
+              };
+
+              return marks.map(interval => {
+                const timestamp =
+                  new Date(interval.start).getTime();
+
+                const colour = interval.is_now
+                  ? '#009ac7'
+                  : (colours[interval.mark] || '#9e9e9e');
+
+                return {
+                  x: timestamp,
+                  y: Number(interval.price),
+                  fillColor:
+                    timestamp >= tomorrowTimestamp &&
+                    !interval.is_now
+                      ? withOpacity(colour, 0.55)
+                      : colour
+                };
+              });
+        card_mod:
+          style: |
+            ha-card .apexcharts-tooltip,
+            ha-card .apexcharts-tooltip.apexcharts-theme-light,
+            ha-card .apexcharts-tooltip.apexcharts-theme-dark {
+              background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
+              background-color: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
+              backdrop-filter: blur(1px) !important;
+              -webkit-backdrop-filter: blur(1px) !important;
+              border: 1px solid var(--divider-color) !important;
+              color: var(--primary-text-color) !important;
+              box-shadow: var(--ha-card-box-shadow, none) !important;
+            }
+
+            ha-card .apexcharts-tooltip-title {
+              display: none !important;
+            }
+
+            ha-card .apexcharts-tooltip-series-group {
+              background: transparent !important;
+              color: var(--primary-text-color) !important;
+              padding: 5px 7px !important;
+            }
+
+            ha-card .apexcharts-tooltip-text,
+            ha-card .apexcharts-tooltip-text-y-label,
+            ha-card .apexcharts-tooltip-text-y-value {
+              color: var(--primary-text-color) !important;
+            }
+
+            ha-card .apexcharts-xaxistooltip {
+              background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
+              backdrop-filter: blur(1px) !important;
+              -webkit-backdrop-filter: blur(1px) !important;
+              border: 1px solid var(--divider-color) !important;
+              color: var(--primary-text-color) !important;
+              box-shadow: var(--ha-card-box-shadow, none) !important;
+            }
+
+            ha-card .apexcharts-xaxistooltip-bottom::before,
+            ha-card .apexcharts-xaxistooltip-bottom::after {
+              border-bottom-color: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
+            }
       - type: grid
         cards:
           - type: markdown
             title: 📋 Insights
             content: >-
               <ha-alert alert-type="info">
-                Latest 20 Insights. For more history, press
-                <b>Generate report</b> in <b>PV Master Control</b>.
+                Latest up to 20 current-day consecutive Insight entries, newest first.
+                For complete current-day history, press <b>Generate report</b>
+                in <b>PV Master Control</b>.
               </ha-alert>
 
               <br>
 
-              | Time | | Flow | Node | Explanation |
-
-              {% for e in [
+              {% set entities = [
                 'input_text.hpvc_insight_1',
                 'input_text.hpvc_insight_2',
                 'input_text.hpvc_insight_3',
@@ -1539,20 +2119,91 @@ views:
                 'input_text.hpvc_insight_18',
                 'input_text.hpvc_insight_19',
                 'input_text.hpvc_insight_20'
-              ] %}
-                {% set v = states(e) %}
-                {% if v not in ['unknown', 'unavailable', '', none] %}
-                  {% set p = v.split('|') %}
-                  {% if p | length >= 4 %}
-              | {{ p[0] | trim }} | ℹ️ | {{ p[1] | trim }} | {{ p[2] | trim }} |
-              {{ p[3:] | join('|') | trim }} |
+              ] %} {% set ns = namespace(items=[]) %} {% for entity in entities
+              %}
+                {% set value = states(entity) %}
+                {% if value not in ['unknown', 'unavailable', '', none] %}
+                  {% set parts = value.split('|') %}
+                  {% if parts | length >= 7 and parts[0] | trim == 'v2' %}
+                    {% set severity_code = parts[3] | trim %}
+                    {% set item = {
+                      'time': parts[2] | trim,
+                      'severity': 'critical' if severity_code == 'c' else ('warning' if severity_code == 'w' else 'info'),
+                      'count': parts[4] | trim | int(1),
+                      'node': parts[5] | trim,
+                      'explanation': parts[6:] | join('|') | trim
+                    } %}
+                  {% elif parts | length >= 6 and parts[1] | trim in ['critical', 'warning', 'info'] %}
+                    {% set item = {
+                      'time': parts[0] | trim,
+                      'severity': parts[1] | trim,
+                      'count': parts[2] | trim | int(1),
+                      'node': parts[4] | trim,
+                      'explanation': parts[5:] | join('|') | trim
+                    } %}
+                  {% elif parts | length >= 4 %}
+                    {% set explanation = parts[3:] | join('|') | trim %}
+                    {% set lower = (parts[2] ~ ' ' ~ explanation) | lower %}
+                    {% set critical =
+                      'control paused' in lower or 'no inverter writes' in lower or
+                      'invalid configuration' in lower or ('core ' in lower and ' unavailable' in lower) or
+                      ('command' in lower and 'fail' in lower) or ('report' in lower and 'fail' in lower) or
+                      'all battery telemetry' in lower or 'runtime unavailable' in lower %}
+                    {% set warning = not critical and (
+                      'warning' in lower or 'unavailable' in lower or 'stale' in lower or
+                      'excluded' in lower or 'blocked' in lower or 'ineffective' in lower or
+                      'not confirmed' in lower or 'fault' in lower) %}
+                    {% set item = {
+                      'time': parts[0] | trim,
+                      'severity': 'critical' if critical else ('warning' if warning else 'info'),
+                      'count': 1,
+                      'node': parts[2] | trim,
+                      'explanation': explanation
+                    } %}
+                  {% else %}
+                    {% set item = none %}
                   {% endif %}
+                  {% if item %}{% set ns.items = ns.items + [item] %}{% endif %}
                 {% endif %}
               {% endfor %}
+
+              {% if ns.items | length == 0 %} <p><em>No Insights recorded yet
+              today.</em></p> {% else %}
+                {# Node-RED publishes helpers 1..20 already normalized and newest-first. #}
+                {% for item in ns.items %}
+                  {% set node = (item.node | lower) %}
+                  {% if 'battery' in node or 'charge priority' in node or 'taper' in node %}
+                  {% set icon = '🟣' %}
+                  {% elif 'pv' in node or 'inverter' in node or 'limit' in node or 'restore' in node %}
+                  {% set icon = '🟡' %}
+                  {% elif 'price' in node %}
+                  {% set icon = '🟢' %}
+                  {% elif 'telemetry' in node or 'safety' in node or item.severity == 'critical' %}
+                  {% set icon = '🔴' %}
+                  {% else %}
+                  {% set icon = '⚪' %}
+                  {% endif %}
+              <div style="padding:8px 0; border-bottom:1px solid
+              rgba(128,128,128,.24); overflow:hidden;">
+                <div style="display:flex; align-items:flex-start; gap:6px; min-width:0;">
+                  <span style="flex:0 0 auto;">{{ icon }}</span>
+                  <strong style="min-width:0; overflow-wrap:anywhere; word-break:break-word; white-space:normal;">{{ item.time }} · {{ item.node }}{% if item.count > 1 %} · ×{{ item.count }}{% endif %}</strong>
+                </div>
+                <div style="margin-top:5px; overflow-wrap:anywhere; word-break:break-word; white-space:normal; line-height:1.45;">{{ item.explanation }}</div>
+              </div>
+                {% endfor %}
+              {% endif %}
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
-            state: "on"
+            state: 'on'
+    background:
+      opacity: 33
+      alignment: center
+      size: cover
+      repeat: repeat
+      attachment: fixed
+    cards: []
   - type: sections
     title: Settings
     path: hpvc-configuration
@@ -1561,7 +2212,7 @@ views:
     visibility:
       - condition: state
         entity: input_boolean.hpvc_config
-        state: "on"
+        state: 'on'
     sections:
       - type: grid
         cards:
@@ -1580,14 +2231,14 @@ views:
             visibility:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "off"
+                state: 'off'
       - type: grid
         cards:
           - type: conditional
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               content: |
@@ -1596,7 +2247,7 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               text_only: true
@@ -1609,8 +2260,8 @@ views:
                 PV limiting (€/kWh).
 
 
-                **All-in price**: current total import price used for HBC
-                strategy switching (€/kWh).
+                **All-in price**: current total import price used for
+                negative-price override (€/kWh).
 
 
                 **Solar power**: current total PV power from active inverters
@@ -1624,7 +2275,7 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: entities
               entities:
@@ -1639,9 +2290,8 @@ views:
               show_header_toggle: false
           - type: conditional
             conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: "on"
+              - entity: input_boolean.hpvc_config
+                state: 'on'
             card:
               type: vertical-stack
               cards:
@@ -1649,30 +2299,37 @@ views:
                   content: >
                     ### 🧩 Optional HBC Setup
 
-                    {% set hbc = states('input_text.hpvc_hbc_status') %}
+                    {% if is_state('binary_sensor.hpvc_hbc_available', 'on') %}
+                    <ha-alert title="HBC detected" alert-type="success"> HBC
+                    strategy control is available. Enable or disable it in <b>PV
+                    Master Control</b> when HPVC is enabled. </ha-alert> {% else
+                    %} <ha-alert title="Standalone mode" alert-type="warning">
+                    No compatible HBC runtime was detected.
 
-                    {% if hbc.startswith('HBC detected') %} <ha-alert title="HBC
-                    detected" alert-type="success"> HBC strategy control is
-                    available. Enable or disable it in <b>PV Master Control</b>
-                    when HPVC is enabled. </ha-alert> {% else %} <ha-alert
-                    title="Standalone mode" alert-type="warning">No HBC was
-                    detected.
-
-                    Enter your HBC strategy entity below to enable optional HBC
-                    strategy control. </ha-alert> {% endif %}
-                - type: entities
-                  show_header_toggle: false
-                  entities:
-                    - entity: input_text.hpvc_battery_strategy_entity
-                      name: HBC strategy entity
-                      icon: mdi:battery-sync
+                    HPVC requires both
+                    <code>input_select.house_battery_strategy</code> and
+                    <code>input_text.house_battery_strategy_active_sub_strategy</code>.
+                    </ha-alert> {% endif %}
+                - type: conditional
+                  conditions:
+                    - entity: binary_sensor.hpvc_hbc_available
+                      state: 'on'
+                    - entity: input_boolean.hpvc_control_hbc_strategy
+                      state: 'on'
+                  card:
+                    type: entities
+                    show_header_toggle: false
+                    entities:
+                      - entity: input_select.house_battery_strategy
+                        name: HBC strategy to run
+                        icon: mdi:home-battery
       - type: grid
         cards:
           - type: conditional
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               content: |
@@ -1681,7 +2338,7 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               text_only: true
@@ -1699,7 +2356,7 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               text_only: true
@@ -1708,14 +2365,14 @@ views:
 
                 When the all-in price is ≤ 0 €/kWh, PV is limited to the
                 configured minimum. Set it to <b>0 W</b> for full shutdown
-                during negative prices.
+                during negative price.
 
                 </ha-alert>
           - type: conditional
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: entities
               entities:
@@ -1726,7 +2383,7 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: entities
               show_header_toggle: false
@@ -1741,9 +2398,9 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
               - entity: binary_sensor.hpvc_show_inverter_slot_2
-                state: "on"
+                state: 'on'
             card:
               type: entities
               show_header_toggle: false
@@ -1758,9 +2415,9 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
               - entity: binary_sensor.hpvc_show_inverter_slot_3
-                state: "on"
+                state: 'on'
             card:
               type: entities
               show_header_toggle: false
@@ -1775,9 +2432,9 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
               - entity: binary_sensor.hpvc_show_inverter_slot_4
-                state: "on"
+                state: 'on'
             card:
               type: entities
               show_header_toggle: false
@@ -1792,9 +2449,9 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
               - entity: binary_sensor.hpvc_show_inverter_slot_5
-                state: "on"
+                state: 'on'
             card:
               type: entities
               show_header_toggle: false
@@ -1809,9 +2466,9 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
               - entity: binary_sensor.hpvc_show_inverter_slot_6
-                state: "on"
+                state: 'on'
             card:
               type: entities
               show_header_toggle: false
@@ -1826,9 +2483,9 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
               - entity: binary_sensor.hpvc_show_inverter_slot_7
-                state: "on"
+                state: 'on'
             card:
               type: entities
               show_header_toggle: false
@@ -1843,9 +2500,9 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
               - entity: binary_sensor.hpvc_show_inverter_slot_8
-                state: "on"
+                state: 'on'
             card:
               type: entities
               show_header_toggle: false
@@ -1860,9 +2517,9 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
               - entity: binary_sensor.hpvc_show_inverter_slot_9
-                state: "on"
+                state: 'on'
             card:
               type: entities
               show_header_toggle: false
@@ -1877,9 +2534,9 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
               - entity: binary_sensor.hpvc_show_inverter_slot_10
-                state: "on"
+                state: 'on'
             card:
               type: entities
               show_header_toggle: false
@@ -1896,7 +2553,7 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               content: |
@@ -1905,74 +2562,33 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               text_only: true
               content: >-
                 **PV limit price**: PV limiting is allowed at or below this
-                market/export price. HBC Charge takes priority while batteries
-                still have useful charge headroom.
+                market/export price.{% if
+                is_state('input_boolean.hpvc_control_hbc_strategy', 'on') %} HBC
+                Charge takes priority while batteries still have useful charge
+                headroom.{% endif %}
           - type: conditional
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
-              - entity: input_boolean.hpvc_enabled
-                state: "on"
-              - entity: input_boolean.hpvc_control_hbc_strategy
-                state: "on"
-              - condition: state
-                entity: binary_sensor.hpvc_hbc_available
-                state: "on"
-            card:
-              type: markdown
-              text_only: true
-              content: >
-                **Charge price**: HBC enters Charge at or below this all-in
-                price.
-
-
-
-                **Expensive price**: HBC enters the expensive strategy at or
-                above this all-in price.
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               text_only: true
               content: >-
-                **Price hysteresis**: prevents rapid switching when exiting the
-                price zones. Not used for negative-price mode.
+                **Price hysteresis**: prevents rapid PV limiting changes when
+                leaving the configured PV limit price zone. Not used for
+                negative-price mode.
           - type: conditional
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
-              - entity: input_boolean.hpvc_enabled
-                state: "on"
-              - entity: input_boolean.hpvc_control_hbc_strategy
-                state: "on"
-              - condition: state
-                entity: sensor.hpvc_diag_hbc_strategy
-                state_not:
-                  - unknown
-                  - unavailable
-                  - ""
-            card:
-              type: markdown
-              text_only: true
-              content: >-
-                **Balanced/Expensive strategy**: HBC modes to select for those
-                price zones.
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               text_only: true
@@ -1988,66 +2604,14 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: entities
               entities:
                 - entity: input_number.hpvc_pv_limiting_price
                   name: PV limit price
-                - type: conditional
-                  conditions:
-                    - entity: input_boolean.hpvc_control_hbc_strategy
-                      state: "on"
-                    - condition: state
-                      entity: sensor.hpvc_diag_hbc_strategy
-                      state_not:
-                        - unknown
-                        - unavailable
-                        - ""
-                  row:
-                    entity: input_number.hpvc_battery_charge_price
-                    name: Charge price
-                - type: conditional
-                  conditions:
-                    - entity: input_boolean.hpvc_control_hbc_strategy
-                      state: "on"
-                    - condition: state
-                      entity: sensor.hpvc_diag_hbc_strategy
-                      state_not:
-                        - unknown
-                        - unavailable
-                        - ""
-                  row:
-                    entity: input_number.hpvc_battery_expensive_price
-                    name: Expensive price
                 - entity: input_number.hpvc_battery_price_hysteresis
                   name: Price hysteresis
-                - type: conditional
-                  conditions:
-                    - entity: input_boolean.hpvc_control_hbc_strategy
-                      state: "on"
-                    - condition: state
-                      entity: sensor.hpvc_diag_hbc_strategy
-                      state_not:
-                        - unknown
-                        - unavailable
-                        - ""
-                  row:
-                    entity: input_select.hpvc_balanced_strategy
-                    name: Balanced strategy
-                - type: conditional
-                  conditions:
-                    - entity: input_boolean.hpvc_control_hbc_strategy
-                      state: "on"
-                    - condition: state
-                      entity: sensor.hpvc_diag_hbc_strategy
-                      state_not:
-                        - unknown
-                        - unavailable
-                        - ""
-                  row:
-                    entity: input_select.hpvc_expensive_strategy
-                    name: Expensive strategy
               show_header_toggle: false
       - type: grid
         cards:
@@ -2055,7 +2619,7 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               content: |
@@ -2064,7 +2628,7 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               text_only: true
@@ -2074,8 +2638,8 @@ views:
 
 
                 **Target export**: export level Home PV Control tries to
-                maintain while limiting and revealing. Must be higher (less
-                negative) than Export start.
+                maintain while limiting. Must be higher (less negative) than
+                Export start.
 
 
                 **Import restore**: raise PV again if the house imports too much
@@ -2092,7 +2656,7 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: vertical-stack
               cards:
@@ -2115,7 +2679,7 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               content: |
@@ -2124,13 +2688,13 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               text_only: true
               content: >-
-                **Cooldown**: minimum time between PV limit changes (15 sec to
-                15 min).
+                **Cooldown**: minimum time between PV limit changes (10 sec to 5
+                min).
 
 
                 **Deadband**: ignores small differences around Target export so
@@ -2139,7 +2703,7 @@ views:
             conditions:
               - condition: state
                 entity: input_boolean.hpvc_config
-                state: "on"
+                state: 'on'
             card:
               type: entities
               entities:
