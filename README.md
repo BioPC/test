@@ -242,7 +242,7 @@ examples/
 assets/
   banner.png
   logo.svg
-  screenshots/          # Current Settings, Report and Node-RED architecture images
+  screenshots/          # Current Dashboard, Report and Node-RED architecture images
 
 docs/
   01-installation.md
