@@ -183,7 +183,7 @@ For Home Battery Control itself, see the [HBC documentation](https://docs.homeba
 
 <p align="center">
   <a href="assets/screenshots/settings.png">
-    <img src="assets/screenshots/settings.png" alt="Home PV Control settings dashboard" width="50%" title="Click to view full size">
+    <img src="assets/screenshots/settings.png" alt="Home PV Control settings dashboard" width="60%" title="Click to view full size">
   </a>
 </p>
 
