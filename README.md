@@ -189,16 +189,12 @@ For Home Battery Control itself, see the [HBC documentation](https://docs.homeba
 
 ### Support report
 
-The report preview is split into four parts for readability. Click any image to open that part at its original resolution.
-
 <p align="center">
   <a href="assets/screenshots/report_part_1.png"><img src="assets/screenshots/report_part_1.png" alt="HPVC support report — part 1" width="20%" title="Click to view full size"></a>
   <a href="assets/screenshots/report_part_2.png"><img src="assets/screenshots/report_part_2.png" alt="HPVC support report — part 2" width="20%" title="Click to view full size"></a>
-</p>
-
-<p align="center">
   <a href="assets/screenshots/report_part_3.png"><img src="assets/screenshots/report_part_3.png" alt="HPVC support report — part 3" width="20%" title="Click to view full size"></a>
   <a href="assets/screenshots/report_part_4.png"><img src="assets/screenshots/report_part_4.png" alt="HPVC support report — part 4" width="20%" title="Click to view full size"></a>
+</p>
 </p>
 
 ### Node-RED architecture overview
