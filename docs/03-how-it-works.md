@@ -1,6 +1,6 @@
 # How it works
 
-
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
 
 ## Control overview
 
