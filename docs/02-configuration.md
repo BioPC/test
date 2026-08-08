@@ -119,10 +119,12 @@ Set the battery count with `input_number.house_battery_count`. HBC 4.15.0 suppor
 
 The report and Insights use these presentation states:
 
-- **Off** — Charge Priority is not applicable or cannot usefully act, including when all usable batteries are full, at maximum charging power, or have no remaining normal or controlled taper headroom.
+- **Off** — Charge Priority is not applicable, disabled, outside the normal PV-limiting price zone, or no eligible charging request is active. A battery can be excluded for being full, unavailable, RS485-disabled, or otherwise ineligible.
 - **Requested** — HBC requests Charge/Charge PV, but usable-battery eligibility is unresolved because required battery telemetry is unavailable or uncertain.
 - **Waiting** — HBC requests `Charge` or `Charge PV` and usable headroom exists, but measured charging is not yet confirmed or no usable PV increase can currently be applied.
 - **Active** — HPVC is preserving or releasing PV for confirmed battery charging headroom.
+
+Charge Priority can remain **Active** while charging is still confirmed even after usable battery headroom reaches zero. In that condition HPVC no longer suppresses normal export limiting, so ordinary PV control resumes while the batteries continue charging at their current ceiling.
 
 `binary_sensor.hpvc_charge_priority_active` is on only while HPVC has confirmed the **Active** state. It can be used in dashboards and history graphs. During this state, new export-based PV reductions are blocked, although `binary_sensor.hpvc_pv_limited` may remain on temporarily while previously reduced limits are being raised.
 

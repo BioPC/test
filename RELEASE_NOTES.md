@@ -31,7 +31,6 @@ Home PV Control v1.4.0 replaces Hidden PV Reveal with bounded HBC Charge Priorit
 - Night Restore recovery uses hysteresis: after the 120-second low-PV entry condition, normal PV calculations resume only after PV remains above `max(25 W, entry threshold + 15 W)` for 30 continuous seconds.
 - Required-input wording now reserves `stale` for the battery telemetry freshness model; core grid/PV/price/limit inputs are described by their actual validity state.
 - Fixed false battery-SOC telemetry warnings during long stable periods: a fresh AC-power update now cross-confirms an unchanged numeric SOC beyond its normal two-hour state-age window, while both channels becoming stale still suspends HBC-dependent Charge Priority.
-
 - Required numeric sensors, inverter entities, entity uniqueness, and threshold relationships are validated before any write.
 - A missing or invalid configured inverter pauses the complete inverter group instead of controlling only a partial plant.
 - Automatic fault recovery requires continuously healthy inputs before writes resume.
@@ -53,15 +52,14 @@ Home PV Control v1.4.0 replaces Hidden PV Reveal with bounded HBC Charge Priorit
 - Charge Priority now mirrors HBC 4.15.0 per-battery RS485 eligibility: a battery contributes charging headroom only when `select.marstek_mN_rs485_control_mode` is exactly `enable`; disabled/unavailable batteries are excluded and reported.
 - HBC 4.15.0 compatibility is explicitly limited to **1–6 batteries**; HPVC no longer treats 7–10 batteries as supported native-HBC configurations.
 - HTML/TXT reports now expose HBC prioritized battery, effective battery order, cycle mode, priority validity, and per-battery RS485 control state for multi-battery troubleshooting.
-
 - Charge Priority follows HBC's executing `Charge` or `Charge PV` sub-strategy only in a PV-restricting context.
 - It releases PV only within verified battery headroom, inverter capacity, grid conditions, step limits, and cooldown/deadband rules.
 - Multi-battery capacity is aggregated without allowing a tapering battery to reduce the normal headroom of another battery below its taper zone.
 - Charge Priority state meanings are now consistent:
-  - **Off** — not applicable, disabled, outside the limiting price zone, full, maximum-power limited, taper-saturated, or no confirmed headroom.
+  - **Off** — not applicable, disabled, outside the normal PV-limiting price zone, or no eligible charging request is active.
   - **Requested** — HBC requests charging, but usable-battery eligibility is unresolved because telemetry is unavailable or uncertain.
   - **Waiting** — HBC requests `Charge` or `Charge PV` and usable headroom exists, but measured charging is not yet confirmed or no usable PV increase can currently be applied.
-  - **Active** — measured battery charging is confirmed and Charge Priority is preserving or increasing PV within verified capacity.
+  - **Active** — charging is confirmed. Active can remain displayed after usable headroom reaches 0 W; when that happens HPVC stops suppressing normal export limiting and ordinary PV control resumes.
 - Healthy batteries with no remaining headroom no longer create a false **Charge Priority unavailable** warning.
 - HPVC now treats HBC as the fast grid-balancing controller during Charge Priority: after an upward PV release, a **15-second response window** suppresses opposite export corrections, while a **30-second persistent-export fallback** restores PV limiting when HBC cannot absorb the surplus.
 - HTML and TXT reports expose the internal Charge Priority state, 50 W enter threshold, 25 W remain threshold, measured charge power, charging confirmation, response-window state, persistent-export age, fallback state, and export-limiting suppression state.
@@ -108,7 +106,7 @@ Home PV Control v1.4.0 replaces Hidden PV Reveal with bounded HBC Charge Priorit
 - Factor values represent shares of accuracy loss, not event frequency; therefore all factors correctly remain `0.0%` when accuracy is 100%.
 - Passive `Monitoring low price` no longer forces non-perfect samples into **Control response**.
 - Attribution order now distinguishes direct control response, dominant house-load changes, PV-availability movement, passive controller/plant holds, and Other.
-- Accuracy eligibility schema **7** prevents old and corrected factor data from being mixed.
+- Accuracy eligibility schema **8** prevents old and corrected factor data from being mixed.
 - Factor entities remain unavailable until valid diagnostics have been collected or restored.
 
 ### Power Control activity

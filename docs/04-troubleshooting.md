@@ -136,7 +136,7 @@ The packaged dashboard includes the **HBC Price Intervals** graph. Its grid and 
 
 ## Charge Priority says Off while HBC is executing Charge
 
-This can be correct. **Off** is used when every usable battery is full, already at maximum charging power, or has no remaining normal or controlled taper headroom. **Requested** is reserved for cases where HBC requests charging but usable-battery eligibility cannot yet be resolved from telemetry. **Waiting** means HBC requests `Charge` or `Charge PV` and usable headroom exists, but measured charging is not yet confirmed or no usable PV increase is currently possible. Check the per-battery reason and headroom fields in the support report before treating Off as a fault.
+This can be correct when Charge Priority is not applicable, the HBC request is inactive, the system is outside the normal PV-limiting price zone, or no battery is eligible. **Requested** is reserved for cases where HBC requests charging but usable-battery eligibility cannot yet be resolved from telemetry. **Waiting** means HBC requests `Charge` or `Charge PV` and usable headroom exists, but measured charging is not yet confirmed or no usable PV increase is currently possible. **Active** can remain shown while batteries are still confirmed charging even after aggregate usable headroom reaches 0 W; in that case HPVC resumes normal export limiting. Check the per-battery headroom, `HPVC export limiting suppressed`, and Charge Priority reason fields in the support report before treating the state as a fault.
 
 ## House load changes and PV availability remain 0.0%
 

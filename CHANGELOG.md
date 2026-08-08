@@ -16,7 +16,6 @@
 - Night Restore now restores inverter limits once and then suspends normal PV calculations until usable PV returns. Recovery uses hysteresis: with the default 10 W entry threshold, measured PV must remain above 25 W for 30 continuous seconds before normal PV calculations resume. During active Night Restore, PV total-power and inverter-limit availability checks are suppressed because those DTU states may disappear after sunset; other safety inputs remain monitored.
 - Clarified required-input wording so `stale` is reserved for the battery telemetry freshness model rather than implied for core grid/PV/price/limit validation.
 - Fixed false battery-SOC telemetry warnings during long stable periods: a fresh AC-power update now cross-confirms an unchanged numeric SOC beyond its normal two-hour state-age window, while both channels becoming stale still suspends HBC-dependent Charge Priority.
-
 - Added stricter required-input, inverter, entity-uniqueness, and threshold validation before writes.
 - Paused the complete inverter group when any configured inverter limit is invalid or unavailable.
 - Added tiered battery telemetry freshness and cutoff-idle grace for full batteries whose entities stop updating.
@@ -40,11 +39,10 @@
 - Charge Priority now mirrors HBC 4.15.0 per-battery RS485 eligibility: a battery contributes charging headroom only when `select.marstek_mN_rs485_control_mode` is exactly `enable`; disabled/unavailable batteries are excluded and reported.
 - HBC 4.15.0 compatibility is explicitly limited to **1–6 batteries**; HPVC no longer treats 7–10 batteries as supported native-HBC configurations.
 - HTML/TXT reports now expose HBC prioritized battery, effective battery order, cycle mode, priority validity, and per-battery RS485 control state for multi-battery troubleshooting.
-
 - Replaced Hidden PV Reveal with bounded HBC Charge Priority.
 - Aggregated multi-battery headroom without allowing tapering batteries to reduce normal headroom from batteries below their taper zone.
 - Standardized Charge Priority states as Off, Requested, Waiting, and Active.
-- Corrected no-headroom behavior so full, maximum-power, and taper-saturated batteries produce **Off**, not Requested.
+- Corrected no-headroom behavior so unresolved telemetry is not confused with a healthy zero-headroom condition. Charge Priority can remain **Active** while charging is confirmed; once usable headroom is exhausted, normal HPVC export limiting resumes.
 - Reserved Requested for unresolved usable-battery telemetry.
 - Removed the false Charge Priority unavailable warning for healthy batteries with no headroom.
 - Added per-battery taper zones, learned ceilings, bounded probes, post-write confirmation, escalating lockouts, recovery requirements, and cutoff cancellation.
