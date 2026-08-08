@@ -30,7 +30,7 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 
 <p align="center">
   <a href="assets/screenshots/main.png">
-    <img src="assets/screenshots/main.png" alt="Home PV Control main dashboard" width="60%" title="Click to view full size">
+    <img src="assets/screenshots/main.png" alt="Home PV Control main dashboard" width="70%" title="Click to view full size">
   </a>
 </p>
 
