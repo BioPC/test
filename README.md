@@ -205,7 +205,7 @@ The report preview is split into four parts for readability. Click any image to 
 
 <p align="center">
   <a href="assets/screenshots/node_red_flow.png">
-    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED architecture overview" width="50%" title="Click to view full size">
+    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED architecture overview" width="60%" title="Click to view full size">
   </a>
 </p>
 
