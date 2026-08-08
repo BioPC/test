@@ -200,7 +200,7 @@ The report preview is split into four equal-height parts. Click any part to open
 
 <p align="center">
   <a href="assets/screenshots/node_red_flow.png">
-    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED architecture overview" width="60%" title="Click to view full size">
+    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED architecture overview" width="70%" title="Click to view full size">
   </a>
 </p>
 
