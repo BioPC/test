@@ -188,19 +188,20 @@ For Home Battery Control itself, see the [HBC documentation](https://docs.homeba
 
 ### Support report
 
-The report preview is split into four equal-height parts. Click any part to open it at full resolution.
+The report preview is split into four balanced parts at section or subsection boundaries. Click any part to open it at full resolution.
 
 <p align="center">
-  <a href="assets/screenshots/report_part_1.png"><img src="assets/screenshots/report_part_1.png" alt="HPVC support report — part 1" width="20%" title="Click to view full size"></a>
-  <a href="assets/screenshots/report_part_2.png"><img src="assets/screenshots/report_part_2.png" alt="HPVC support report — part 2" width="20%" title="Click to view full size"></a>
-  <a href="assets/screenshots/report_part_3.png"><img src="assets/screenshots/report_part_3.png" alt="HPVC support report — part 3" width="20%" title="Click to view full size"></a>
-  <a href="assets/screenshots/report_part_4.png"><img src="assets/screenshots/report_part_4.png" alt="HPVC support report — part 4" width="20%" title="Click to view full size"></a>
+  <a href="assets/screenshots/report_part_1.png"><img src="assets/screenshots/report_part_1.png" alt="HPVC support report — Summary through Accuracy" width="20%" title="Click to view full size"></a>
+  <a href="assets/screenshots/report_part_2.png"><img src="assets/screenshots/report_part_2.png" alt="HPVC support report — Inverters, Settings, HBC Current State and Negative Override" width="20%" title="Click to view full size"></a>
+  <a href="assets/screenshots/report_part_3.png"><img src="assets/screenshots/report_part_3.png" alt="HPVC support report — Charge Priority Capacity, Batteries and HBC diagnostics" width="20%" title="Click to view full size"></a>
+  <a href="assets/screenshots/report_part_4.png"><img src="assets/screenshots/report_part_4.png" alt="HPVC support report — Sensor Health, Insights and Power Control" width="20%" title="Click to view full size"></a>
 </p>
+
 ### Node-RED architecture overview
 
 <p align="center">
   <a href="assets/screenshots/node_red_flow.png">
-    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED architecture overview" width="70%" title="Click to view full size">
+    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED architecture overview" width="60%" title="Click to view full size">
   </a>
 </p>
 
