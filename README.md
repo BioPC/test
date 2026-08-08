@@ -45,7 +45,6 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 - [Upgrading](#upgrading)
 - [Documentation](#documentation)
 - [Screenshots](#screenshots)
-- [Operational diagnostics](docs/03-how-it-works.md#charge-priority-degraded-operation-and-diagnostics)
 - [Support](#support)
 - [Support the project](#support-the-project)
 - [Repository structure](#repository-structure)
