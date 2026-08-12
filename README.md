@@ -34,6 +34,24 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
   </a>
 </p>
 
+## Contents
+
+- [Quick install](#quick-install)
+- [Main features](#main-features)
+- [HBC permissions](#hbc-permissions)
+- [Requirements](#requirements)
+- [Shipped defaults](#shipped-defaults)
+- [How HPVC works](#how-hpvc-works)
+- [Safety and recovery](#safety-and-recovery)
+- [Accuracy, Insights and reports](#accuracy-insights-and-reports)
+- [Architecture and persistence](#architecture-and-persistence)
+- [Upgrading](#upgrading)
+- [Documentation](#documentation)
+- [Screenshots](#screenshots)
+- [Support](#support)
+- [Repository structure](#repository-structure)
+- [License](#license)
+
 ## Quick install
 
 1. Enable Home Assistant packages:
@@ -69,32 +87,39 @@ See the full [installation guide](docs/01-installation.md) for dependencies and 
 | On-demand HTML and TXT support reports | ✅ |
 | Ready-to-import Home Assistant dashboard | ✅ |
 
-### HBC permissions
+## HBC permissions
 
-**Enable HBC** is the master permission for HPVC to modify HBC. The separate **Charge batteries at negative price** option only applies while HBC control is enabled.
+**Enable HBC** is the master permission for HPVC to modify HBC.
+
+The separate **Charge batteries at negative price** option only applies while HBC control is enabled.
 
 At a valid all-in price `<= 0`:
 
-- PV is always locked to the configured inverter minimums.
-- HBC is forced to **Charge** only when both HBC permissions are enabled.
-- With either HBC permission off, HPVC remains in PV-only negative-price protection.
+- PV is always locked to each inverter's configured minimum.
+- With **Enable HBC = Off**, HPVC does not start HBC control.
+- With **Enable HBC = On** and **Charge batteries at negative price = Off**, negative-price protection remains PV-only.
+- With both enabled, HPVC may force HBC to **Charge** during the negative-price interval.
+- When the interval ends, HPVC restores the saved HBC strategy and charge goal before normal HBC control resumes.
+
+If HBC permission is removed during an already-active override, HPVC permits only the required restore sequence and then stops HBC writes.
 
 ## Requirements
 
 - Home Assistant with package support.
 - Node-RED with `node-red-contrib-home-assistant-websocket` **0.80.3 or newer**.
-- One or more PV inverters with writable power-limit `number.*` entities.
+- One or more PV inverters with writable `number.*` power-limit entities.
+- A valid grid-power sensor, market/export-price sensor, all-in-price sensor and PV-power sensor.
 - ApexCharts Card for the supplied dashboard graphs.
-- Home Battery Control only for optional HBC integration and Charge Priority.
+- Home Battery Control only for optional HBC execution tracking and Charge Priority.
 
 ## Shipped defaults
 
-These are starting values; review them for your inverter, electricity contract and local rules.
+These are starting points, not universal recommendations. Review them for your inverter, sensor definitions, electricity contract and local rules.
 
-| Setting | Default |
+| Setting | Shipped default |
 |---|---:|
 | HBC integration / Charge Priority | Off |
-| Charge batteries at negative price | On, effective only with HBC enabled |
+| Charge batteries at negative price | On; effective only while HBC control is enabled |
 | PV limiting price | `0.00 €/kWh` |
 | Price hysteresis | `0.02 €/kWh` |
 | Export start | `-150 W` |
@@ -105,24 +130,126 @@ These are starting values; review them for your inverter, electricity contract a
 | Cooldown | `30 s` |
 | Deadband | `25 W` |
 
-HPVC requires `Export Start < Target Export < Import Restore`. Current v1.4.0 ranges include **Export Start -5000..0 W**, **Target Export -5000..+500 W** and **Cooldown 10..60 s**.
+Current v1.4.0 input ranges include **Export Start -5000 to 0 W**, **Target Export -5000 to +500 W**, and **Cooldown 10 to 60 s in 5 s steps**. HPVC requires `Export Start < Target Export < Import Restore`.
 
-> **Price-source guidance:** use `0.00 €/kWh` with a net export-price sensor. If you use a raw market-price sensor, account for fees, compensation and local rules.
+> **PV limiting price guidance:** use €0.00/kWh with a net export-price sensor. For a raw market-price sensor, account for fees, compensation and local rules.
 
-See [Settings](docs/02-configuration.md) for full configuration guidance.
+See [Settings](docs/02-configuration.md#marketexport-price-sensor) for sensor guidance and examples.
 
 ## How HPVC works
 
-HPVC evaluates the current grid power, PV production, electricity prices, inverter limits and optional HBC/battery state. Normal runtime evaluation occurs every **10 seconds**, plus startup and relevant settings changes.
+HPVC evaluates:
 
-The main control paths are:
+- every **10 seconds**;
+- immediately after deploy/startup;
+- when relevant HPVC settings change.
 
-1. **Normal price** — limit PV when export exceeds the configured threshold and restore output when import or price conditions allow it.
-2. **Negative all-in price** — lock PV to configured minimums; optionally force HBC charging when permitted.
-3. **HBC Charge Priority** — release useful PV within verified battery charging headroom while HBC is executing a charging strategy.
-4. **Night Restore** — restore inverter limits once solar production has ended and wait for stable PV recovery before resuming daytime control.
+Normal control follows a simple priority order:
 
-Daily Control Accuracy uses continuity-aware target tracking and attributes estimated headline loss to **Control response, House load changes, PV availability,** or **Other**. Detailed attribution diagnostics are available in the support report rather than the main dashboard.
+1. Validate required inputs and configured inverter limits.
+2. Apply negative-price protection when the all-in price is `<= 0`.
+3. Handle Night Restore when PV production has effectively ended.
+4. Coordinate available PV with HBC Charge Priority when HBC is enabled and eligible.
+5. Limit export when price and grid conditions require it.
+6. Restore PV when import or price recovery makes more output appropriate.
+7. Respect cooldown and deadband so unnecessary writes are avoided.
+
+### HBC Charge Priority
+
+Charge Priority uses HBC execution state, measured battery power and verified battery headroom rather than assuming a selected strategy means charging is active.
+
+- States: **Off, Requested, Waiting, Active**.
+- Supports HBC 4.15.0 battery order and RS485 eligibility for **1–6 batteries**.
+- Multi-battery headroom and taper learning prevent one tapering/full battery from unnecessarily reducing available headroom from another battery.
+- A short HBC response window allows HBC to absorb newly released PV before HPVC applies opposite export corrections.
+- Persistent unabsorbed export still falls back to normal PV limiting.
+
+## Safety and recovery
+
+- Required sensors, inverter entities, helper ranges, duplicate entities and threshold relationships are validated before writes.
+- Any unavailable configured inverter pauses the complete inverter group.
+- Night Restore tolerates expected overnight PV/inverter-limit disappearance but never treats `unknown`/`unavailable` PV as measured zero.
+- Battery freshness uses multiple telemetry signals and configured charging/discharging cutoffs.
+- Invalid live cutoff values are faults rather than silently replaced defaults.
+- HBC-dependent Charge Priority suspends on uncertain battery telemetry while normal PV control can continue where safe.
+- Negative-price override state is persisted and restored safely across restart/deploy.
+- Recovery paths require confirmed healthy data before dependent control resumes.
+
+## Accuracy, Insights and reports
+
+### Daily Control Accuracy
+
+Daily Control Accuracy measures how closely grid power follows the requested target and exposes four headline loss factors:
+
+- **Control response**
+- **House load changes**
+- **PV availability**
+- **Other**
+
+The factor values represent estimated percentage contributions to the headline accuracy loss and reconcile to `100 − Daily Control Accuracy`.
+
+HPVC uses a short physical-event reconciliation window so delayed PV, battery and inverter-limit telemetry can still be associated with the grid event that caused the loss without delaying control. Detailed raw attribution, continuity and engineering metrics remain available in the support report.
+
+### Today’s Insights and Power Control
+
+- Insights focus on meaningful transitions, warnings, faults and recoveries.
+- HBC-only safety pauses remain distinguishable from full HPVC control blocks.
+- Power Control history records current-day control activity and retains enough rows for a full day at the 10-second cadence.
+
+### Support reports
+
+On-demand HTML/TXT reports include:
+
+- current HPVC decision and control mode;
+- inverter state and calculated targets;
+- required sensor health;
+- HBC strategy/execution and Charge Priority state;
+- battery eligibility, headroom and taper diagnostics;
+- negative-price override state;
+- Daily Control Accuracy and attribution diagnostics;
+- Today’s Insights and Power Control history.
+
+Reports are generated from one shared fresh model and published atomically. Non-structural parity warnings no longer block **View report**; structural/shared-model failures still do.
+
+## Architecture and persistence
+
+```mermaid
+flowchart LR
+    PRICE[Market / all-in price]
+    GRID[Grid power]
+    PV[PV power]
+    HBC[Optional HBC]
+    BAT[Battery telemetry]
+    HPVC[Home PV Control
+Node-RED]
+    LIMITS[PV inverter limits]
+
+    PRICE --> HPVC
+    GRID --> HPVC
+    PV --> HPVC
+    HBC --> HPVC
+    BAT --> HPVC
+    HPVC --> LIMITS
+```
+
+The Node-RED flow is organized into four functional tabs. Current-day Insights, Power Control, Daily Control Accuracy and negative-price override state share the private `hpvc-data/runtime-history.json` journal.
+
+Journal writes are serialized and guarded against stale completions. Runtime waits for current-day restoration before dependent actions continue, which avoids startup/redeploy races.
+
+## Upgrading
+
+When upgrading, keep the Home Assistant package, Node-RED flow and dashboard on the same release version.
+
+1. Back up the current package, dashboard, Node-RED flow and `hpvc-data` journal.
+2. Replace the Home Assistant package.
+3. Replace the complete Node-RED flow.
+4. Replace or merge the dashboard.
+5. Restart Home Assistant and deploy Node-RED.
+6. Verify configured sensors and inverter limits.
+7. Review **Charge batteries at negative price**.
+8. Generate a support report to confirm the installation is healthy.
+
+See the [v1.4.0 release notes](releases/v1.4.0/release.md) for the full release summary.
 
 ## Documentation
 
@@ -130,8 +257,9 @@ Daily Control Accuracy uses continuity-aware target tracking and attributes esti
 - [Settings](docs/02-configuration.md)
 - [How it works](docs/03-how-it-works.md)
 - [Troubleshooting](docs/04-troubleshooting.md)
-- [v1.4.0 release notes](releases/v1.4.0/release.md)
+- [Documentation index](docs/README.md)
 - [Changelog](CHANGELOG.md)
+- [v1.4.0 release notes](releases/v1.4.0/release.md)
 
 For Home Battery Control itself, see the [HBC documentation](https://docs.homebatterycontrol.com/).
 
@@ -162,23 +290,9 @@ For Home Battery Control itself, see the [HBC documentation](https://docs.homeba
   </a>
 </p>
 
-## Upgrading
-
-Keep the Home Assistant package, Node-RED flow and dashboard on the same release version. For v1.4.0:
-
-1. Back up the current package, dashboard, flow and `hpvc-data` journal.
-2. Replace the package and complete Node-RED flow.
-3. Replace or merge the dashboard.
-4. Restart Home Assistant and deploy Node-RED.
-5. Verify configured sensors and inverter limits.
-6. Review **Charge batteries at negative price**.
-7. Generate a support report and confirm the installation is healthy.
-
-See the [v1.4.0 release notes](releases/v1.4.0/release.md) for the release-specific changes.
-
 ## Support
 
-The generated report contains telemetry and entity IDs and is published at `/local/hpvc/support-report.html`.
+The HTML support report is published at `/local/hpvc/support-report.html`.
 
 Before opening an issue:
 
@@ -202,11 +316,11 @@ Home PV Control is free and open source. If you find it useful, you can support 
 
 ```text
 home assistant/
-  hpvc_config.yaml
-  hpvc_dashboard.yaml
+  hpvc_config.yaml      # Home Assistant package and helpers
+  hpvc_dashboard.yaml   # Separate Home Assistant dashboard
 
 node-red/
-  hpvc_flow.json
+  hpvc_flow.json        # Importable Node-RED flow with four v1.4.0 tabs
 
 examples/
   hoymiles-opendtu-2-inverters.reference.json
@@ -214,7 +328,7 @@ examples/
 assets/
   banner.png
   logo.svg
-  screenshots/
+  screenshots/          # Dashboard, report and Node-RED images
 
 docs/
   01-installation.md
@@ -230,7 +344,7 @@ releases/
 
 ## Installation format
 
-HPVC is distributed as a manual GitHub release ZIP, not as a HACS custom integration, plugin, theme or template repository.
+HPVC is distributed as a manual GitHub release ZIP, not as a HACS custom integration, plugin, theme or template repository. Install the Home Assistant package, Node-RED flow and dashboard manually as described above.
 
 ## Credits
 
@@ -242,6 +356,14 @@ GPL-3.0-or-later. See [LICENSE](LICENSE).
 
 ## Disclaimer
 
-Home PV Control modifies PV inverter power limits through Home Assistant and Node-RED integrations. You are responsible for verifying that your inverter, Home Assistant and Node-RED configuration are compatible and correctly configured. Incorrect configuration can reduce solar production or cause unexpected control behavior.
+Home PV Control modifies PV inverter power limits through Home Assistant and Node-RED integrations.
 
-The software is provided “as is” without warranty. The author is not responsible for financial loss, equipment damage, data loss, regulatory issues or other consequences resulting from use of this project. Use it at your own risk.
+By using this software, you acknowledge that:
+
+- You are responsible for verifying that your inverter, Home Assistant and Node-RED configuration are compatible and correctly configured.
+- Incorrect configuration may reduce solar production, produce unexpected inverter behavior or fail to achieve the intended energy-management strategy.
+- The software is provided “as is” without warranty of any kind.
+- Always verify configuration changes safely before using them in a production energy system.
+- The author is not responsible for financial loss, equipment damage, data loss, regulatory issues or other consequences resulting from use of this project.
+
+Use this project at your own risk.
