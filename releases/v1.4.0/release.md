@@ -1,177 +1,247 @@
 # Home PV Control v1.4.0
 
-Home PV Control v1.4.0 replaces Hidden PV Reveal with bounded HBC Charge Priority, introduces a modular four-tab Node-RED architecture, strengthens sensor and battery safety, and expands persistent diagnostics and reporting.
+Home PV Control v1.4.0 focuses on safer HBC coordination, predictable negative-price behavior, stronger runtime validation, more stable inverter control, and clearer diagnostics while keeping the core goal unchanged: control PV export without unnecessarily sacrificing useful solar production.
 
-## Contents
+## Major changes
 
-- [Control timing and defaults](#control-timing-and-defaults)
-- [Safety and recovery](#safety-and-recovery)
-- [HBC Charge Priority](#hbc-charge-priority)
-- [Battery telemetry and taper control](#battery-telemetry-and-taper-control)
-- [PV allocation and inverter control](#pv-allocation-and-inverter-control)
-- [Insights, accuracy, and Power Control](#insights-accuracy-and-power-control)
-- [Reports and dashboard](#reports-and-dashboard)
-- [Persistence and architecture](#persistence-and-architecture)
-- [Upgrade instructions](#upgrade-instructions)
-- [Compatibility](#compatibility)
+- **HBC Charge Priority** replaces Hidden PV Reveal and coordinates available PV with HBC `Charge` / `Charge PV` execution.
+- **Force charge at negative price** is seeded **On** once on install/upgrade, while **Enable HBC** remains the master permission for every HPVC write to HBC. A later manual Off choice survives normal restarts/reloads; **Restore defaults** turns it On again.
+- Negative all-in prices always protect against unwanted export by locking PV to configured inverter minimums; HBC grid charging remains optional.
+- HBC 4.15.0 multi-battery support is aligned to **1–6 batteries** with RS485 eligibility, priority order, headroom and taper handling.
+- Runtime evaluation is **10 seconds**, shipped cooldown **30 seconds**, and shipped Target Export **0 W**.
+- Large/transient PV commands are now staged and reversal-damped without slowing ordinary small corrections.
+- Asynchronous inverter writes share one command lock and retain causal identity through delayed confirmation.
+- Daily Control Accuracy, Today’s Insights, Power Control history and support reports received major reliability and attribution improvements.
+- The **Settings** tab is always visible; the obsolete Settings-enable helper has been removed.
 
-## Control timing and defaults
+### Onboarding and first run
 
-- Runtime evaluation now runs every **10 seconds**.
-- The independent runtime-history persistence and midnight check also run every **10 seconds**.
-- Cooldown accepts **10–300 seconds** in 10-second steps.
-- The shipped default and Restore Defaults value is **30 seconds**.
-- The shipped, first-install, and Restore Defaults Target Export is **0 W**.
-- Normal market/export-price limiting retains the configured hysteresis, while the negative all-in-price override uses no hysteresis and exits only when the all-in price becomes greater than zero.
+- Recommended first-install defaults now initialize reliably before onboarding validation completes.
+- Onboarding completion waits for all required live inputs and validates the full control-setting set, so setup progress cannot report completion from only partial validity.
+- First-install progress requires configured core entities to exist, be available and contain valid live states.
+- Inverter configuration is validated as part of onboarding.
+- First-install graphs remain hidden until onboarding is complete.
+- Resetting onboarding on an already-valid installation triggers a fresh validation and then completes automatically.
+- Restore Defaults preserves configured entity selections and inverter count while restoring HPVC control settings.
+- User-configurable helpers retain their edits across normal Home Assistant restarts/reloads.
 
 ## Safety and recovery
 
-- During Night Restore, expected PV-power and inverter-limit disappearance no longer marks required inputs unavailable or auto-disables HPVC; grid and price inputs remain required.
-- Night Restore entry and recovery require genuinely valid numeric PV telemetry, so `unknown` or `unavailable` PV cannot be interpreted as zero production.
-- Night Restore recovery uses hysteresis: after the 120-second low-PV entry condition, normal PV calculations resume only after PV remains above `max(25 W, entry threshold + 15 W)` for 30 continuous seconds.
-- Required-input wording now reserves `stale` for the battery telemetry freshness model; core grid/PV/price/limit inputs are described by their actual validity state.
-- Fixed false battery-SOC telemetry warnings during long stable periods: a fresh AC-power update now cross-confirms an unchanged numeric SOC beyond its normal two-hour state-age window, while both channels becoming stale still suspends HBC-dependent Charge Priority.
-- Required numeric sensors, inverter entities, entity uniqueness, and threshold relationships are validated before any write.
-- A missing or invalid configured inverter pauses the complete inverter group instead of controlling only a partial plant.
-- Automatic fault recovery requires continuously healthy inputs before writes resume.
-- HBC-dependent Charge Priority is suspended when battery telemetry is uncertain, while normal PV control can continue.
-- Capacity recovery tracking is paused while HPVC or HBC control is disabled, or while HBC safety is paused/recovering. This prevents long disabled periods from generating false **charging capacity became available again** Insights.
-- A genuine recovery from a confirmed full state requires real charging headroom to remain available for **60 seconds**.
-- Unchanged integer battery SOC values keep the normal **two-hour** state-age allowance, and can remain trusted beyond it while genuinely fresh AC-power telemetry or a real device heartbeat confirms the battery is still reporting; this avoids false stale-SOC classification during long stable periods without masking dual-stale telemetry.
+### Core input and inverter validation
 
-### Negative all-in-price override
+- Required sensors, helper ranges, duplicate entities and threshold relationships are validated before writes.
+- Export Start, Target Export and Import Restore must remain in a valid ordered relationship.
+- If any configured inverter limit is invalid or unavailable, the complete configured inverter group is paused rather than controlling only part of the plant.
+- Required live-input loss pauses Node-RED control **immediately**. The 90-second restoration grace only postpones escalation from **Waiting for inputs** to the harder **Inputs unavailable** status; it does not continue control on stale measurements.
+- The supplied Home Assistant package separately turns the HPVC master control Off when required inputs become invalid and remembers that the disable was automatic. It re-enables HPVC only after the required inputs/configuration have remained healthy for **5 continuous seconds**.
+- Manual user switch-off clears the automatic-resume latch, so a later sensor recovery cannot unexpectedly re-enable HPVC.
 
-- At a valid all-in price `<= 0`, HPVC persists the original HBC strategy and charge goal, confirms HBC `Charge`, and locks each inverter to its configured minimum.
-- The override remains active until the all-in price is valid and `> 0`.
-- Saved charge goal and strategy are restored and confirmed in sequence before normal control resumes.
-- Override state is persisted in `hpvc-data/runtime-history.json` and protected by atomic publication barriers.
-- Service-call errors, retry state, timeout faults, drift, and recovery acknowledgement are exposed in diagnostics and reports.
+### Night Restore
+
+Night Restore is designed around expected nighttime telemetry behavior:
+
+- It restores inverter limits once and suspends normal PV calculations while production is effectively gone.
+- Expected disappearance of PV power and inverter-limit telemetry after sunset does not create false control faults.
+- Grid and price safety inputs remain required.
+- `unknown` / `unavailable` PV can never be treated as a measured 0 W trigger.
+- Normal control resumes only after valid PV has recovered above the required hysteresis for the configured recovery period.
+- Night Restore is excluded from physical-attribution diagnostics so expected zero/stale nighttime PV does not inflate freshness-block counters.
+
+### Battery telemetry
+
+- Battery freshness uses SOC, AC-power telemetry and cutoff-aware idle behavior instead of one timestamp alone.
+- Long-unchanged SOC can remain trusted when fresh AC-power telemetry confirms the battery is still reporting.
+- Dual-stale telemetry suspends HBC-dependent Charge Priority while normal PV control can continue where safe.
+- A battery at its configured charging cutoff can remain conservatively classified as full with 0 W headroom while its numeric entities remain valid.
+- Live-but-invalid charge/discharge cutoff values are faults; HPVC does not hide them behind remembered defaults.
+- Uncertain batteries are excluded from Charge Priority without unnecessarily stopping normal PV control.
+
+### Runtime and report recovery
+
+- Scoped Inputs/Engine/Outputs Function-error handlers now release only the runtime evaluation lock owned by the failed cycle, so a caught exception cannot unnecessarily suppress the next control evaluation or clear a newer cycle.
+- Report storage now retries automatically after transient startup/filesystem failures. Recovery checks run every **30 seconds**, while a user Generate report request can request the same throttled retry immediately; retry attempts are bounded to prevent an exec storm.
 
 ## HBC Charge Priority
 
-- Charge Priority now mirrors HBC 4.15.0 per-battery RS485 eligibility: a battery contributes charging headroom only when `select.marstek_mN_rs485_control_mode` is exactly `enable`; disabled/unavailable batteries are excluded and reported.
-- HBC 4.15.0 compatibility is explicitly limited to **1–6 batteries**; HPVC no longer treats 7–10 batteries as supported native-HBC configurations.
-- HTML/TXT reports now expose HBC prioritized battery, effective battery order, cycle mode, priority validity, and per-battery RS485 control state for multi-battery troubleshooting.
-- Charge Priority follows HBC's executing `Charge` or `Charge PV` sub-strategy only in a PV-restricting context.
-- It releases PV only within verified battery headroom, inverter capacity, grid conditions, step limits, and cooldown/deadband rules.
-- Multi-battery capacity is aggregated without allowing a tapering battery to reduce the normal headroom of another battery below its taper zone.
-- Charge Priority state meanings are now consistent:
-  - **Off** — not applicable, disabled, outside the normal PV-limiting price zone, or no eligible charging request is active.
-  - **Requested** — HBC requests charging, but usable-battery eligibility is unresolved because telemetry is unavailable or uncertain.
-  - **Waiting** — HBC requests `Charge` or `Charge PV` and usable headroom exists, but measured charging is not yet confirmed or no usable PV increase can currently be applied.
-  - **Active** — charging is confirmed. Active can remain displayed after usable headroom reaches 0 W; when that happens HPVC stops suppressing normal export limiting and ordinary PV control resumes.
-- Healthy batteries with no remaining headroom no longer create a false **Charge Priority unavailable** warning.
-- HPVC now treats HBC as the fast grid-balancing controller during Charge Priority: after an upward PV release, a **15-second response window** suppresses opposite export corrections, while a **30-second persistent-export fallback** restores PV limiting when HBC cannot absorb the surplus.
-- HTML and TXT reports expose the internal Charge Priority state, 50 W enter threshold, 25 W remain threshold, measured charge power, charging confirmation, response-window state, persistent-export age, fallback state, and export-limiting suppression state.
-- Both HBC `Charge` and `Charge PV` are treated as requests, not automatic proof of charging.
-- Charge Priority enters confirmed **Active** at **50 W** measured charging and remains confirmed down to **25 W**.
-- A **20-second exit hold** prevents brief charging interruptions from causing Active/Off flapping; only confirmed charging refreshes the hold, and normal HPVC export correction remains available during it.
-- When charging becomes unconfirmed while the request remains, Charge Priority returns to **Waiting** rather than remaining falsely Active.
-- An all-inverter-full condition alone no longer makes HBC Charge appear operationally active.
-- Fixed **Charge Priority Active with no headroom/charging** reason consistency: confirmed Active charging is no longer described as unconfirmed.
+### Negative-price charging
 
-## Battery telemetry and taper control
+At a valid all-in price `<= 0`, HPVC always locks every configured inverter to its user-defined minimum.
 
-- Tiered telemetry freshness uses heartbeat, active-power, SOC-update, cross-sensor, and configured-cutoff idle evidence.
-- Full batteries can remain valid through cutoff-idle grace even when their power and SOC entities stop updating.
-- Batteries below 90% use normal charge-power headroom.
-- Batteries in taper zones use per-battery learned SOC-band ceilings, bounded step caps, and post-write confirmation.
-- Initial taper caps are 15% of configured maximum charge power at 90–94%, 10% at 94–98%, and 5% at 98–100%.
-- Failed probes remove unconfirmed allowance and apply escalating lockouts; repeated failures require demonstrated charging-power recovery before probing resumes.
-- Pending probes are cancelled when the battery reaches its configured charging cutoff.
-- Taper Insights now explain when a battery response was observed but rejected because grid export worsened.
+If both HBC permissions are enabled:
 
-## PV allocation and inverter control
+1. HPVC saves the current HBC strategy and charge goal.
+2. It confirms the saved state is persisted.
+3. It forces HBC to **Charge** and the required charge goal.
+4. PV remains at configured minimums during the negative-price interval.
+5. When the interval ends, HPVC restores the previous charge goal and strategy and confirms recovery before normal HBC control resumes.
 
-- A direction-preserving proportional allocator distributes the final plant target across multiple inverters and redistributes only at configured bounds.
-- Meaningful plant-level changes are preserved even when proportional per-inverter fragments would fall below individual write deadbands.
-- Exact minimum and full-power boundary writes are supported.
-- Integer and decimal live inverter limits are handled without reversing the requested direction.
-- Every real inverter write starts the shared cooldown.
-- Export limiting, import restore, Night Restore, minimum-PV blocking, price hysteresis, and write verification remain coordinated through one final target calculation.
+If **Enable HBC** is Off, or **Force charge at negative price** is Off, the same negative-price PV protection remains active but HPVC does not start new HBC control. If permission is removed while an override is already active, only the confirmed restore sequence is allowed.
 
-## Insights, accuracy, and Power Control
+The override state is persisted and includes retry, timeout/fault handling and drift detection so restart/deploy does not silently lose the previous HBC state. Standalone installations without HBC use PV-only negative-price protection and never create an HBC restore lock.
 
-### Today’s Insights
+### Charge Priority
 
-- Required-input fault Insights name the exact configured entity and validation reason; expected Night Restore PV/limit telemetry loss remains excluded.
-- Insight node names are standardized as **Charge Priority**, **Battery capacity**, **Battery telemetry**, **HBC safety**, **HBC substrategy**, and **Taper control**.
-- Full/no-headroom states use informational capacity messages rather than unavailable warnings.
-- Temporary unknown telemetry during startup, disable, redeploy, or safety recovery does not create false capacity transitions.
-- Consecutive identical entries use one normalized grouping rule and display an occurrence count.
-- Existing current-day rows are normalized for report display without changing their timestamps or factual measurements.
+Charge Priority no longer assumes that selecting a charging strategy means the batteries are actually charging. It combines HBC execution state, measured battery power and verified battery headroom.
 
-### Daily Target Accuracy
+- States are **Off, Requested, Waiting, Active**.
+- `Charge` and `Charge PV` are both treated as charging requests.
+- HBC 4.15.0 battery order and RS485 eligibility are respected for **1–6 batteries**.
+- A battery contributes headroom only when its required telemetry and RS485 control state are valid.
+- Multi-battery headroom is aggregated without allowing one tapering/full battery to unnecessarily reduce usable headroom from another battery.
+- A short HBC response window allows HBC to absorb newly released PV before HPVC makes the opposite export correction.
+- When confirmed charging drops into Waiting, HPVC uses a bounded **15-second transition-settle window** so a temporary battery-power transition is not immediately treated as a new steady-state grid error.
+- Persistent unabsorbed export still falls back to normal PV limiting.
 
-- Factor values represent shares of accuracy loss, not event frequency; therefore all factors correctly remain `0.0%` when accuracy is 100%.
-- Passive `Monitoring low price` no longer forces non-perfect samples into **Control response**.
-- Attribution order now distinguishes direct control response, dominant house-load changes, PV-availability movement, passive controller/plant holds, and Other.
-- Accuracy eligibility schema **8** prevents old and corrected factor data from being mixed.
-- Factor entities remain unavailable until valid diagnostics have been collected or restored.
+### Taper and high-SOC handling
 
-### Power Control activity
+- Added per-battery taper zones and learned charging ceilings.
+- Bounded probes test whether additional PV can still be absorbed.
+- Post-write confirmation separates real absorption failure from ambiguous telemetry.
+- Repeated ambiguous probes use increasing backoff instead of corrupting learned ceilings.
+- Cutoff/full-state recovery cancels obsolete taper probing and keeps zero-headroom batteries from being treated as available capacity.
 
-- Modes are standardized as **Normal**, **PV Limited**, **PV Restore**, **Charge Priority**, **Charge Priority + PV Limited**, and **Paused/Fault**.
-- The report column is named **Event** because it can contain a control write, state transition, or telemetry observation.
-- Ambiguous events such as `Inverter limit -533 W` are rendered as `Inverter limit reduced by 533 W` or `increased by ...`.
-- Power Control report activity is limited to the remembered market/export PV-limiting zone.
-- Mode definitions remain in documentation and TXT output.
+## PV control and allocation
 
-## Reports and dashboard
+### Defaults and normal control
 
-### Reports
+- Runtime evaluation: **10 s**.
+- Cooldown: configurable **10–60 s**, shipped default **30 s**.
+- Target Export: shipped default **0 W**.
+- Export Start range: `-5000..0 W`.
+- Target Export range: `-5000..+500 W`.
+- HPVC requires `Export Start < Target Export < Import Restore`.
+- Multi-inverter allocation preserves configured per-inverter minimums and maximums.
+- Normal curtailed-PV corrections use the current commanded inverter-limit total plus grid error, reducing fast export/import reversals caused by lagging PV telemetry.
+- Duplicate inverter writes and duplicate rapid activity snapshots are suppressed.
 
-- HTML and TXT are rendered from one fresh snapshot and one shared report model.
-- HBC & Battery Status is ordered as Current HBC State, Negative All-In Override, Charge Priority Capacity, Batteries, and Diagnostics.
-- TXT/HTML parity covers all required override, headroom, taper, battery, and diagnostics fields.
-- Report publication uses an atomic temporary-file rename, generation lock, scoped failure cleanup, and watchdog recovery.
-- Floating **Collapse** and **Top** controls were added to HTML.
-- Mobile navigation visibility is re-evaluated after page restoration, restored scrolling, orientation/viewport changes, and returning to the tab.
-- Existing report sections and section order are unchanged, while HTML and TXT now present the same inverter and HBC/Battery information in the same subsection order.
-- HTML now includes the inverter diagnostics that were previously TXT-only; TXT includes the per-battery taper fields already visible in HTML.
-- Runtime/decision warning parity and Charge Priority diagnostic parity were strengthened.
-- Report collection is staged as core diagnostics → history/accuracy → shared report model, with HTML preparation and assembly separated for maintainability.
+### Shared command lock and asynchronous write confirmation
 
-### Dashboard
+- Normal PV correction, restore and HBC Charge Priority/taper release share one in-flight inverter-command lock.
+- A second non-safety target is not issued while a previous write is still propagating.
+- Live inverter limits must confirm the previous target and PV must respond credibly in the requested direction before normal control reverses the command.
+- Large inverter-limit commands also require **two consecutive fresh, reasonably stable PV observations** after limit/direction confirmation before a meaningful reverse correction is allowed.
+- Write verification is progress-aware and hardware-agnostic. Slow integrations are not marked failed merely because they miss an early fixed confirmation point; delayed progress remains locked and observed through a bounded extended verification horizon.
+- Delayed or superseded HPVC commands keep their originating command identity, so observed inverter movement cannot later be misclassified as an external/manual limit change.
 
-- Both Power Flow cards use a true rolling **6-hour** window ending at the current time.
-- Charge Priority history uses `binary_sensor.hpvc_charge_priority_active`.
-- Price and Power Flow tooltips use theme-aware translucent backgrounds.
-- Dashboard Insights merge restored current-day history with live history, publish newest first, clear unused helpers, and wrap safely on narrow screens.
-- Daily Target Accuracy shows its valid sample count.
+### Large-step and reversal damping
 
-## Persistence and architecture
+The controller remains fast for ordinary corrections. Extra damping applies only to large/transient changes:
 
-- Insights, Power Control activity, Daily Target Accuracy, and negative-override state share the private current-day runtime journal.
-- Cross-tab runtime state that must be shared between Inputs, Engine, Outputs, and Reports now uses Node-RED `global` context; this restores the 15-second HBC response window, same-day Daily Target Accuracy restart continuity, the midnight Power Control reset, and open price-zone interval reconstruction in reports.
-- Current-day history resets after local midnight and restores only matching-date data.
-- Atomic journal publication is acknowledged before dependent runtime actions continue.
-- Clean installations initialize storage before reading, avoiding startup `ENOENT` errors.
-- Runtime calculations and journal writes remain gated until current-day restoration completes.
-- The Node-RED flow contains **4 tabs**, **55 Function nodes**, **22 labelled groups**, and **5 cross-tab Link routes**.
-- Battery-capacity processing is staged as learning-state preparation → headroom calculation → diagnostics publication.
-- Small pure helpers remain local to their consumer Function nodes for Node-RED context-store portability.
-- The obsolete no-op journal-bootstrap Catch node with a dangling scope reference was removed.
-- The obsolete empty Shared Pure Helpers pass-through subflow was removed, and runtime/report triggers are wired directly to their real processing stages.
-- Refactored report and battery nodes remain visually enclosed in their labelled Node-RED groups; this layout cleanup changes no node positions, IDs, wiring, or runtime logic.
+- Large normal PV corrections are staged relative to the configured total plant range rather than jumping directly between extremes.
+- Large Charge Priority releases use the same plant-relative shaping.
+- The first large command in the opposite direction after a recent large HPVC command is capped more conservatively.
+- The configured target and user Deadband are unchanged; small corrections continue on the normal evaluation cadence.
+- Oscillation diagnostics monitor repeated **large HPVC command-direction reversals**, including reversals around HBC/battery transitions when they are part of the coupled loop. Explicit negative-price, Night Restore and price-zone full-restore transitions are excluded from that warning path.
 
+## Reports and Today’s Insights
+
+### Daily Control Accuracy
+
+Daily Control Accuracy was reworked to show both the headline result and the main physical causes of lost tracking accuracy.
+
+The dashboard keeps four user-facing loss factors:
+
+- **Control response**
+- **House load changes**
+- **PV availability**
+- **Other**
+
+These values are estimated percentage contributions to the headline accuracy loss and reconcile to `100 − Daily Control Accuracy`.
+
+Under the hood:
+
+- Accuracy is continuity-aware and time-weighted rather than assuming every sensor updates synchronously.
+- The physical-event detector runs with the normal HPVC evaluation and uses an adaptive **20–30 second reconciliation window** for delayed PV/battery/inverter-limit telemetry without delaying control itself.
+- Battery causality is trigger-bounded: movement already visible at the grid trigger may explain that event; a later independent battery reaction belongs to the following physical interval instead of retroactively hiding the initiating house-load step.
+- PV movement caused by an HPVC command issued after an older grid trigger is stripped from that older event before House/PV attribution.
+- Delayed HPVC inverter-limit response keeps its command identity through verification/supersession and remains **Control response** rather than leaking into external/manual **Other**.
+- Independent battery/HBC movement is classified as **Other**; HPVC-directed Charge Priority movement remains **Control response**.
+- Uncommanded PV movement with coherent evidence is classified as **PV availability**.
+- House-load inference uses physical power balance only when PV and battery evidence are coherent.
+- Attribution degrades safely when telemetry is ambiguous instead of inventing house-load movement.
+- A generic **High / Medium / Low** result-confidence indicator is derived from eligible sample count and continuity-gap burden.
+
+Support reports expose attribution diagnostics including House inference accepted/blocked reasons, independent battery → Other, post-trigger HPVC PV stripping, delayed command response, uncommanded PV → PV availability and inferred House residuals.
+
+### Support reports
+
+- HTML and TXT are generated from one shared fresh model.
+- Reports include HBC strategy/execution, Charge Priority, battery eligibility, taper state, negative-price override, inverter diagnostics, sensor health, result confidence and accuracy attribution diagnostics.
+- Report-only battery fallback logic follows the same runtime validation and freshness rules as live control.
+- Non-structural HTML/TXT parity warnings no longer prevent a successfully rendered report from reaching **View report**.
+- Structural/shared-model parity failures remain blocking.
+- Generation-scoped temporary files, generation IDs and atomic publication prevent an older timed-out report from overwriting a newer report.
+- Report timestamps and current-day selection follow Home Assistant’s configured time zone.
+
+### Today’s Insights and Power Control history
+
+- HBC-only telemetry pauses are reported as HBC pauses instead of full HPVC faults when normal PV control can continue.
+- Required-input/configuration blocks remain clearly classified as control faults.
+- Recovery rows were cleaned up to avoid startup/redeploy false positives.
+- Power Control separates genuine PV restore actions from ordinary upward adjustments.
+- Charge Priority increases, PV reductions, restores and ordinary upward adjustments are counted from explicit HPVC command events rather than inferred later from asynchronous live-limit timing.
+- Retention covers a full day at the 10-second cadence plus transition margin.
+- Current-day rows and midnight rollover are persisted consistently.
+
+## Dashboard
+
+- The **Settings** tab is always visible; the Main-dashboard Settings button and obsolete `input_boolean.hpvc_config` visibility helper were removed.
+- Added **Force charge at negative price** under **Optional HBC Setup**.
+- HBC-only controls and badges remain hidden when HBC is unavailable.
+- The **HBC Price Intervals** graph now also requires `binary_sensor.hpvc_hbc_available`, preventing the graph from referencing HBC-only data while HBC is unavailable.
+- The **At minimum PV** helper uses the same fixed **1 W** minimum-state tolerance as runtime control. The user-configured PV adjustment Deadband remains unchanged and continues to be used by the control logic where intended.
+- Removed the `card-mod` dependency.
+- ApexCharts remains the only custom card required by the supplied dashboard graphs.
+- The Daily Control Accuracy card remains compact; detailed engineering metrics stay in the support report.
+- Report/mobile controls and visibility behavior were cleaned up.
+
+## Bug fixes
+
+- Fixed runtime evaluation-lock recovery after a scoped Function exception by carrying the cycle ID on the message immediately after lock acquisition and clearing the lock only when the failing cycle still owns it.
+- Fixed report-storage recovery after a transient startup mount/writability failure; storage can now become usable later without requiring a Node-RED redeploy or restart.
+- Removed an unused stale Main-dashboard screenshot that still showed the retired Settings button.
+- Corrected first-install wording so the README and installation guide match the implemented automatic HPVC enable behavior after validation succeeds.
+
+## Architecture, packaging, and tests
+
+- Insights, Power Control, Daily Control Accuracy and negative-price override state share `hpvc-data/runtime-history.json`.
+- Journal writes are serialized and guarded so stale write completions cannot overwrite or acknowledge newer state.
+- Runtime waits for current-day journal restoration before dependent actions continue.
+- Current-day restore, midnight rollover, clean-install initialization and legacy migration are handled in one persistence path.
+- Node-RED is organized into four functional tabs with shared global context only where cross-tab state is required.
+- Scoped runtime error handling surfaces Function-node failures without disabling normal self-recovery.
+- Obsolete/declaration-only internal processing found during the final audit was removed without changing runtime behavior.
+- Removed the write-only `homePvControlDirectionHistory` context reset after confirming no packaged runtime path reads it.
+
+### Compatibility
+
+- Home Assistant with package support.
+- Node-RED with `node-red-contrib-home-assistant-websocket` **0.80.3 or newer**.
+- One or more writable inverter `number.*` power-limit entities.
+- ApexCharts Card for the supplied dashboard graphs.
+- Optional Home Battery Control; HBC 4.15.0 is supported for **1–6 batteries**.
+
+### Regression validation
+
+The package includes **20 executable regression test files**, including coverage for attribution, asynchronous telemetry, command locking, delayed-command causality, HBC transient control, persistence/day-boundary behavior, report parity, the 90-second safety-restoration gate, cycle-safe runtime Function-error lock recovery, bounded report-storage recovery, and final dashboard/helper consistency. The final release archive is intended to be published as `Home_PV_Control_v1_4_0.zip` without internal pre-release revision naming.
+
+## Documentation
+
+- Night Restore wording now matches runtime behavior: valid low PV drives entry; `sun.sun` only corroborates a pending transition when PV telemetry disappears after the timer has started.
+- Stale pre-final screenshots were removed rather than shipping images that no longer match the final v1.4.0 flow/report layout.
+
+- Installation text now states that HPVC enables automatically after required live inputs and control settings validate successfully.
+- Report documentation now describes bounded automatic report-storage recovery and the queued Generate report behavior.
+- Release documentation is organized from major/safety changes through control, reporting, dashboard, bug fixes, architecture/tests, documentation and upgrade instructions.
+- Removed the unreferenced stale Main-dashboard screenshot asset rather than publishing an image that no longer matches v1.4.0.
 
 ## Upgrade instructions
 
-1. Back up the current Home Assistant package, dashboard, Node-RED flow, and `hpvc-data` runtime journal.
-2. Replace the Home Assistant package with `home assistant/hpvc_config.yaml`.
-3. Replace the complete HPVC Node-RED flow with `node-red/hpvc_flow.json`.
+1. Back up the existing Home Assistant package, dashboard, Node-RED flow and `hpvc-data` journal.
+2. Replace `home assistant/hpvc_config.yaml`.
+3. Replace the complete `node-red/hpvc_flow.json` flow.
 4. Replace or merge `home assistant/hpvc_dashboard.yaml`.
 5. Restart Home Assistant after package changes and deploy Node-RED.
-6. Verify all configured entities and inverter limits.
-7. Generate a support report and confirm TXT/HTML parity succeeds.
-
-Keep the Home Assistant package, Node-RED flow, dashboard, and documentation on the same release version.
-
-## Compatibility
-
-- Home Assistant with package support.
-- Node-RED add-on with Home Assistant nodes.
-- Writable inverter `number.*` entities.
-- Optional Home Battery Control integration; HBC 4.15.0 natively supports **1–6 batteries**.
-- Dashboard ApexCharts configuration targets `custom:apexcharts-card` **2.2.3**.
+6. Verify configured sensors and inverter limits.
+7. Review **Force charge at negative price**. It is seeded **On** once on fresh installs and upgrades and only applies while **Enable HBC** is On. A later manual Off choice survives normal restarts/reloads; **Restore defaults** turns it On again.
+8. Generate a support report to confirm the installation is healthy.

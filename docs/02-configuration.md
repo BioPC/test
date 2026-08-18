@@ -2,10 +2,10 @@
 
 [← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
 
-The Settings tab contains entity selection, inverter setup, control thresholds, optional HBC controls, and tuning options. Operational status, graphs, accuracy, and Insights remain on the Main tab.
+The Settings tab is always available and contains entity selection, inverter setup, control thresholds, optional HBC controls, and tuning options. Operational status, graphs, accuracy, and Insights remain on the Main tab.
 
+The Main-tab **Daily Control Accuracy** score grades excursions outside **Export Start…Import Restore**. Its four loss factors—**Control response**, **House load changes**, **PV availability**, and **Other**—split the displayed headline loss (`100 − accuracy`). Use the support report for detailed RMS/MAE, raw attribution, coverage, and exclusion diagnostics. Legacy accuracy entity IDs are retained for compatibility.
 
-The Settings tab contains entity selection, inverter setup, control thresholds, optional HBC controls, and tuning options. Operational status, graphs, accuracy, and Insights remain on the Main tab.
 
 ## Entity configuration
 
@@ -31,7 +31,7 @@ This sensor is used for PV limiting decisions. It may contain either a raw marke
 
 ### All-in import price sensor
 
-Used for negative-price protection. When this all-in import price is zero or negative, HPVC immediately forces every configured inverter to its user-configured minimum and locks those limits until the all-in price becomes greater than zero. HPVC also stores the current HBC strategy and charge goal, sets `input_select.house_battery_strategy` to `Charge`, then sets `input_select.house_battery_strategy_charge_goal` to the exact option `batteries are full`. On exit, it restores the saved charge goal first and the saved strategy second. No all-in-price hysteresis is used.
+Used for negative-price protection. At a valid all-in price `<= 0`, HPVC holds every configured inverter at its own minimum. If **Enable HBC** and **Force charge at negative price** are both on, HPVC may also force HBC to `Charge` with charge goal `batteries are full`. When the price becomes `> 0`, or either HBC permission is turned off, HPVC restores the saved charge goal and then the saved strategy. Without HBC permission, negative-price protection remains PV-only. No all-in-price hysteresis is used.
 
 ### Total PV power sensor
 
@@ -39,7 +39,7 @@ Current total PV production in watts.
 
 ### HBC integration
 
-The dashboard exposes HBC's native `input_select.house_battery_strategy` for the user and reads `input_text.house_battery_strategy_active_sub_strategy`. HPVC normally does not write or select HBC strategies. The sole exception is negative all-in-price mode, where it temporarily forces `Charge` and restores the previously selected strategy on exit. The historical **HBC Strategy Control** toggle enables or disables HPVC's read-only HBC execution tracking and Charge Priority.
+The dashboard exposes HBC's native strategy selector and reads `input_text.house_battery_strategy_active_sub_strategy` as the executing sub-strategy. **Enable HBC** is the master permission for HBC execution tracking, Charge Priority, and any HPVC HBC write. During normal operation HPVC does not select HBC strategies; the only automatic strategy write is the optional negative-price charging override.
 
 ## PV inverter setup
 
@@ -55,10 +55,12 @@ Invalid inverter limits block writes and produce a configuration error.
 
 HPVC requires:
 
-- `Export Start < Target Export <= 0 W`
+- `Export Start < Target Export < Import Restore`
+- `Export Start` range: `-5000 to 0 W`
+- `Target Export` range: `-5000 to +500 W`
 - `Import Restore >= 0 W`
 
-Invalid combinations block inverter writes. A gap of roughly `75–100 W` between Export Start and Target Export is a practical starting point for smooth control.
+Invalid combinations block inverter writes. Home Assistant and Node-RED also enforce the declared numeric helper ranges, so an out-of-range restored or injected helper state is treated as invalid even if it bypasses the normal dashboard control. A gap of roughly `75–100 W` between Export Start and Target Export is a practical starting point for smooth control.
 
 ### Min PV for control
 
@@ -66,7 +68,7 @@ Blocks new export-limiting actions when measured PV production is already low. I
 
 ### Cooldown
 
-Minimum time between inverter writes. The allowed range is 10–300 seconds (10 seconds to 5 minutes) in 10-second steps. The shipped and Restore Defaults value is 30 seconds. HPVC continues its 10-second evaluation cycle during cooldown but sends no new limit command.
+Minimum time between inverter writes. The allowed range is 10–60 seconds in 5-second steps. The shipped and Restore Defaults value is 30 seconds. HPVC continues its 10-second evaluation cycle during cooldown but sends no new limit command.
 
 ### Deadband
 
@@ -81,7 +83,7 @@ These values are safe starting points, not universal recommendations. Review the
 | Home PV Control Enabled | Off until setup is complete |
 | Notifications | On |
 | HBC integration / Charge Priority | Off |
-| Settings visibility | Off |
+| Force charge at negative price | On by default; effective only when HBC integration is enabled |
 | Number of PV Inverters | 1 |
 | PV limiting price | `0.00 €/kWh` |
 | PV price exit hysteresis | `0.02 €/kWh` |
@@ -90,15 +92,15 @@ These values are safe starting points, not universal recommendations. Review the
 | Import restore | `150 W` |
 | Min PV for control | `100 W` |
 | Night restore PV threshold | `10 W` |
-
-Night Restore enters after 120 continuous seconds at or below the configured threshold. It exits only after valid PV remains above `max(25 W, threshold + 15 W)` for 30 seconds. See [How it works](03-how-it-works.md#restore-and-recovery) for restart and offline-telemetry behavior.
-
 | Cooldown | `30 s` |
 | Deadband | `25 W` |
 | PV1–PV10 full limit | `0 W` until configured |
 | PV1–PV10 minimum limit | `0 W` until configured |
 
-HPVC no longer maintains separate Charge, Balanced, or Expensive strategy helpers. The dashboard exposes HBC's own `input_select.house_battery_strategy`, including every option supplied by HBC, but HPVC leaves that select untouched during normal operation. During negative all-in-price mode only, it temporarily selects `Charge` and restores the saved value when the all-in price becomes greater than zero. HPVC reads `input_text.house_battery_strategy_active_sub_strategy` to follow the strategy HBC is actually executing. If either native HBC entity becomes unavailable, HBC-dependent Charge Priority pauses while normal PV control continues.
+Night Restore enters after 120 continuous seconds at or below the configured threshold. It exits only after valid PV remains above `max(25 W, threshold + 15 W)` for 30 seconds. See [How it works](03-how-it-works.md#restore-and-recovery) for restart and offline-telemetry behavior.
+
+HPVC uses HBC's own strategy selector rather than separate HPVC strategy helpers. **Enable HBC** is the master permission. If it is turned off during an active negative-price override, HPVC performs only the confirmed restore sequence and then stops HBC writes. PV-minimum protection at negative prices remains independent, so HBC-disabled operation stays safe and PV-only.
+
 
 ## HBC battery charge priority
 
@@ -113,7 +115,8 @@ For each configured battery `N`, HPVC expects:
 - `number.marstek_mN_max_charge_power`
 - `select.marstek_mN_rs485_control_mode`
 
-Set the battery count with `input_number.house_battery_count`. HBC 4.15.0 supports **1–6 batteries**. Each battery is evaluated independently; unavailable, full, maximum-power, or RS485-disabled batteries are excluded without blocking other eligible batteries. HPVC follows HBC's configured priority order while combining usable headroom across eligible batteries.
+Set the battery count with `input_number.house_battery_count` (0–6, whole numbers only). Each battery is evaluated independently; invalid, full, maximum-power, or RS485-disabled batteries are excluded without blocking healthy batteries. When available, HPVC also validates HBC's prioritized-battery setting and follows that priority order. A last known positive maximum charge power may bridge a genuinely unavailable helper for up to 30 minutes, but malformed, zero, or negative live values are never replaced by memory.
+
 
 ### Charge Priority states and state entity
 
@@ -130,14 +133,16 @@ Charge Priority can remain **Active** while charging is still confirmed even aft
 
 ### Negative all-in-price override
 
-This mode requires these existing HBC entities and exact options:
+PV-minimum protection does **not** require HBC. At a valid all-in price `<= 0`, HPVC holds each inverter at its configured minimum and releases the PV-only lock when the price becomes valid and `> 0`.
 
-- `input_select.house_battery_strategy` with option `Charge`
-- `input_select.house_battery_strategy_charge_goal` with option `batteries are full`
+When **Enable HBC** and **Force charge at negative price** are both on, and the native HBC strategy and charge-goal entities exist, HPVC additionally:
 
-At a valid all-in price `<= 0`, HPVC stores the current values, confirms `Charge`, confirms `batteries are full`, and locks every inverter at its configured minimum. HPVC Charge Priority is off during the override. Exit occurs immediately at a valid all-in price `> 0`; no all-in-price hysteresis is applied. The saved charge goal is restored and confirmed before the saved strategy.
+1. saves the current HBC strategy and charge goal;
+2. confirms strategy `Charge`;
+3. confirms charge goal `batteries are full`;
+4. restores the saved charge goal and then the saved strategy on exit.
 
-The override object is persisted in `/config/hpvc-data/runtime-history.json`, schema-validated, and restored before runtime evaluation. The first forced HBC write is blocked until atomic journal publication confirms the original HBC selections are durable. The helper `input_boolean.hpvc_negative_override_fault` is turned on after five minutes in an unconfirmed entry or restore phase, and HPVC creates a fixed-ID persistent notification. Durable faults are reasserted after a Home Assistant restart. PV remains locked until restoration or the explicit unknown-previous recovery workflow is confirmed.
+The restore sequence also starts if either HBC permission is turned off. The override is persisted in `/config/hpvc-data/runtime-history.json` so a restart cannot lose the original values. If an entry or restore phase remains unconfirmed for five minutes, `input_boolean.hpvc_negative_override_fault` and a persistent notification identify the stuck phase.
 
 ## Restore defaults
 
@@ -148,10 +153,9 @@ The **Restore defaults** tile reapplies shipped configurable values after confir
 - active inverter count;
 - the current HBC Strategy Control on/off state.
 
+It resets **Force charge at negative price** to its shipped default of **On**. The setting is also seeded **On** once on a fresh install or when first introduced by an upgrade. After that, a manual Off choice survives normal restarts and reloads. This does not grant HBC control by itself; **Enable HBC** remains the master permission and is preserved.
+
 It does not populate installation-specific sensor or inverter entities. Verify all entities, maximum and minimum powers, inverter count, and optional HBC strategy entity afterward.
-
-
-
 
 ## Next steps
 

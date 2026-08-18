@@ -28,12 +28,6 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 > [!IMPORTANT]
 > HPVC requires at least one writable inverter power-limit entity exposed to Home Assistant. It does not communicate directly with an inverter.
 
-<p align="center">
-  <a href="assets/screenshots/main.png">
-    <img src="assets/screenshots/main.png" alt="Home PV Control main dashboard" width="60%" title="Click to view full size">
-  </a>
-</p>
-
 ## Contents
 
 - [Quick install](#quick-install)
@@ -65,8 +59,8 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 3. Restart Home Assistant or reload the supported YAML configuration.
 4. Import [`node-red/hpvc_flow.json`](node-red/hpvc_flow.json) into Node-RED and deploy it.
 5. Add [`home assistant/hpvc_dashboard.yaml`](home%20assistant/hpvc_dashboard.yaml) as a YAML dashboard or view.
-6. Configure the grid-power, market/export-price, all-in-price, PV-power and inverter-limit entities.
-7. Enable HPVC.
+6. Open the always-visible **Settings** tab and configure the grid-power, market/export-price, all-in-price, PV-power and inverter-limit entities.
+7. Wait for first-install validation to complete. HPVC enables automatically once all required live inputs and control settings are valid.
 
 See the full [installation guide](docs/01-installation.md) for dependencies and first-run verification.
 
@@ -80,7 +74,7 @@ See the full [installation guide](docs/01-installation.md) for dependencies and 
 | Negative all-in-price minimum-PV protection | ✅ |
 | Optional HBC grid charging during negative prices | ✅ |
 | Optional HBC Charge Priority for `Charge` / `Charge PV` | ✅ |
-| HBC 4.15.0 multi-battery support (1–6 batteries) | ✅ |
+| HBC multi-battery support (1–6 batteries) | ✅ |
 | Night Restore with PV recovery hysteresis | ✅ |
 | Today’s Insights and Power Control history | ✅ |
 | Daily Control Accuracy with four loss factors | ✅ |
@@ -89,17 +83,9 @@ See the full [installation guide](docs/01-installation.md) for dependencies and 
 
 ## HBC permissions
 
-**Enable HBC** is the master permission for HPVC to modify HBC.
+**Enable HBC** is the master permission for HPVC to control charging in HBC.
 
-The separate **Charge batteries at negative price** option only applies while HBC control is enabled.
-
-At a valid all-in price `<= 0`:
-
-- PV is always locked to each inverter's configured minimum.
-- With **Enable HBC = Off**, HPVC does not start HBC control.
-- With **Enable HBC = On** and **Charge batteries at negative price = Off**, negative-price protection remains PV-only.
-- With both enabled, HPVC may force HBC to **Charge** during the negative-price interval.
-- When the interval ends, HPVC restores the saved HBC strategy and charge goal before normal HBC control resumes.
+The separate **Force charge at negative price** option only applies while HBC control is enabled.
 
 If HBC permission is removed during an already-active override, HPVC permits only the required restore sequence and then stops HBC writes.
 
@@ -119,7 +105,7 @@ These are starting points, not universal recommendations. Review them for your i
 | Setting | Shipped default |
 |---|---:|
 | HBC integration / Charge Priority | Off |
-| Charge batteries at negative price | On; effective only while HBC control is enabled |
+| Force charge at negative price | On by default; effective only while HBC control is enabled |
 | PV limiting price | `0.00 €/kWh` |
 | Price hysteresis | `0.02 €/kWh` |
 | Export start | `-150 W` |
@@ -130,7 +116,6 @@ These are starting points, not universal recommendations. Review them for your i
 | Cooldown | `30 s` |
 | Deadband | `25 W` |
 
-Current v1.4.0 input ranges include **Export Start -5000 to 0 W**, **Target Export -5000 to +500 W**, and **Cooldown 10 to 60 s in 5 s steps**. HPVC requires `Export Start < Target Export < Import Restore`.
 
 > **PV limiting price guidance:** use €0.00/kWh with a net export-price sensor. For a raw market-price sensor, account for fees, compensation and local rules.
 
@@ -159,9 +144,11 @@ Normal control follows a simple priority order:
 Charge Priority uses HBC execution state, measured battery power and verified battery headroom rather than assuming a selected strategy means charging is active.
 
 - States: **Off, Requested, Waiting, Active**.
-- Supports HBC 4.15.0 battery order and RS485 eligibility for **1–6 batteries**.
+- Supports HBC battery order and RS485 eligibility for **1–6 batteries**.
 - Multi-battery headroom and taper learning prevent one tapering/full battery from unnecessarily reducing available headroom from another battery.
 - A short HBC response window allows HBC to absorb newly released PV before HPVC applies opposite export corrections.
+- If confirmed battery charging drops into Waiting, a bounded transition-settle window lets the independent battery controller change state before HPVC reacts to the full transient grid error.
+- Small PV corrections remain immediate; large normal corrections and Charge Priority releases are plant-size-relative and staged, with extra damping on the first large reversal.
 - Persistent unabsorbed export still falls back to normal PV limiting.
 
 ## Safety and recovery
@@ -246,7 +233,7 @@ When upgrading, keep the Home Assistant package, Node-RED flow and dashboard on 
 4. Replace or merge the dashboard.
 5. Restart Home Assistant and deploy Node-RED.
 6. Verify configured sensors and inverter limits.
-7. Review **Charge batteries at negative price**.
+7. Review **Force charge at negative price**. It is seeded **On** once on fresh installs and upgrades. After that, a manual Off choice survives normal Home Assistant restarts and package/automation reloads. **Restore defaults** turns it On again.
 8. Generate a support report to confirm the installation is healthy.
 
 See the [v1.4.0 release notes](releases/v1.4.0/release.md) for the full release summary.
@@ -262,33 +249,6 @@ See the [v1.4.0 release notes](releases/v1.4.0/release.md) for the full release 
 - [v1.4.0 release notes](releases/v1.4.0/release.md)
 
 For Home Battery Control itself, see the [HBC documentation](https://docs.homebatterycontrol.com/).
-
-## Screenshots
-
-### Settings dashboard
-
-<p align="center">
-  <a href="assets/screenshots/settings.png">
-    <img src="assets/screenshots/settings.png" alt="Home PV Control settings dashboard" width="50%" title="Click to view full size">
-  </a>
-</p>
-
-### Support report
-
-<p align="center">
-  <a href="assets/screenshots/report_part_1.png"><img src="assets/screenshots/report_part_1.png" alt="HPVC support report — part 1" width="20%" title="Click to view full size"></a>
-  <a href="assets/screenshots/report_part_2.png"><img src="assets/screenshots/report_part_2.png" alt="HPVC support report — part 2" width="20%" title="Click to view full size"></a>
-  <a href="assets/screenshots/report_part_3.png"><img src="assets/screenshots/report_part_3.png" alt="HPVC support report — part 3" width="20%" title="Click to view full size"></a>
-  <a href="assets/screenshots/report_part_4.png"><img src="assets/screenshots/report_part_4.png" alt="HPVC support report — part 4" width="20%" title="Click to view full size"></a>
-</p>
-
-### Node-RED architecture overview
-
-<p align="center">
-  <a href="assets/screenshots/node_red_flow.png">
-    <img src="assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED architecture overview" width="60%" title="Click to view full size">
-  </a>
-</p>
 
 ## Support
 
@@ -328,7 +288,6 @@ examples/
 assets/
   banner.png
   logo.svg
-  screenshots/          # Dashboard, report and Node-RED images
 
 docs/
   01-installation.md

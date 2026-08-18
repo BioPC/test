@@ -3,7 +3,7 @@ views:
   - type: sections
     title: Main
     path: home-pv-control
-    icon: mdi:solar-power
+    icon: mdi:solar-power-variant
     max_columns: 3
     header:
       layout: center
@@ -85,21 +85,30 @@ views:
           - condition: state
             entity: input_boolean.hpvc_control_hbc_strategy
             state: 'on'
+          - condition: state
+            entity: binary_sensor.hpvc_hbc_available
+            state: 'on'
       - type: entity
         entity: input_select.house_battery_strategy
         show_name: true
-        name: HBC Srategy
+        name: HBC Strategy
         visibility:
           - condition: state
             entity: input_boolean.hpvc_control_hbc_strategy
             state: 'on'
+          - condition: state
+            entity: binary_sensor.hpvc_hbc_available
+            state: 'on'
       - type: entity
         entity: input_text.house_battery_strategy_active_sub_strategy
         show_name: true
-        name: HBC executing
+        name: HBC Executing
         visibility:
           - condition: state
             entity: input_boolean.hpvc_control_hbc_strategy
+            state: 'on'
+          - condition: state
+            entity: binary_sensor.hpvc_hbc_available
             state: 'on'
           - condition: or
             conditions:
@@ -182,6 +191,13 @@ views:
 
                 {% if inv.valid %}{% set ns.done = ns.done + 1 %}✅{% else %}❌{%
                 endif %} **Inverter setup**
+                  
+
+                {% set ns.total = ns.total + 1 %} {% set setup_ready =
+                  is_state('input_boolean.hpvc_defaults_applied', 'on')
+                  and is_state('binary_sensor.hpvc_configuration_valid', 'on')
+                %} {% if setup_ready %}{% set ns.done = ns.done + 1 %}✅{% else
+                %}❌{% endif %} **Control settings**
 
                 <p><b>{{ ns.done }}/{{ ns.total }} complete</b></p>
           - type: conditional
@@ -315,7 +331,7 @@ views:
 
                 {% set thresholds_valid =
                   export_start < target_export
-                  and target_export <= 0
+                  and target_export < import_restore
                   and import_restore >= 0
                 %}
 
@@ -338,10 +354,18 @@ views:
               columns: 12
           - type: markdown
             text_only: true
-            content: >
-              <ha-alert title="Standalone module" alert-type="info"> Home PV
-              Control works as PV-only export control. HBC is optional and can
-              be enabled when a valid HBC is detected. </ha-alert>
+            content: |
+              <ha-alert title="Standalone module" alert-type="info">
+                Home PV Control works as PV-only export control.
+                HBC is optional and can be enabled when a valid HBC is detected.
+              </ha-alert>
+            visibility:
+              - condition: state
+                entity: input_boolean.hpvc_onboarding_complete
+                state: 'off'
+              - condition: state
+                entity: binary_sensor.hpvc_hbc_available
+                state: 'off'
             grid_options:
               columns: 12
           - type: conditional
@@ -349,9 +373,6 @@ views:
               - condition: state
                 entity: input_boolean.hpvc_onboarding_complete
                 state: 'on'
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'off'
               - condition: state
                 entity: input_boolean.hpvc_enabled
                 state: 'off'
@@ -368,21 +389,19 @@ views:
                 <ha-alert title="HPVC manually disabled" alert-type="info"> All
                 required inputs are ready, but HPVC is off because it was
                 switched off manually. Press <b>Enable HPVC</b> to start Home PV
-                Control. Press <b>Settings</b> whenever you need to change the
-                configuration. </ha-alert>
+                Control. </ha-alert>
             grid_options:
               columns: 12
               rows: auto
           - type: tile
             entity: input_boolean.hpvc_enabled
             name: Enable HPVC
-            icon: mdi:solar-power
+            icon: mdi:solar-power-variant
             hide_state: true
-          - type: tile
-            entity: input_boolean.hpvc_notifications
-            name: Notifications
-            icon: mdi:bell-outline
-            hide_state: true
+            vertical: false
+            features_position: inline
+            features:
+              - type: toggle
           - type: conditional
             conditions:
               - condition: state
@@ -397,8 +416,12 @@ views:
               name: Enable HBC
               icon: mdi:battery-sync
               hide_state: true
+              vertical: false
+              features_position: inline
+              features:
+                - type: toggle
             grid_options:
-              columns: 6
+              columns: 12
               rows: auto
           - type: conditional
             conditions:
@@ -421,13 +444,17 @@ views:
               double_tap_action:
                 action: none
             grid_options:
-              columns: 6
+              columns: 12
               rows: auto
           - type: tile
-            entity: input_boolean.hpvc_config
-            name: Settings
-            icon: mdi:cog
+            entity: input_boolean.hpvc_notifications
+            name: Notifications
+            icon: mdi:bell-outline
             hide_state: true
+            vertical: false
+            features_position: inline
+            features:
+              - type: toggle
           - type: conditional
             conditions:
               - entity: input_boolean.hpvc_report_ready
@@ -687,8 +714,6 @@ views:
             show_header_toggle: false
           - type: conditional
             conditions:
-              - entity: input_boolean.hpvc_enabled
-                state: 'on'
               - entity: input_boolean.hpvc_control_hbc_strategy
                 state: 'on'
               - condition: state
@@ -840,24 +865,6 @@ views:
           - type: conditional
             conditions:
               - entity: input_boolean.hpvc_control_hbc_strategy
-                state: 'on'
-            card:
-              type: history-graph
-              hours_to_show: 6
-              entities:
-                - entity: binary_sensor.hpvc_pv_limited
-                  name: PV limited
-                - entity: binary_sensor.hpvc_charge_priority_active
-                  name: Charge priority
-                - entity: binary_sensor.hpvc_cooldown_active
-                  name: Cooldown
-                - entity: binary_sensor.hpvc_at_minimum_pv
-                  name: At minimum PV
-                - entity: binary_sensor.hpvc_negative_price_mode
-                  name: Negative price
-          - type: conditional
-            conditions:
-              - entity: input_boolean.hpvc_control_hbc_strategy
                 state: 'off'
             card:
               type: history-graph
@@ -871,6 +878,28 @@ views:
                   name: At minimum PV
                 - entity: binary_sensor.hpvc_negative_price_mode
                   name: Negative price
+          - type: conditional
+            conditions:
+              - entity: input_boolean.hpvc_control_hbc_strategy
+                state: 'on'
+            card:
+              type: history-graph
+              entities:
+                - entity: binary_sensor.hpvc_pv_limited
+                  name: PV limited
+                - entity: binary_sensor.hpvc_cooldown_active
+                  name: Cooldown
+                - entity: binary_sensor.hpvc_charge_priority_active
+                  name: Charge priority
+                - entity: binary_sensor.hpvc_at_minimum_pv
+                  name: At minimum PV
+                - entity: binary_sensor.hpvc_negative_price_mode
+                  name: Negative price
+              hours_to_show: 6
+        visibility:
+          - condition: state
+            entity: input_boolean.hpvc_onboarding_complete
+            state: 'on'
       - type: grid
         columns: 2
         square: false
@@ -896,7 +925,7 @@ views:
 
                   <span style="font-size:18px;">
                     <ha-icon icon="mdi:bullseye-arrow"></ha-icon>&nbsp;&nbsp;&nbsp;
-                    <b>Daily Target Accuracy</b>
+                    <b>Daily Control Accuracy</b>
                   </span>
 
 
@@ -907,7 +936,7 @@ views:
                   states('sensor.hpvc_daily_target_accuracy_samples') %} {% if
                   sample_raw not in ['unknown', 'unavailable', 'none', ''] %}
                   <div style="opacity:.72; margin-top:-8px;">{{ sample_raw |
-                  int(0) }} valid samples today</div> {% endif %}
+                  int(0) }} eligible samples today</div> {% endif %}
 
 
                   </center>
@@ -926,7 +955,8 @@ views:
 
                   <ha-alert title="No data collected today" alert-type="info">
 
-                  No valid Target Accuracy samples have been collected today.
+                  No eligible control-accuracy samples have been collected
+                  today.
 
                   </ha-alert>
 
@@ -999,13 +1029,19 @@ views:
             entity: input_boolean.hpvc_onboarding_complete
             state: 'on'
       - type: custom:apexcharts-card
+        section_mode: true
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
             state: 'on'
-          - condition: state
-            entity: input_boolean.hpvc_control_hbc_strategy
-            state: 'off'
+          - condition: or
+            conditions:
+              - condition: state
+                entity: input_boolean.hpvc_control_hbc_strategy
+                state: 'off'
+              - condition: state
+                entity: binary_sensor.hpvc_hbc_available
+                state: 'off'
         update_interval: 5s
         graph_span: 6h
         header:
@@ -1055,6 +1091,7 @@ views:
             theme: false
             custom: |
               EVAL:function({ series, dataPointIndex }) {
+
                 const colors = [
                   '#3B82F6',
                   '#22C55E',
@@ -1098,7 +1135,7 @@ views:
                 }
 
                 return (
-                  '<div style="padding:8px 10px;font-size:10px;width:max-content;max-width:240px;box-sizing:border-box;background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 35%,transparent);backdrop-filter:blur(1px);border-radius:6px;border:1px solid var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:600;">' +
+                  '<div style="padding:8px 10px;font-size:10px;width:max-content;max-width:240px;box-sizing:border-box;background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 35%,transparent);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);border-radius:6px;border:1px solid var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:600;">' +
                     rows +
                   '</div>'
                 );
@@ -1317,47 +1354,17 @@ views:
               }
 
               return [[Date.now(), value]];
-        card_mod:
-          style: |
-            ha-card .apexcharts-tooltip,
-            ha-card .apexcharts-tooltip.apexcharts-theme-light,
-            ha-card .apexcharts-tooltip.apexcharts-theme-dark {
-              background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
-              background-color: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
-              backdrop-filter: blur(1px) !important;
-              -webkit-backdrop-filter: blur(1px) !important;
-              border: 1px solid var(--divider-color) !important;
-              color: var(--primary-text-color) !important;
-              box-shadow: var(--ha-card-box-shadow, none) !important;
-            }
-
-            ha-card .apexcharts-tooltip-text,
-            ha-card .apexcharts-tooltip-text-y-label,
-            ha-card .apexcharts-tooltip-text-y-value,
-            ha-card .apexcharts-tooltip-series-group {
-              color: var(--primary-text-color) !important;
-            }
-
-            ha-card .apexcharts-xaxistooltip {
-              background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
-              backdrop-filter: blur(1px) !important;
-              -webkit-backdrop-filter: blur(1px) !important;
-              border: 1px solid var(--divider-color) !important;
-              color: var(--primary-text-color) !important;
-              box-shadow: var(--ha-card-box-shadow, none) !important;
-            }
-
-            ha-card .apexcharts-xaxistooltip-bottom::before,
-            ha-card .apexcharts-xaxistooltip-bottom::after {
-              border-bottom-color: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
-            }
       - type: custom:apexcharts-card
+        section_mode: true
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
             state: 'on'
           - condition: state
             entity: input_boolean.hpvc_control_hbc_strategy
+            state: 'on'
+          - condition: state
+            entity: binary_sensor.hpvc_hbc_available
             state: 'on'
         update_interval: 5s
         graph_span: 6h
@@ -1408,6 +1415,7 @@ views:
             theme: false
             custom: |
               EVAL:function({ series, dataPointIndex }) {
+
                 const colors = [
                   '#3B82F6',
                   '#22C55E',
@@ -1453,7 +1461,7 @@ views:
                 }
 
                 return (
-                  '<div style="padding:8px 10px;font-size:10px;width:max-content;max-width:240px;box-sizing:border-box;background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 35%,transparent);backdrop-filter:blur(1px);border-radius:6px;border:1px solid var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:600;">' +
+                  '<div style="padding:8px 10px;font-size:10px;width:max-content;max-width:240px;box-sizing:border-box;background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 35%,transparent);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);border-radius:6px;border:1px solid var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:600;">' +
                     rows +
                   '</div>'
                 );
@@ -1728,47 +1736,17 @@ views:
               }
 
               return [[Date.now(), value]];
-        card_mod:
-          style: |
-            ha-card .apexcharts-tooltip,
-            ha-card .apexcharts-tooltip.apexcharts-theme-light,
-            ha-card .apexcharts-tooltip.apexcharts-theme-dark {
-              background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
-              background-color: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
-              backdrop-filter: blur(1px) !important;
-              -webkit-backdrop-filter: blur(1px) !important;
-              border: 1px solid var(--divider-color) !important;
-              color: var(--primary-text-color) !important;
-              box-shadow: var(--ha-card-box-shadow, none) !important;
-            }
-
-            ha-card .apexcharts-tooltip-text,
-            ha-card .apexcharts-tooltip-text-y-label,
-            ha-card .apexcharts-tooltip-text-y-value,
-            ha-card .apexcharts-tooltip-series-group {
-              color: var(--primary-text-color) !important;
-            }
-
-            ha-card .apexcharts-xaxistooltip {
-              background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
-              backdrop-filter: blur(1px) !important;
-              -webkit-backdrop-filter: blur(1px) !important;
-              border: 1px solid var(--divider-color) !important;
-              color: var(--primary-text-color) !important;
-              box-shadow: var(--ha-card-box-shadow, none) !important;
-            }
-
-            ha-card .apexcharts-xaxistooltip-bottom::before,
-            ha-card .apexcharts-xaxistooltip-bottom::after {
-              border-bottom-color: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
-            }
       - type: custom:apexcharts-card
+        section_mode: true
         visibility:
           - condition: state
             entity: input_boolean.hpvc_onboarding_complete
             state: 'on'
           - condition: state
             entity: input_boolean.hpvc_control_hbc_strategy
+            state: 'on'
+          - condition: state
+            entity: binary_sensor.hpvc_hbc_available
             state: 'on'
         header:
           show: true
@@ -1781,6 +1759,7 @@ views:
           start: day
         apex_config:
           chart:
+            height: 200px
             animations:
               enabled: false
             toolbar:
@@ -1823,6 +1802,8 @@ views:
               format: HH:mm
               rotate: -45
               rotateAlways: true
+              maxHeight: 70
+              offsetY: -3
             tooltip:
               enabled: true
               formatter: |
@@ -1849,31 +1830,69 @@ views:
               text: cent / kWh
           tooltip:
             enabled: true
-            shared: false
-            intersect: true
-            followCursor: false
+            shared: true
+            intersect: false
+            followCursor: true
             theme: false
-            x:
-              show: false
-            marker:
-              show: true
-            'y':
-              title:
-                formatter: |
-                  EVAL:function() {
-                    return '';
-                  }
-              formatter: |
-                EVAL:function(value) {
-                  return Number.isFinite(Number(value))
-                    ? Number(value).toFixed(1) + ' ct/kWh'
+            custom: |
+              EVAL:function({ series, seriesIndex, dataPointIndex, w }) {
+
+                const priceSeriesIndex =
+                  w &&
+                  w.config &&
+                  w.config.series
+                    ? w.config.series.findIndex(s => s.name === 'Price')
+                    : -1;
+
+                const index =
+                  priceSeriesIndex >= 0
+                    ? priceSeriesIndex
+                    : seriesIndex;
+
+                const value =
+                  series[index] &&
+                  dataPointIndex >= 0 &&
+                  dataPointIndex < series[index].length
+                    ? Number(series[index][dataPointIndex])
+                    : NaN;
+
+                const point =
+                  w &&
+                  w.config &&
+                  w.config.series &&
+                  w.config.series[index] &&
+                  w.config.series[index].data &&
+                  dataPointIndex >= 0
+                    ? w.config.series[index].data[dataPointIndex]
+                    : null;
+
+                const colour =
+                  point && point.fillColor
+                    ? point.fillColor
+                    : '#9e9e9e';
+
+                const display =
+                  Number.isFinite(value)
+                    ? value.toFixed(1) + ' ct/kWh'
                     : '—';
-                }
+
+                return (
+                  '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;font-size:10px;width:max-content;box-sizing:border-box;background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 35%,transparent);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);border-radius:6px;border:1px solid var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:700;">' +
+                    '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' +
+                    colour +
+                    ';flex-shrink:0;"></span>' +
+                    '<span style="color:var(--secondary-text-color);">Price</span>' +
+                    '<span>' +
+                    display +
+                    '</span>' +
+                  '</div>'
+                );
+              }
         series:
           - entity: sensor.hbc_energy_prices_data
             name: Current high price
             color: '#ff9800'
-            unit: ct/kWh
+            unit: ' ct/kWh'
             float_precision: 1
             extend_to: false
             show:
@@ -1912,7 +1931,7 @@ views:
           - entity: sensor.hbc_energy_prices_data
             name: Current low price
             color: '#4caf50'
-            unit: ct/kWh
+            unit: ' ct/kWh'
             float_precision: 1
             extend_to: false
             show:
@@ -1951,7 +1970,7 @@ views:
           - entity: sensor.hbc_energy_prices_data
             name: Current normal price
             color: '#9e9e9e'
-            unit: ct/kWh
+            unit: ' ct/kWh'
             float_precision: 1
             extend_to: false
             show:
@@ -2028,9 +2047,10 @@ views:
                 const timestamp =
                   new Date(interval.start).getTime();
 
-                const colour = interval.is_now
-                  ? '#009ac7'
-                  : (colours[interval.mark] || '#9e9e9e');
+                const colour =
+                  interval.is_now
+                    ? '#009ac7'
+                    : (colours[interval.mark] || '#9e9e9e');
 
                 return {
                   x: timestamp,
@@ -2042,56 +2062,12 @@ views:
                       : colour
                 };
               });
-        card_mod:
-          style: |
-            ha-card .apexcharts-tooltip,
-            ha-card .apexcharts-tooltip.apexcharts-theme-light,
-            ha-card .apexcharts-tooltip.apexcharts-theme-dark {
-              background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
-              background-color: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
-              backdrop-filter: blur(1px) !important;
-              -webkit-backdrop-filter: blur(1px) !important;
-              border: 1px solid var(--divider-color) !important;
-              color: var(--primary-text-color) !important;
-              box-shadow: var(--ha-card-box-shadow, none) !important;
-            }
-
-            ha-card .apexcharts-tooltip-title {
-              display: none !important;
-            }
-
-            ha-card .apexcharts-tooltip-series-group {
-              background: transparent !important;
-              color: var(--primary-text-color) !important;
-              padding: 5px 7px !important;
-            }
-
-            ha-card .apexcharts-tooltip-text,
-            ha-card .apexcharts-tooltip-text-y-label,
-            ha-card .apexcharts-tooltip-text-y-value {
-              color: var(--primary-text-color) !important;
-            }
-
-            ha-card .apexcharts-xaxistooltip {
-              background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
-              backdrop-filter: blur(1px) !important;
-              -webkit-backdrop-filter: blur(1px) !important;
-              border: 1px solid var(--divider-color) !important;
-              color: var(--primary-text-color) !important;
-              box-shadow: var(--ha-card-box-shadow, none) !important;
-            }
-
-            ha-card .apexcharts-xaxistooltip-bottom::before,
-            ha-card .apexcharts-xaxistooltip-bottom::after {
-              border-bottom-color: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 35%, transparent) !important;
-            }
       - type: grid
         cards:
           - type: markdown
             title: 📋 Insights
             content: >-
               <ha-alert alert-type="info">
-                Latest up to 20 current-day consecutive Insight entries, newest first.
                 For complete current-day history, press <b>Generate report</b>
                 in <b>PV Master Control</b>.
               </ha-alert>
@@ -2172,14 +2148,27 @@ views:
                 {# Node-RED publishes helpers 1..20 already normalized and newest-first. #}
                 {% for item in ns.items %}
                   {% set node = (item.node | lower) %}
+                  {% set explanation = (item.explanation | lower) %}
+                  {% set insight_text = node ~ ' ' ~ explanation %}
+                  {# Dashboard-only colour policy: red is reserved for an actual fault,
+                     failed action, safety pause, or control-blocking condition. #}
+                  {% set red_fault =
+                    ('hbc safety' in node and ('paused' in explanation or 'fault' in explanation or 'failed' in explanation)) or
+                    ('sensor health' in node and ('control paused' in explanation or 'invalid' in explanation or 'unavailable' in explanation)) or
+                    (('configuration' in node or node == 'inputs') and
+                      ('control paused' in explanation or 'configuration error' in explanation or 'invalid' in explanation or 'unavailable' in explanation or 'no valid pv inverter' in explanation)) or
+                    ('inverter group' in node and ('paused' in explanation or 'fault' in explanation or 'failed' in explanation or 'unavailable' in explanation)) or
+                    ('write warning' in node and ('failed' in explanation or 'failure' in explanation or 'error' in explanation or 'could not' in explanation)) or
+                    ('runtime warning' in node and ('error' in explanation or 'exception' in explanation or 'failed' in explanation or 'failure' in explanation)) or
+                    ('support report' in node and ('failed' in explanation or 'failure' in explanation or 'error' in explanation)) %}
                   {% if 'battery' in node or 'charge priority' in node or 'taper' in node %}
                   {% set icon = '🟣' %}
+                  {% elif red_fault or item.severity == 'critical' %}
+                  {% set icon = '🔴' %}
                   {% elif 'pv' in node or 'inverter' in node or 'limit' in node or 'restore' in node %}
                   {% set icon = '🟡' %}
                   {% elif 'price' in node %}
                   {% set icon = '🟢' %}
-                  {% elif 'telemetry' in node or 'safety' in node or item.severity == 'critical' %}
-                  {% set icon = '🔴' %}
                   {% else %}
                   {% set icon = '⚪' %}
                   {% endif %}
@@ -2209,507 +2198,483 @@ views:
     path: hpvc-configuration
     icon: mdi:cog
     max_columns: 3
-    visibility:
-      - condition: state
-        entity: input_boolean.hpvc_config
-        state: 'on'
     sections:
       - type: grid
         cards:
           - type: markdown
-            content: >
-              <ha-alert title="Settings hidden" alert-type="info">
+            content: |
+              ### 📡 Core Sensors
+          - type: markdown
+            text_only: true
+            content: >-
+              **Grid**: current grid power. Negative is export, positive is
+              import (W).
 
 
-              Setup is complete. Advanced settings are now hidden.
+              **Market/export price**: current market or export price used for
+              PV limiting (€/kWh).
 
 
-              Press <b>Settings</b> in <b>PV Master Control</b> whenever you
-              want to review or change the configuration.
+              **All-in price**: current total import price used for
+              negative-price override (€/kWh).
+
+
+              **Solar power**: current total PV power from active inverters (W).
+
+
+              Paste (Ctrl + V) the entity IDs in the fields below. 
+
+              Example: `sensor.p1_meter_power`
+          - type: entities
+            entities:
+              - entity: input_text.hpvc_grid_power_sensor
+                name: Grid
+              - entity: input_text.hpvc_market_price_sensor
+                name: Market/export price
+              - entity: input_text.hpvc_all_in_price_sensor
+                name: All-in price
+              - entity: input_text.hpvc_pv_power_sensor
+                name: Solar power
+            show_header_toggle: false
+          - type: vertical-stack
+            cards:
+              - type: markdown
+                content: >
+                  ### 🧩 Optional HBC Setup
+
+                  {% if is_state('binary_sensor.hpvc_hbc_available', 'on') %}
+                  <ha-alert title="HBC detected" alert-type="success"> HBC
+                  strategy control is available. Enable or disable it in <b>PV
+                  Master Control</b> when HPVC is enabled. </ha-alert> {% else
+                  %} <ha-alert title="Standalone mode" alert-type="warning"> No
+                  compatible HBC runtime was detected.
+
+                  HPVC requires both
+                  <code>input_select.house_battery_strategy</code> and
+                  <code>input_text.house_battery_strategy_active_sub_strategy</code>.
+                  </ha-alert> {% endif %}
+              - type: conditional
+                conditions:
+                  - entity: binary_sensor.hpvc_hbc_available
+                    state: 'on'
+                  - entity: input_boolean.hpvc_control_hbc_strategy
+                    state: 'on'
+                card:
+                  type: entities
+                  show_header_toggle: false
+                  entities:
+                    - entity: input_select.house_battery_strategy
+                      name: HBC strategy to run
+                      icon: mdi:home-battery
+                    - type: section
+                    - entity: input_boolean.hpvc_negative_price_hbc_charge
+                      name: Force charge at negative price
+                      icon: mdi:battery-charging
+      - type: grid
+        cards:
+          - type: markdown
+            content: |
+              ### 🔆 Inverters
+          - type: markdown
+            text_only: true
+            content: |
+              Configure up to 10 active inverter limit entities.
+
+              For each inverter enter:
+
+              • The power limit number entity ID (W).
+              • The maximum power (W).
+              • The minimum desired power (W).
+
+              Paste (Ctrl + V) the entity IDs into the fields below.
+          - type: markdown
+            text_only: true
+            content: >-
+              <ha-alert title="Negative price protection" alert-type="info">
+
+              When the all-in price is ≤ 0 €/kWh, PV is limited to the
+              configured minimum. Set it to <b>0 W</b> for full shutdown during
+              negative price.
 
               </ha-alert>
-            visibility:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'off'
-      - type: grid
-        cards:
+          - type: entities
+            entities:
+              - entity: input_number.hpvc_inverter_count
+                name: Number of inverters
+            show_header_toggle: false
+          - type: vertical-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: binary_sensor.hpvc_pv1_limit_range_invalid
+                    state: 'on'
+                card:
+                  type: markdown
+                  text_only: true
+                  content: >-
+                    <ha-alert alert-type="warning">PV1 Min power must be lower
+                    than Max power.</ha-alert>
+              - type: entities
+                show_header_toggle: false
+                entities:
+                  - entity: input_text.hpvc_pv1_limit_number
+                    name: PV1 – Limit entity
+                  - entity: input_number.hpvc_pv1_full_limit
+                    name: PV1 Max power
+                  - entity: input_number.hpvc_pv1_low_limit
+                    name: PV1 Min power
           - type: conditional
             conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              content: |
-                ### 📡 Core Sensors
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              text_only: true
-              content: >-
-                **Grid**: current grid power. Negative is export, positive is
-                import (W).
-
-
-                **Market/export price**: current market or export price used for
-                PV limiting (€/kWh).
-
-
-                **All-in price**: current total import price used for
-                negative-price override (€/kWh).
-
-
-                **Solar power**: current total PV power from active inverters
-                (W).
-
-
-                Paste (Ctrl + V) the entity IDs in the fields below. 
-
-                Example: `sensor.p1_meter_power`
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: entities
-              entities:
-                - entity: input_text.hpvc_grid_power_sensor
-                  name: Grid
-                - entity: input_text.hpvc_market_price_sensor
-                  name: Market/export price
-                - entity: input_text.hpvc_all_in_price_sensor
-                  name: All-in price
-                - entity: input_text.hpvc_pv_power_sensor
-                  name: Solar power
-              show_header_toggle: false
-          - type: conditional
-            conditions:
-              - entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: vertical-stack
-              cards:
-                - type: markdown
-                  content: >
-                    ### 🧩 Optional HBC Setup
-
-                    {% if is_state('binary_sensor.hpvc_hbc_available', 'on') %}
-                    <ha-alert title="HBC detected" alert-type="success"> HBC
-                    strategy control is available. Enable or disable it in <b>PV
-                    Master Control</b> when HPVC is enabled. </ha-alert> {% else
-                    %} <ha-alert title="Standalone mode" alert-type="warning">
-                    No compatible HBC runtime was detected.
-
-                    HPVC requires both
-                    <code>input_select.house_battery_strategy</code> and
-                    <code>input_text.house_battery_strategy_active_sub_strategy</code>.
-                    </ha-alert> {% endif %}
-                - type: conditional
-                  conditions:
-                    - entity: binary_sensor.hpvc_hbc_available
-                      state: 'on'
-                    - entity: input_boolean.hpvc_control_hbc_strategy
-                      state: 'on'
-                  card:
-                    type: entities
-                    show_header_toggle: false
-                    entities:
-                      - entity: input_select.house_battery_strategy
-                        name: HBC strategy to run
-                        icon: mdi:home-battery
-      - type: grid
-        cards:
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              content: |
-                ### 🔆 Inverters
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              text_only: true
-              content: |
-                Configure up to 10 active inverter limit entities.
-
-                For each inverter enter:
-
-                • The power limit number entity ID (W).
-                • The maximum power (W).
-                • The minimum desired power (W).
-
-                Paste (Ctrl + V) the entity IDs into the fields below.
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              text_only: true
-              content: >-
-                <ha-alert title="Negative price protection" alert-type="info">
-
-                When the all-in price is ≤ 0 €/kWh, PV is limited to the
-                configured minimum. Set it to <b>0 W</b> for full shutdown
-                during negative price.
-
-                </ha-alert>
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: entities
-              entities:
-                - entity: input_number.hpvc_inverter_count
-                  name: Number of inverters
-              show_header_toggle: false
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: entities
-              show_header_toggle: false
-              entities:
-                - entity: input_text.hpvc_pv1_limit_number
-                  name: PV1 – Limit entity
-                - entity: input_number.hpvc_pv1_full_limit
-                  name: PV1 Max power
-                - entity: input_number.hpvc_pv1_low_limit
-                  name: PV1 Min power
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
               - entity: binary_sensor.hpvc_show_inverter_slot_2
                 state: 'on'
             card:
-              type: entities
-              show_header_toggle: false
-              entities:
-                - entity: input_text.hpvc_pv2_limit_number
-                  name: PV2 – Limit entity
-                - entity: input_number.hpvc_pv2_full_limit
-                  name: PV2 Max power
-                - entity: input_number.hpvc_pv2_low_limit
-                  name: PV2 Min power
+              type: vertical-stack
+              cards:
+                - type: conditional
+                  conditions:
+                    - condition: state
+                      entity: binary_sensor.hpvc_pv2_limit_range_invalid
+                      state: 'on'
+                  card:
+                    type: markdown
+                    text_only: true
+                    content: >-
+                      <ha-alert alert-type="warning">PV2 Min power must be lower
+                      than Max power.</ha-alert>
+                - type: entities
+                  show_header_toggle: false
+                  entities:
+                    - entity: input_text.hpvc_pv2_limit_number
+                      name: PV2 – Limit entity
+                    - entity: input_number.hpvc_pv2_full_limit
+                      name: PV2 Max power
+                    - entity: input_number.hpvc_pv2_low_limit
+                      name: PV2 Min power
           - type: conditional
             conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
               - entity: binary_sensor.hpvc_show_inverter_slot_3
-                state: 'on'
-            card:
-              type: entities
-              show_header_toggle: false
-              entities:
-                - entity: input_text.hpvc_pv3_limit_number
-                  name: PV3 – Limit entity
-                - entity: input_number.hpvc_pv3_full_limit
-                  name: PV3 Max power
-                - entity: input_number.hpvc_pv3_low_limit
-                  name: PV3 Min power
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-              - entity: binary_sensor.hpvc_show_inverter_slot_4
-                state: 'on'
-            card:
-              type: entities
-              show_header_toggle: false
-              entities:
-                - entity: input_text.hpvc_pv4_limit_number
-                  name: PV4 – Limit entity
-                - entity: input_number.hpvc_pv4_full_limit
-                  name: PV4 Max power
-                - entity: input_number.hpvc_pv4_low_limit
-                  name: PV4 Min power
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-              - entity: binary_sensor.hpvc_show_inverter_slot_5
-                state: 'on'
-            card:
-              type: entities
-              show_header_toggle: false
-              entities:
-                - entity: input_text.hpvc_pv5_limit_number
-                  name: PV5 – Limit entity
-                - entity: input_number.hpvc_pv5_full_limit
-                  name: PV5 Max power
-                - entity: input_number.hpvc_pv5_low_limit
-                  name: PV5 Min power
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-              - entity: binary_sensor.hpvc_show_inverter_slot_6
-                state: 'on'
-            card:
-              type: entities
-              show_header_toggle: false
-              entities:
-                - entity: input_text.hpvc_pv6_limit_number
-                  name: PV6 – Limit entity
-                - entity: input_number.hpvc_pv6_full_limit
-                  name: PV6 Max power
-                - entity: input_number.hpvc_pv6_low_limit
-                  name: PV6 Min power
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-              - entity: binary_sensor.hpvc_show_inverter_slot_7
-                state: 'on'
-            card:
-              type: entities
-              show_header_toggle: false
-              entities:
-                - entity: input_text.hpvc_pv7_limit_number
-                  name: PV7 – Limit entity
-                - entity: input_number.hpvc_pv7_full_limit
-                  name: PV7 Max power
-                - entity: input_number.hpvc_pv7_low_limit
-                  name: PV7 Min power
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-              - entity: binary_sensor.hpvc_show_inverter_slot_8
-                state: 'on'
-            card:
-              type: entities
-              show_header_toggle: false
-              entities:
-                - entity: input_text.hpvc_pv8_limit_number
-                  name: PV8 – Limit entity
-                - entity: input_number.hpvc_pv8_full_limit
-                  name: PV8 Max power
-                - entity: input_number.hpvc_pv8_low_limit
-                  name: PV8 Min power
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-              - entity: binary_sensor.hpvc_show_inverter_slot_9
-                state: 'on'
-            card:
-              type: entities
-              show_header_toggle: false
-              entities:
-                - entity: input_text.hpvc_pv9_limit_number
-                  name: PV9 – Limit entity
-                - entity: input_number.hpvc_pv9_full_limit
-                  name: PV9 Max power
-                - entity: input_number.hpvc_pv9_low_limit
-                  name: PV9 Min power
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-              - entity: binary_sensor.hpvc_show_inverter_slot_10
-                state: 'on'
-            card:
-              type: entities
-              show_header_toggle: false
-              entities:
-                - entity: input_text.hpvc_pv10_limit_number
-                  name: PV10 – Limit entity
-                - entity: input_number.hpvc_pv10_full_limit
-                  name: PV10 Max power
-                - entity: input_number.hpvc_pv10_low_limit
-                  name: PV10 Min power
-      - type: grid
-        cards:
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              content: |
-                ### 📈 Price Strategy
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              text_only: true
-              content: >-
-                **PV limit price**: PV limiting is allowed at or below this
-                market/export price.{% if
-                is_state('input_boolean.hpvc_control_hbc_strategy', 'on') %} HBC
-                Charge takes priority while batteries still have useful charge
-                headroom.{% endif %}
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              text_only: true
-              content: >-
-                **Price hysteresis**: prevents rapid PV limiting changes when
-                leaving the configured PV limit price zone. Not used for
-                negative-price mode.
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              text_only: true
-              content: >-
-                <ha-alert title="PV limiting price guidance" alert-type="info">
-
-                Use €0.00/kWh if you use a net export-price sensor. For a raw
-                market-price sensor, adjust for fees, compensation, and local
-                rules.
-
-                </ha-alert>
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: entities
-              entities:
-                - entity: input_number.hpvc_pv_limiting_price
-                  name: PV limit price
-                - entity: input_number.hpvc_battery_price_hysteresis
-                  name: Price hysteresis
-              show_header_toggle: false
-      - type: grid
-        cards:
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              content: |
-                ### ⚡ Power Flow Control
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              text_only: true
-              content: >-
-                **Export start**: start limiting when export is stronger than
-                this value.
-
-
-                **Target export**: export level Home PV Control tries to
-                maintain while limiting. Must be higher (less negative) than
-                Export start.
-
-
-                **Import restore**: raise PV again if the house imports too much
-                while limited.
-
-
-                **Min PV for control**: prevents export limiting when PV is low.
-                Not used for import restore.
-
-
-                **Night restore**: automatically restores full inverter limits
-                after sunset. Otherwise, the PV threshold is used instead.
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
                 state: 'on'
             card:
               type: vertical-stack
               cards:
+                - type: conditional
+                  conditions:
+                    - condition: state
+                      entity: binary_sensor.hpvc_pv3_limit_range_invalid
+                      state: 'on'
+                  card:
+                    type: markdown
+                    text_only: true
+                    content: >-
+                      <ha-alert alert-type="warning">PV3 Min power must be lower
+                      than Max power.</ha-alert>
                 - type: entities
                   show_header_toggle: false
                   entities:
-                    - entity: input_number.hpvc_export_start_threshold
-                      name: Export start
-                    - entity: input_number.hpvc_export_stop_threshold
-                      name: Target export
-                    - entity: input_number.hpvc_import_restore_threshold
-                      name: Import restore
-                    - entity: input_number.hpvc_pv_min_power_for_control
-                      name: Min PV for control
-                    - entity: input_number.hpvc_pv_night_restore_power
-                      name: Night restore
+                    - entity: input_text.hpvc_pv3_limit_number
+                      name: PV3 – Limit entity
+                    - entity: input_number.hpvc_pv3_full_limit
+                      name: PV3 Max power
+                    - entity: input_number.hpvc_pv3_low_limit
+                      name: PV3 Min power
+          - type: conditional
+            conditions:
+              - entity: binary_sensor.hpvc_show_inverter_slot_4
+                state: 'on'
+            card:
+              type: vertical-stack
+              cards:
+                - type: conditional
+                  conditions:
+                    - condition: state
+                      entity: binary_sensor.hpvc_pv4_limit_range_invalid
+                      state: 'on'
+                  card:
+                    type: markdown
+                    text_only: true
+                    content: >-
+                      <ha-alert alert-type="warning">PV4 Min power must be lower
+                      than Max power.</ha-alert>
+                - type: entities
+                  show_header_toggle: false
+                  entities:
+                    - entity: input_text.hpvc_pv4_limit_number
+                      name: PV4 – Limit entity
+                    - entity: input_number.hpvc_pv4_full_limit
+                      name: PV4 Max power
+                    - entity: input_number.hpvc_pv4_low_limit
+                      name: PV4 Min power
+          - type: conditional
+            conditions:
+              - entity: binary_sensor.hpvc_show_inverter_slot_5
+                state: 'on'
+            card:
+              type: vertical-stack
+              cards:
+                - type: conditional
+                  conditions:
+                    - condition: state
+                      entity: binary_sensor.hpvc_pv5_limit_range_invalid
+                      state: 'on'
+                  card:
+                    type: markdown
+                    text_only: true
+                    content: >-
+                      <ha-alert alert-type="warning">PV5 Min power must be lower
+                      than Max power.</ha-alert>
+                - type: entities
+                  show_header_toggle: false
+                  entities:
+                    - entity: input_text.hpvc_pv5_limit_number
+                      name: PV5 – Limit entity
+                    - entity: input_number.hpvc_pv5_full_limit
+                      name: PV5 Max power
+                    - entity: input_number.hpvc_pv5_low_limit
+                      name: PV5 Min power
+          - type: conditional
+            conditions:
+              - entity: binary_sensor.hpvc_show_inverter_slot_6
+                state: 'on'
+            card:
+              type: vertical-stack
+              cards:
+                - type: conditional
+                  conditions:
+                    - condition: state
+                      entity: binary_sensor.hpvc_pv6_limit_range_invalid
+                      state: 'on'
+                  card:
+                    type: markdown
+                    text_only: true
+                    content: >-
+                      <ha-alert alert-type="warning">PV6 Min power must be lower
+                      than Max power.</ha-alert>
+                - type: entities
+                  show_header_toggle: false
+                  entities:
+                    - entity: input_text.hpvc_pv6_limit_number
+                      name: PV6 – Limit entity
+                    - entity: input_number.hpvc_pv6_full_limit
+                      name: PV6 Max power
+                    - entity: input_number.hpvc_pv6_low_limit
+                      name: PV6 Min power
+          - type: conditional
+            conditions:
+              - entity: binary_sensor.hpvc_show_inverter_slot_7
+                state: 'on'
+            card:
+              type: vertical-stack
+              cards:
+                - type: conditional
+                  conditions:
+                    - condition: state
+                      entity: binary_sensor.hpvc_pv7_limit_range_invalid
+                      state: 'on'
+                  card:
+                    type: markdown
+                    text_only: true
+                    content: >-
+                      <ha-alert alert-type="warning">PV7 Min power must be lower
+                      than Max power.</ha-alert>
+                - type: entities
+                  show_header_toggle: false
+                  entities:
+                    - entity: input_text.hpvc_pv7_limit_number
+                      name: PV7 – Limit entity
+                    - entity: input_number.hpvc_pv7_full_limit
+                      name: PV7 Max power
+                    - entity: input_number.hpvc_pv7_low_limit
+                      name: PV7 Min power
+          - type: conditional
+            conditions:
+              - entity: binary_sensor.hpvc_show_inverter_slot_8
+                state: 'on'
+            card:
+              type: vertical-stack
+              cards:
+                - type: conditional
+                  conditions:
+                    - condition: state
+                      entity: binary_sensor.hpvc_pv8_limit_range_invalid
+                      state: 'on'
+                  card:
+                    type: markdown
+                    text_only: true
+                    content: >-
+                      <ha-alert alert-type="warning">PV8 Min power must be lower
+                      than Max power.</ha-alert>
+                - type: entities
+                  show_header_toggle: false
+                  entities:
+                    - entity: input_text.hpvc_pv8_limit_number
+                      name: PV8 – Limit entity
+                    - entity: input_number.hpvc_pv8_full_limit
+                      name: PV8 Max power
+                    - entity: input_number.hpvc_pv8_low_limit
+                      name: PV8 Min power
+          - type: conditional
+            conditions:
+              - entity: binary_sensor.hpvc_show_inverter_slot_9
+                state: 'on'
+            card:
+              type: vertical-stack
+              cards:
+                - type: conditional
+                  conditions:
+                    - condition: state
+                      entity: binary_sensor.hpvc_pv9_limit_range_invalid
+                      state: 'on'
+                  card:
+                    type: markdown
+                    text_only: true
+                    content: >-
+                      <ha-alert alert-type="warning">PV9 Min power must be lower
+                      than Max power.</ha-alert>
+                - type: entities
+                  show_header_toggle: false
+                  entities:
+                    - entity: input_text.hpvc_pv9_limit_number
+                      name: PV9 – Limit entity
+                    - entity: input_number.hpvc_pv9_full_limit
+                      name: PV9 Max power
+                    - entity: input_number.hpvc_pv9_low_limit
+                      name: PV9 Min power
+          - type: conditional
+            conditions:
+              - entity: binary_sensor.hpvc_show_inverter_slot_10
+                state: 'on'
+            card:
+              type: vertical-stack
+              cards:
+                - type: conditional
+                  conditions:
+                    - condition: state
+                      entity: binary_sensor.hpvc_pv10_limit_range_invalid
+                      state: 'on'
+                  card:
+                    type: markdown
+                    text_only: true
+                    content: >-
+                      <ha-alert alert-type="warning">PV10 Min power must be
+                      lower than Max power.</ha-alert>
+                - type: entities
+                  show_header_toggle: false
+                  entities:
+                    - entity: input_text.hpvc_pv10_limit_number
+                      name: PV10 – Limit entity
+                    - entity: input_number.hpvc_pv10_full_limit
+                      name: PV10 Max power
+                    - entity: input_number.hpvc_pv10_low_limit
+                      name: PV10 Min power
       - type: grid
         cards:
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              content: |
-                ### 🎚️ Control Tuning
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: markdown
-              text_only: true
-              content: >-
-                **Cooldown**: minimum time between PV limit changes (10 sec to 5
-                min).
+          - type: markdown
+            content: |
+              ### 📈 Price Strategy
+          - type: markdown
+            text_only: true
+            content: >-
+              **PV limit price**: PV limiting is allowed at or below this
+              market/export price.{% if
+              is_state('input_boolean.hpvc_control_hbc_strategy', 'on') %} HBC
+              Charge takes priority while batteries still have useful charge
+              headroom.{% endif %}
+          - type: markdown
+            text_only: true
+            content: >-
+              **Price hysteresis**: prevents rapid PV limiting changes when
+              leaving the configured PV limit price zone. Not used for
+              negative-price mode.
+          - type: markdown
+            text_only: true
+            content: >-
+              <ha-alert title="PV limiting price guidance" alert-type="info">
+
+              Use €0.00/kWh if you use a net export-price sensor. For a raw
+              market-price sensor, adjust for fees, compensation, and local
+              rules.
+
+              </ha-alert>
+          - type: entities
+            entities:
+              - entity: input_number.hpvc_pv_limiting_price
+                name: PV limit price
+              - entity: input_number.hpvc_battery_price_hysteresis
+                name: Price hysteresis
+            show_header_toggle: false
+      - type: grid
+        cards:
+          - type: markdown
+            content: |
+              ### ⚡ Power Flow Control
+          - type: markdown
+            text_only: true
+            content: >-
+              **Export start**: start limiting when export is stronger than this
+              value.
 
 
-                **Deadband**: ignores small differences around Target export so
-                Home PV Control does not react to tiny changes.
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: input_boolean.hpvc_config
-                state: 'on'
-            card:
-              type: entities
-              entities:
-                - entity: input_number.hpvc_cooldown_seconds
-                  name: Cooldown
-                - entity: input_number.hpvc_pv_adjust_deadband
-                  name: Deadband
-              show_header_toggle: false
+              **Target export**: export level Home PV Control tries to maintain
+              while limiting. Must be higher (less negative) than Export start.
+
+
+              **Import restore**: raise PV again if the house imports too much
+              while limited.
+
+
+              **Min PV for control**: prevents export limiting when PV is low.
+              Not used for import restore.
+
+
+              **Night restore**: restores full inverter limits after PV stays at
+              or below the configured threshold for a while.
+          - type: vertical-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: binary_sensor.hpvc_export_threshold_range_invalid
+                    state: 'on'
+                card:
+                  type: markdown
+                  text_only: true
+                  content: >-
+                    <ha-alert alert-type="warning">Export start must be lower
+                    than Target export, and Target export must be lower than
+                    Import restore.</ha-alert>
+              - type: entities
+                show_header_toggle: false
+                entities:
+                  - entity: input_number.hpvc_export_start_threshold
+                    name: Export start
+                  - entity: input_number.hpvc_export_stop_threshold
+                    name: Target export
+                  - entity: input_number.hpvc_import_restore_threshold
+                    name: Import restore
+                  - entity: input_number.hpvc_pv_min_power_for_control
+                    name: Min PV for control
+                  - entity: input_number.hpvc_pv_night_restore_power
+                    name: Night restore
+      - type: grid
+        cards:
+          - type: markdown
+            content: |
+              ### 🎚️ Control Tuning
+          - type: markdown
+            text_only: true
+            content: >-
+              **Cooldown**: minimum time between PV limit changes (10 to 60
+              sec).
+
+
+              **Deadband**: ignores small differences around Target export so
+              Home PV Control does not react to tiny changes.
+          - type: entities
+            entities:
+              - entity: input_number.hpvc_cooldown_seconds
+                name: Cooldown
+              - entity: input_number.hpvc_pv_adjust_deadband
+                name: Deadband
+            show_header_toggle: false
     cards: []
