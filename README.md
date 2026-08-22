@@ -259,6 +259,10 @@ For Home Battery Control itself, see the [HBC documentation](https://docs.homeba
 
 ![Home PV Control settings](assets/screenshots/settings.png)
 
+### HPVC report
+
+![HPVC report](assets/screenshots/report.png)
+
 ### Node-RED flow
 
 Current v1.4.0 Node-RED architecture overview generated from the shipped flow.
