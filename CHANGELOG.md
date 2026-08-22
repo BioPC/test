@@ -28,7 +28,6 @@
 - HBC-dependent Charge Priority suspends on uncertain battery telemetry while standalone PV control continues where safe.
 - Recovery messages and state transitions were cleaned up to avoid false startup/redeploy recovery events.
 - Required live-input loss pauses Node-RED control immediately. A **90-second restoration grace** only delays hard `Inputs unavailable` escalation; the supplied Home Assistant package separately auto-disables HPVC immediately and re-enables it only after required inputs have remained healthy for 5 seconds.
-- Added dedicated regression coverage for the 90-second safety-restoration path and the Home Assistant automatic-disable/healthy-resume contract.
 - Scoped runtime Function-error handlers now release only the evaluation lock owned by the failed cycle, preventing a caught exception from suppressing a later valid cycle.
 - Report-storage initialization now has bounded automatic recovery after transient startup/filesystem failures, with a 30-second recovery check and a throttled retry request from Generate report.
 
@@ -114,7 +113,7 @@
 - Fixed runtime-lock recovery after scoped Function exceptions with cycle-aware ownership checks.
 - Fixed report-storage recovery so a transient unavailable/unwritable Home Assistant config mount no longer requires a redeploy/restart after the mount becomes healthy.
 
-### Architecture, packaging, and tests
+### Architecture and packaging
 
 - Unified Insights, Power Control, Daily Control Accuracy and negative-price override state in `hpvc-data/runtime-history.json`.
 - Added current-day restore, midnight rollover, clean-install initialization and legacy migration handling.
@@ -124,18 +123,17 @@
 - Added scoped runtime Function error handling and removed obsolete/dead internal processing.
 - Reduced unnecessary report/runtime message payloads after the canonical report model is assembled.
 - Removed remaining declaration-only Function-node helpers/locals found by the final release audit; this cleanup does not change control behavior.
-- Added regression coverage for cycle-safe runtime-lock release and bounded report-storage recovery.
 - Removed the write-only `homePvControlDirectionHistory` flow-context reset after confirming no packaged runtime path reads that key.
 
 ### Documentation
 
 - Corrected Night Restore wording so the dashboard and installation guide match the runtime: valid low PV is authoritative, while `sun.sun` only corroborates a pending transition if PV telemetry disappears mid-timer.
-- Removed stale dashboard/report/architecture screenshots that no longer matched the final v1.4.0 flow and report model.
+- Removed stale dashboard/report screenshots and regenerated the Node-RED architecture overview from the final v1.4.0 flow.
 
 - Corrected README and installation wording to match automatic first-install HPVC enable behavior after validation succeeds.
 - Documented bounded report-storage retry/recovery behavior.
 - Removed the unused stale Main-dashboard screenshot that still showed the retired Settings button.
-- Reorganized v1.4.0 release documentation from major/safety changes through control, reports, dashboard, bug fixes, architecture/tests, documentation and upgrade notes.
+- Reorganized v1.4.0 release documentation from major/safety changes through control, reports, dashboard, bug fixes, architecture/packaging, documentation and upgrade notes.
 
 ### Upgrade instructions
 

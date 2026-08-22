@@ -202,7 +202,7 @@ Support reports expose attribution diagnostics including House inference accepte
 - Removed an unused stale Main-dashboard screenshot that still showed the retired Settings button.
 - Corrected first-install wording so the README and installation guide match the implemented automatic HPVC enable behavior after validation succeeds.
 
-## Architecture, packaging, and tests
+## Architecture and packaging
 
 - Insights, Power Control, Daily Control Accuracy and negative-price override state share `hpvc-data/runtime-history.json`.
 - Journal writes are serialized and guarded so stale write completions cannot overwrite or acknowledge newer state.
@@ -221,18 +221,15 @@ Support reports expose attribution diagnostics including House inference accepte
 - ApexCharts Card for the supplied dashboard graphs.
 - Optional Home Battery Control; HBC 4.15.0 is supported for **1–6 batteries**.
 
-### Regression validation
-
-The package includes **20 executable regression test files**, including coverage for attribution, asynchronous telemetry, command locking, delayed-command causality, HBC transient control, persistence/day-boundary behavior, report parity, the 90-second safety-restoration gate, cycle-safe runtime Function-error lock recovery, bounded report-storage recovery, and final dashboard/helper consistency. The final release archive is intended to be published as `Home_PV_Control_v1_4_0.zip` without internal pre-release revision naming.
 
 ## Documentation
 
 - Night Restore wording now matches runtime behavior: valid low PV drives entry; `sun.sun` only corroborates a pending transition when PV telemetry disappears after the timer has started.
-- Stale pre-final screenshots were removed rather than shipping images that no longer match the final v1.4.0 flow/report layout.
+- Stale pre-final dashboard/report screenshots were removed; the Node-RED architecture overview was regenerated from the final shipped v1.4.0 flow.
 
 - Installation text now states that HPVC enables automatically after required live inputs and control settings validate successfully.
 - Report documentation now describes bounded automatic report-storage recovery and the queued Generate report behavior.
-- Release documentation is organized from major/safety changes through control, reporting, dashboard, bug fixes, architecture/tests, documentation and upgrade instructions.
+- Release documentation is organized from major/safety changes through control, reporting, dashboard, bug fixes, architecture/packaging, documentation and upgrade instructions.
 - Removed the unreferenced stale Main-dashboard screenshot asset rather than publishing an image that no longer matches v1.4.0.
 
 ## Upgrade instructions
