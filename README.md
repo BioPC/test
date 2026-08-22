@@ -19,8 +19,6 @@
 
 Home PV Control (HPVC) dynamically limits and restores PV inverter output in Home Assistant through Node-RED. It is designed for dynamic electricity contracts and can run as a standalone PV controller or integrate with Home Battery Control (HBC).
 
-![Home PV Control dashboard](assets/screenshots/main.png)
-
 - Reduce unwanted or uneconomic PV export.
 - Preserve useful PV for household consumption.
 - Restore inverter output automatically when conditions improve.
@@ -29,6 +27,8 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 
 > [!IMPORTANT]
 > HPVC requires at least one writable inverter power-limit entity exposed to Home Assistant. It does not communicate directly with an inverter.
+
+![Home PV Control dashboard](assets/screenshots/main.png)
 
 ## Contents
 
