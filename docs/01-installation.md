@@ -8,7 +8,7 @@ Home PV Control can run independently or alongside Home Battery Control. Use Ste
 
 - Home Assistant
 - Node-RED with `node-red-contrib-home-assistant-websocket` version **0.80.3 or newer**
-- At least one writable PV inverter power-limit entity exposed as a Home Assistant `number` entity
+- At least one inverter control path: either a writable Home Assistant `number` power-limit entity or a stable Home Assistant action/service adapter; limits may represent Watts or Percent
 - ApexCharts Card for the supplied dashboard graphs
 
 The supplied dashboard requires **ApexCharts Card**. It does not require card-mod, Button Card, or Config Template Card.
@@ -52,7 +52,7 @@ Open the **Settings** tab and configure:
 - Market/export price sensor
 - All-in import price sensor
 - Total PV power sensor
-- One or more writable inverter-limit entities
+- One or more inverter control paths: writable limit entities or Action/service adapters
 - Optional HBC integration toggle; native HBC entities are detected automatically
 
 See [Settings](02-configuration.md) for sign conventions, thresholds, and inverter limits.
@@ -85,7 +85,7 @@ Confirm that:
 - Configuration status reports as valid.
 - HPVC can be enabled.
 - No **Configuration error** Insight appears.
-- Each configured inverter-limit entity responds to a safe verification.
+- Each configured inverter control path responds to a safe verification.
 - Generate report changes to View report after publication completes.
 
 Continue with [Troubleshooting](04-troubleshooting.md) when any check fails.
@@ -101,7 +101,23 @@ Version 1.3.0 renames active legacy helper entity IDs from `pv_ems_*` to `hpvc_*
 5. Reload packages or restart Home Assistant, then deploy Node-RED.
 6. Copy or re-enter your sensor entities, inverter entities, limits, thresholds, and HBC integration preference in the new `hpvc_*` helpers.
 
-Do not mix v1.4.0 files with older runtime files. Home Assistant may keep obsolete `pv_ems_*` helpers visible until their old package definitions are removed and Home Assistant is restarted.
+Do not mix v1.5.0 files with older runtime files. Home Assistant may keep obsolete `pv_ems_*` helpers visible until their old package definitions are removed and Home Assistant is restarted.
+
+### Upgrading to v1.5.0
+
+v1.5.0 adds a generic per-inverter adapter layer. Existing writable `number.*` installations remain on **Control method = Number entity** and keep their existing Limit entity, Limit unit, Max power and Min power settings.
+
+Use **Action/service** only for integrations that require a Home Assistant action/service or register-write call. Configure the action schema carefully and use a real numeric readback entity whenever one is available. Replace the synchronized HPVC package, dashboard and Node-RED flow from the same release.
+
+### Upgrading to v1.4.3
+
+When upgrading to v1.4.3, replace the synchronized HPVC files from the same package version together. v1.4.3 adds per-inverter Watt/Percent limit-unit selection and reduces unnecessary Home Assistant helper writes from status, Insights, targets and accuracy diagnostics. Existing inverter slots default to Watts. Import the updated Node-RED flow, reload the Home Assistant package so the new limit-unit helpers exist, and verify each inverter Limit unit before enabling control.
+
+
+After deployment, allow normal 10-second evaluations to run and verify HPVC status, inverter writes, HBC behavior, percentage conversion (where used), and report generation.
+
+> **Upgrade note — sensor → binary_sensor migration:** v1.5.0 corrects several HPVC helper domains (`hpvc_show_inverter_slot_2`…`_10`, inverter limit-range warnings and the export-threshold warning) from `sensor.*` to `binary_sensor.*`. If an earlier installed package created the old `sensor.*` registry entries, Home Assistant may leave those old entities orphaned. They can be removed from the entity registry after confirming the new `binary_sensor.*` entities are present.
+
 
 ## Next steps
 
@@ -110,3 +126,4 @@ Do not mix v1.4.0 files with older runtime files. Home Assistant may keep obsole
 - [Diagnose problems](04-troubleshooting.md)
 
 [← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
+

@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="releases/v1.4.0/release.md"><img src="https://img.shields.io/badge/release-v1.4.0-blue" alt="Release v1.4.0"></a>
+  <a href="releases/v1.5.0/release.md"><img src="https://img.shields.io/badge/release-v1.5.0-blue" alt="Release v1.5.0"></a>
   <a href="https://www.home-assistant.io/"><img src="https://img.shields.io/badge/Home%20Assistant-ready-41BDF5" alt="Home Assistant ready"></a>
   <a href="https://nodered.org/"><img src="https://img.shields.io/badge/Node--RED-flow-8F0000" alt="Node-RED flow"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="GPL-3.0-or-later"></a>
@@ -26,12 +26,17 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 - Protect against negative all-in prices with minimum-PV control and optional HBC grid charging.
 
 > [!IMPORTANT]
-> HPVC requires at least one writable inverter power-limit entity exposed to Home Assistant. It does not communicate directly with an inverter.
+> HPVC requires at least one configured inverter control path: either a writable Home Assistant `number` entity or a stable Home Assistant action/service adapter. Limits can use Watts or Percent. HPVC controls through Home Assistant integrations; it does not communicate with inverter hardware directly.
 
-![Home PV Control dashboard](assets/screenshots/main.png)
+See [Inverter compatibility](docs/05-inverter-compatibility.md) for the four compatibility statuses and the current brand/integration matrix.
+
+<p align="center">
+  <img src="assets/screenshots/dashboard_main.png" alt="Home PV Control dashboard" width="70%">
+</p>
 
 ## Contents
 
+- [Generic inverter adapters (v1.5.0)](#generic-inverter-adapters-v150)
 - [Quick install](#quick-install)
 - [Main features](#main-features)
 - [HBC permissions](#hbc-permissions)
@@ -48,6 +53,12 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 - [Repository structure](#repository-structure)
 - [License](#license)
 
+## Generic inverter adapters (v1.5.0)
+
+HPVC can now control each inverter through either a writable Home Assistant `number` entity or a generic Home Assistant action/service adapter. Action/service adapters can include fixed data, a dynamic target field, sequential stop-on-failure pre/post actions, and an optional readback entity. This makes service/register-based integrations usable without changing HPVC's core Watt-based control logic.
+
+See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configuration](docs/02-configuration.md).
+
 ## Quick install
 
 1. Enable Home Assistant packages:
@@ -61,7 +72,7 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 3. Restart Home Assistant or reload the supported YAML configuration.
 4. Import [`node-red/hpvc_flow.json`](node-red/hpvc_flow.json) into Node-RED and deploy it.
 5. Add [`home assistant/hpvc_dashboard.yaml`](home%20assistant/hpvc_dashboard.yaml) as a YAML dashboard or view.
-6. Open the always-visible **Settings** tab and configure the grid-power, market/export-price, all-in-price, PV-power and inverter-limit entities.
+6. Open the always-visible **Settings** tab and configure the grid-power, market/export-price, all-in-price, PV-power and per-inverter control paths.
 7. Wait for first-install validation to complete. HPVC enables automatically once all required live inputs and control settings are valid.
 
 See the full [installation guide](docs/01-installation.md) for dependencies and first-run verification.
@@ -73,6 +84,8 @@ See the full [installation guide](docs/01-installation.md) for dependencies and 
 | Standalone PV export control | ✅ |
 | Dynamic export limiting and import recovery | ✅ |
 | Multi-inverter support with per-inverter minimum/maximum limits | ✅ |
+| Per-inverter Watt or percentage limits | ✅ |
+| Generic per-inverter Number entity / Action-service adapters | ✅ |
 | Negative all-in-price minimum-PV protection | ✅ |
 | Optional HBC grid charging during negative prices | ✅ |
 | Optional HBC Charge Priority for `Charge` / `Charge PV` | ✅ |
@@ -95,7 +108,7 @@ If HBC permission is removed during an already-active override, HPVC permits onl
 
 - Home Assistant with package support.
 - Node-RED with `node-red-contrib-home-assistant-websocket` **0.80.3 or newer**.
-- One or more PV inverters with writable `number.*` power-limit entities.
+- One or more PV inverters with either a writable `number.*` active-power limit or a stable Home Assistant action/service that can apply an active-power limit.
 - A valid grid-power sensor, market/export-price sensor, all-in-price sensor and PV-power sensor.
 - ApexCharts Card for the supplied dashboard graphs.
 - Home Battery Control only for optional HBC execution tracking and Charge Priority.
@@ -177,7 +190,7 @@ Daily Control Accuracy measures how closely grid power follows the requested tar
 
 The factor values represent estimated percentage contributions to the headline accuracy loss and reconcile to `100 − Daily Control Accuracy`.
 
-HPVC uses a short physical-event reconciliation window so delayed PV, battery and inverter-limit telemetry can still be associated with the grid event that caused the loss without delaying control. Detailed raw attribution, continuity and engineering metrics remain available in the support report.
+HPVC uses a short physical-event reconciliation window so delayed PV, battery and inverter-limit telemetry can still be associated with the grid event that caused the loss without delaying control. Detailed raw attribution, continuity and engineering metrics remain available in the support report. For Action/service inverters, this physical attribution requires a real numeric readback entity; command-cache-only adapters still participate in control and headline accuracy, but their cached command is not treated as physical inverter-limit evidence.
 
 ### Today’s Insights and Power Control
 
@@ -209,8 +222,7 @@ flowchart LR
     PV[PV power]
     HBC[Optional HBC]
     BAT[Battery telemetry]
-    HPVC[Home PV Control
-Node-RED]
+    HPVC["Home PV Control<br/>Node-RED"]
     LIMITS[PV inverter limits]
 
     PRICE --> HPVC
@@ -238,7 +250,11 @@ When upgrading, keep the Home Assistant package, Node-RED flow and dashboard on 
 7. Review **Force charge at negative price**. It is seeded **On** once on fresh installs and upgrades. After that, a manual Off choice survives normal Home Assistant restarts and package/automation reloads. **Restore defaults** turns it On again.
 8. Generate a support report to confirm the installation is healthy.
 
-See the [v1.4.0 release notes](releases/v1.4.0/release.md) for the full release summary.
+See the [v1.5.0 release notes](releases/v1.5.0/release.md) for the full release summary.
+
+### Percentage target resolution
+
+Percentage targets are quantized before change detection using the writable Home Assistant `number.*` entity's advertised `step`. This prevents repeated equivalent writes when an inverter only accepts coarse percentage increments. The configured Minimum power remains a hard Watt floor; HPVC rounds upward to the first supported percentage when nearest-step rounding would otherwise go below that minimum.
 
 ## Documentation
 
@@ -246,26 +262,33 @@ See the [v1.4.0 release notes](releases/v1.4.0/release.md) for the full release 
 - [Settings](docs/02-configuration.md)
 - [How it works](docs/03-how-it-works.md)
 - [Troubleshooting](docs/04-troubleshooting.md)
+- [Inverter compatibility](docs/05-inverter-compatibility.md)
 - [Documentation index](docs/README.md)
 - [Changelog](CHANGELOG.md)
-- [v1.4.0 release notes](releases/v1.4.0/release.md)
+- [v1.5.0 release notes](releases/v1.5.0/release.md)
 
 For Home Battery Control itself, see the [HBC documentation](https://docs.homebatterycontrol.com/).
 
 
 ## Screenshots
 
+The bundled screenshots are retained for orientation and may show an earlier HPVC version. The shipped v1.5.0 YAML and Node-RED flow are authoritative.
+
 ### Settings
 
-![Home PV Control settings](assets/screenshots/settings.png)
+<p align="center">
+  <img src="assets/screenshots/dashboard_settings.png" alt="Home PV Control settings" width="50%">
+</p>
 
-### HPVC report
+### Report
 
-![HPVC report](assets/screenshots/report.png)
+<p align="center">
+  <img src="assets/screenshots/hpvc_report.png" alt="HPVC report" width="50%">
+</p>
 
 ### Node-RED flow
 
-Current v1.4.0 Node-RED architecture overview generated from the shipped flow.
+Reference Node-RED architecture screenshot.
 
 ![Home PV Control Node-RED flow](assets/screenshots/node_red_flow.png)
 
@@ -299,7 +322,7 @@ home assistant/
   hpvc_dashboard.yaml   # Separate Home Assistant dashboard
 
 node-red/
-  hpvc_flow.json        # Importable Node-RED flow with four v1.4.0 tabs
+  hpvc_flow.json        # Importable Node-RED flow with four v1.5.0 tabs
 
 examples/
   hoymiles-opendtu-2-inverters.reference.json
@@ -308,6 +331,9 @@ assets/
   banner.png
   logo.svg
   screenshots/
+    dashboard_main.png
+    dashboard_settings.png
+    hpvc_report.png
     node_red_flow.png
 
 docs/
@@ -315,11 +341,17 @@ docs/
   02-configuration.md
   03-how-it-works.md
   04-troubleshooting.md
+  05-inverter-compatibility.md
   README.md
 
 releases/
-  v1.3.0/
-  v1.4.0/
+  v1.0.0/
+  ...
+  v1.4.1/
+  v1.4.2/
+  v1.4.3/
+  v1.4.4/
+  v1.5.0/
 ```
 
 ## Installation format

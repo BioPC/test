@@ -1,5 +1,111 @@
 # Changelog
 
+## v1.5.0
+
+### Added / changed
+
+- Watt-mode targets now honor Number-entity and Action/service command steps before change detection.
+- Clarified readback-unit and pre/post action sequencing requirements.
+- Added per-inverter **Control method: Number entity / Action/service**.
+- Added optional per-inverter readback entities for physical write verification.
+- Preserved existing Watt/Percent conversion, proportional allocation, cooldown and safety logic.
+- Existing number-entity installations remain the default and require no adapter conversion.
+
+### Fixed
+
+- Daily Control Accuracy command-application checks now resolve pending writes by per-inverter `pvN` control key and compare against Watt-normalized real readback, restoring correct Control attribution for Number-entity and Percent adapters.
+- Fixed control-key write-settle confirmation so verified inverter writes can release the pending-write lock without an extra evaluation.
+- Updated Daily Control Accuracy physical attribution for Action/service adapters with real readback; command-cache-only adapters remain excluded from physical attribution by design.
+- Fixed support-report inverter entity validation so configured readback sensors cannot crash report generation.
+- Fixed Settings conditional helper domains for inverter-slot visibility and threshold/range warnings.
+- Fixed cross-tab runtime/diagnostic context scope for HBC timing/recovery and rate-limiter diagnostics.
+- Fixed inverter diagnostic target lookup so calculated targets, clamping state and requested totals are retained correctly.
+- Added Action/service adapter service-call failure recovery so failed commands invalidate cached state and can retry safely.
+- Adapter configuration changes now invalidate cached command state and force a synchronization write.
+- Added generic action/service adapter fields with fixed JSON data and dynamic target injection.
+- Added optional target JSON, Watt/Percent command-step quantization, refresh/heartbeat interval, and sequential stop-on-failure pre/post action sequences for enable/mode/trigger workflows.
+
+## v1.4.4
+
+### Documentation and compatibility
+- Added a dedicated inverter-compatibility guide with four clearly defined support statuses.
+- Added a conservative brand/integration matrix with a short reason for every classification.
+- Clarified that compatibility depends on the Home Assistant integration and writable entity, not only on inverter brand/model.
+- Clarified the difference between inverter active-power limiting and site/grid export limiting.
+- Linked the new compatibility guide from README, configuration and troubleshooting documentation.
+
+### Runtime
+- No intentional control-policy or inverter-write behavior changes from v1.4.3.
+- Updated current package/dashboard/report version labels to v1.4.4.
+
+## v1.4.3
+
+- Finalized percentage-limit quantization before inverter change detection, preventing repeated writes when a percent entity can only represent coarse steps.
+- Enforced configured inverter minimum power as a hard Watt floor when percent-step rounding is required.
+
+- Added a per-inverter **Limit unit** (`Watts` / `Percent`) while keeping all HPVC control calculations, Full power and Minimum power in watts.
+- Added percentage I/O conversion for live inverter limits, `number.set_value` commands and write verification.
+- Updated the existing `sensor.hpvc_pv1_actual_limit` through `sensor.hpvc_pv10_actual_limit` compatibility sensors so they continue to report watts when a percentage limit entity is used.
+- Kept existing installations backward-compatible by defaulting every inverter Limit unit to `Watts`.
+- Removed HPVC-owned output helpers from the stable-input rate-limiter hash so dashboard publishing cannot retrigger full evaluations.
+- Added HPVC-owned last-published caches to deduplicate status, reason, Insights, targets JSON and accuracy diagnostics.
+- Throttled changed targets JSON to 30 seconds and changed accuracy diagnostics to 60 seconds, with a five-minute forced dashboard resync.
+- Fixed Insight publishing so only changed rows are written instead of resending all 20 helpers after any Insight change.
+- Added rate-limiter full/skip diagnostics to support reports.
+- Updated installation, configuration, architecture and troubleshooting documentation for v1.4.3.
+- Percentage limit writes now respect the writable `number` entity step/resolution and verify against the effective representable Watt target.
+- Invalid, missing, unknown or unavailable per-inverter Limit unit values now fail safe as configuration errors instead of silently falling back to Watts.
+- Corrected remaining v1.4.2 runtime/dashboard version labels and refreshed v1.4.3 documentation/reference metadata (screenshots intentionally unchanged).
+
+## v1.4.2
+
+### Runtime efficiency
+- Added incremental Insights/dashboard rendering so unchanged Insight history is no longer rescanned and regrouped every 10 seconds.
+- Kept Power Control history event-based while avoiding unchanged per-cycle history/meta writes.
+- Changed activity pruning from every evaluation to a bounded periodic maintenance pass.
+- Suppressed selected redundant scalar/context writes where the value has not changed.
+- Avoided rewriting the bounded runtime-cadence array when its contents are unchanged.
+
+### Diagnostics
+- Added internal measured-stage and unaccounted-cycle timing to help isolate Node-RED scheduling, GC or untimed runtime overhead without expanding the visible support report.
+
+### Compatibility
+- No configuration migration is required from v1.4.1.
+- Existing control, safety, HBC, inverter, accuracy and reporting behavior is retained.
+
+### Issue #3 / #4 follow-up
+- Added conservative HBC-style stable-input rate limiting with a mandatory full evaluation every 30 seconds.
+- Added high-load cooldown signalling for previous evaluations above 1 second without suppressing safety/control logic.
+- Added bounded internal rate-limiter counters (full/skipped cycles) without storing a per-cycle history.
+- Fixed a Settings-changed race: configuration changes received while the runtime lock is active are now marked dirty and applied by the next successful evaluation.
+- Cached 68 helper/configuration states and rebuild them only on startup or a Settings changed event.
+- Reduced the normal 10-second snapshot refresh to 30 live whitelist states plus dynamically resolved entities.
+- Expanded Settings changed coverage to all cached configuration helpers.
+- Reused the bounded serialized-cycle snapshot object and explicitly drops `msg.hpvc.cycleStates` after diagnostics.
+- Added bounded internal retention counters for major HPVC histories to help isolate remaining heap growth.
+
+
+## v1.4.1
+
+### Performance and memory
+- Fixed GitHub issue #2's confirmed allocation hotspot by removing the full Home Assistant state-table deep clone from the 10-second runtime evaluation.
+- Removed the equivalent full-state deep clone from support-report generation.
+- Replaced runtime `msg.hpvc.haStates` transport with a compact per-cycle `msg.hpvc.cycleStates` snapshot containing only required fixed and resolved dynamic entities.
+- Added a legacy-state cleanup guard before output publication.
+- Reduced Daily Control Accuracy allocation by replacing an unnecessary JSON deep clone of the last PV command with a small object copy.
+- Reduced the activity-history ceiling from 9,000 to 3,000 rows.
+
+### Diagnostics
+- Added bounded per-stage evaluation timing and aggregate last/max/average cycle timing.
+- Added optional heap telemetry sampled no more than once per minute when `process.memoryUsage()` is available in the Node-RED Function sandbox.
+- Performance diagnostics are stored as a single bounded global object and do not create a per-cycle history.
+- HTML and TXT support reports now render the v1.4.1 timing and heap diagnostics for issue #2 validation.
+
+### Documentation
+- Updated README, installation, architecture/how-it-works, troubleshooting, dashboard version label, release notes, and release archive documentation for v1.4.1.
+- Added explicit testing guidance for issue #2.
+
+
 ## v1.4.0
 
 ### Major changes
@@ -204,3 +310,12 @@
 ## v1.0.0
 
 - Initial public release.
+
+
+## Rate-limiter baseline correction
+
+- Fixed the stable-input rate limiter baseline: grid/PV deltas now accumulate from the last full HPVC evaluation rather than resetting after every 10-second check.
+- Kept the existing 20 W + 2% thresholds, 10-second trigger, and 30-second mandatory full evaluation.
+
+
+- Fixed `settingsTrigger` declaration order in `Read HPVC Core Configuration` to prevent `ReferenceError: Cannot access 'settingsTrigger' before initialization`.

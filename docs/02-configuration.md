@@ -43,13 +43,21 @@ The dashboard exposes HBC's native strategy selector and reads `input_text.house
 
 ## PV inverter setup
 
-Each inverter requires:
+Each inverter requires a **Control method** plus its common power limits:
 
-- **Limit entity** — writable Home Assistant `number` entity used to set the inverter limit.
-- **Full power** — normal maximum limit in watts.
-- **Minimum power** — lowest value HPVC may request. It must be zero or positive and lower than Full power.
+- **Control method** — `Number entity` for a writable Home Assistant `number.*`, or `Action/service` for an integration action/register-write path.
+- **Limit unit** — `Watts` when the control value is power in W, or `Percent` when it uses a 0–100% active-power limit.
+- **Full power** — normal maximum inverter power in watts.
+- **Minimum power** — lowest power HPVC may request, always configured in watts. It must be zero or positive and lower than Full power.
+- **Limit entity** — required only for `Number entity` control. Action/service fields are described below.
 
-Invalid inverter limits block writes and produce a configuration error.
+See [Inverter compatibility](05-inverter-compatibility.md) before selecting an entity for an untested inverter brand/integration.
+
+HPVC always calculates plant and inverter targets internally in watts. With **Limit unit = Percent**, only the Home Assistant I/O boundary is converted: `target % = target W / Full power W × 100`. The live percentage state is converted back to watts before allocation, deadband and write-verification logic. This allows percentage-controlled integrations to use the same HPVC control model without changing thresholds or proportional distribution.
+
+The writable number entity is also used as the command-state readback for write verification. In **Number entity** mode, HPVC v1.5.0 does not require a separate physical inverter-feedback sensor. If **Limit unit** is missing, unavailable, or not exactly `Watts` or `Percent`, configuration is treated as invalid and inverter writes are blocked rather than silently assuming Watts. For percentage entities, HPVC uses the Home Assistant `number` entity's `step` attribute when available, rounds commands to that supported percentage resolution, and verifies the effective Watt equivalent. If an integration does not expose a writable percentage `number` entity directly, use the v1.5.0 **Action/service** control method when the integration exposes a stable action/register-write path. A template/bridge number remains an alternative when preferred. A bridge that mirrors its requested value provides command-state confirmation only; it is not independent proof that the physical inverter accepted the underlying service/register write.
+
+Invalid inverter limits or a percentage entity reporting outside 0–100% block writes and produce a configuration error.
 
 ## Control relationships
 
@@ -95,6 +103,7 @@ These values are safe starting points, not universal recommendations. Review the
 | Cooldown | `30 s` |
 | Deadband | `25 W` |
 | PV1–PV10 full limit | `0 W` until configured |
+| PV1–PV10 limit unit | `Watts` |
 | PV1–PV10 minimum limit | `0 W` until configured |
 
 Night Restore enters after 120 continuous seconds at or below the configured threshold. It exits only after valid PV remains above `max(25 W, threshold + 15 W)` for 30 seconds. See [How it works](03-how-it-works.md#restore-and-recovery) for restart and offline-telemetry behavior.
@@ -150,6 +159,7 @@ The **Restore defaults** tile reapplies shipped configurable values after confir
 
 - configured sensor entity IDs;
 - inverter limit entity selections;
+- inverter limit-unit selections;
 - active inverter count;
 - the current HBC Strategy Control on/off state.
 
@@ -157,9 +167,52 @@ It resets **Force charge at negative price** to its shipped default of **On**. T
 
 It does not populate installation-specific sensor or inverter entities. Verify all entities, maximum and minimum powers, inverter count, and optional HBC strategy entity afterward.
 
+### Percentage step handling (v1.4.3)
+
+For `Limit unit: Percent`, HPVC quantizes the requested Watt target to the writable `number.*` entity's advertised percentage `step` before deciding whether a write is required. The configured minimum remains a hard Watt floor: if nearest-step rounding would fall below it, HPVC uses the first supported percentage at or above the minimum.
+
+## Inverter control method (v1.5.0)
+
+Each inverter has its own **Control method**.
+
+### Number entity
+
+Use this for integrations that expose a writable Home Assistant `number.*` active-power limit. This is the existing HPVC path and remains the default. Configure **Limit entity**, **Limit unit**, **Max power**, and **Min power**.
+
+### Action/service
+
+Use this when the integration exposes a Home Assistant action/service or register-write action instead of a writable limit number. Configure:
+
+- **Action/service** — `domain.service`, for example an integration-specific write action.
+- **Value field** — the field inside the service data that receives HPVC's dynamic target (default `value`; dotted paths are supported).
+- **Fixed data JSON** — constant service data such as hub, device, register or address.
+- **Target JSON** — optional Home Assistant target object for the main action, such as an `entity_id`.
+- **Action step** — command resolution in the selected Limit unit, for both Watts and Percent. `0` uses the default resolution of `1`; set a positive value such as `100` W, `0.1%`, or `1%` when the integration has a known command step. HPVC quantizes the effective target before change detection so representable commands are not repeatedly resent.
+- **Refresh seconds** — optional command heartbeat interval; `0` disables periodic refresh. When due, the refresh bypasses the stable-input skip and is sent on the next HPVC timer cycle (normally within about 10 seconds of the configured interval).
+- **Pre-actions JSON** — optional calls executed sequentially before the main write. The next step starts only after the previous Home Assistant action completes successfully.
+- **Post-actions JSON** — optional calls executed sequentially after the main write. Any action failure stops the remaining sequence.
+- **Readback entity** — optional numeric entity used to verify and track the applied command.
+- **Limit unit** — still `Watts` or `Percent`; all HPVC control calculations remain in Watts.
+
+Pre/post JSON is an array of objects with `action`, and optional `data` and `target`. Values can use the tokens `{{value}}`, `{{target_watts}}`, `{{desired_watts}}`, `{{percent}}`, `{{maximum_watts}}`, `{{minimum_watts}}`, and `{{slot}}`.
+
+Example shape:
+
+```json
+[{"action":"switch.turn_on","target":{"entity_id":"switch.example_power_control"}}]
+```
+
+The optional readback entity must report the applied limit in the **same unit selected by Limit unit**. If an integration reports command output in a different unit, normalize it with a template sensor or leave readback empty; otherwise HPVC verification would compare incompatible units. Pre-actions, the main action and post-actions are executed sequentially and stop on the first failed Home Assistant action. HPVC does not insert an inter-step delay; if an integration requires a timed pause, wrap that device-specific sequence in a Home Assistant script and call the script from the adapter. Advanced JSON helpers are Home Assistant `input_text` states and therefore have a 255-character limit; use a script for larger payloads or sequences.
+
+The adapter settings are normal Home Assistant helpers and persist across restarts. For Action/service adapters, a real numeric readback is also what allows the Daily Control Accuracy physical-event detector to attribute inverter-limit movement. Without readback, the headline accuracy and target-tracking metrics still run, but physical cause attribution is intentionally withheld rather than inferred from the command cache. If no readback entity is configured, HPVC uses the last commanded Watt value as runtime command state. After a fresh Node-RED context start (or after changing a slot from Number entity to Action/service), HPVC performs one initial synchronization write with the currently calculated target before relying on that command-state cache. If there is no readback, that synchronization write may replace a limit that was applied externally while HPVC was offline; if the current HPVC target is full power, it may intentionally restore full power. Configure a real readback where available, or keep HPVC disabled until the desired startup target is known. This is **not physical inverter verification**. Use a real readback entity whenever the integration provides one.
+
+> **Upgrade note — sensor → binary_sensor migration:** v1.5.0 corrects several HPVC helper domains (`hpvc_show_inverter_slot_2`…`_10`, inverter limit-range warnings and the export-threshold warning) from `sensor.*` to `binary_sensor.*`. If an earlier installed package created the old `sensor.*` registry entries, Home Assistant may leave those old entities orphaned. They can be removed from the entity registry after confirming the new `binary_sensor.*` entities are present.
+
+
 ## Next steps
 
 - [Understand the control sequence](03-how-it-works.md)
 - [Troubleshoot unexpected behavior](04-troubleshooting.md)
 
 [← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
+

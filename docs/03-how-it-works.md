@@ -133,6 +133,7 @@ Clean failed probes reduce that battery's unconfirmed taper allowance. Ambiguous
 
 - A battery with unavailable or stale power/SOC telemetry is excluded independently. Charge Priority continues with the remaining healthy batteries, or is suspended when none remain. A transition-only Insight is written when a battery is excluded and when it recovers.
 - If any configured inverter limit entity is unavailable or non-numeric, HPVC pauses all inverter writes. A transition-only Insight identifies the affected inverter, and a recovery Insight is written after the complete inverter group is valid again.
+- Each `sensor.hpvc_pvN_actual_limit` compatibility sensor remains expressed in **watts** and is derived from the configured writable limit entity; it is not a separate physical-feedback channel. For `Limit unit = Percent`, the template converts the writable entity's 0–100% state back to watts using that inverter's configured Full power. HPVC uses the same conversion internally for allocation and command-state verification, and honours the entity's percentage `step` when available so verification uses a representable effective Watt target. No extra actual-limit entity has to be configured.
 - Charge Priority now exposes two separate states: whether Charge Priority is active and whether a PV increase is currently possible.
 - The exact state/end reason is retained, including no headroom, export already consuming headroom, deadband, inverter maximum, full batteries, unsafe telemetry, or HBC no longer executing Charge/Charge PV.
 - The support report includes a Charge Priority decision table and per-battery eligibility, SOC mode, headroom contribution, and exclusion reason.
@@ -289,6 +290,9 @@ For inverter-limit changes of at least **500 W**, the shared post-write lock als
 
 ### Continuous physical-event detector for accuracy attribution
 
+The physical attribution detector requires a complete, physically observed inverter-limit group. **Number entity** adapters use the writable number entity as that observation. **Action/service** adapters participate when a real numeric **Readback entity** is configured and currently available. If any Action/service inverter has no real readback, HPVC continues the headline Daily Control Accuracy calculation and target-tracking metrics, but it deliberately disables physical cause attribution for that interval rather than treating HPVC's cached command value as proof of the inverter's applied limit.
+
+
 The attribution detector runs on every HPVC evaluation, even when the headline accuracy sample is temporarily ineligible. A significant grid step is held until a fresh post-trigger PV observation arrives, with an adaptive **20–30 second maximum reconciliation window** when OpenDTU is late, so later PV and inverter-limit updates can explain the same original event instead of being misclassified because sensors updated in a different order. Battery handling is deliberately causal rather than fully delayed: only battery movement already visible at trigger time may explain the original grid step. A battery change that appears after the trigger—such as a battery reducing discharge in response to a large import—is recorded as a later response and cannot retroactively replace the initiating House-load event with **Other**.
 
 Matched events can be reused only while they remain recent, on the same action-band side, and physically consistent. Core grid/PV/inverter telemetry breaks clear pending causal state. If battery-power telemetry alone is uncertain, HPVC continues in degraded mode but suppresses House-load inference rather than treating missing battery power as 0 W. One conservative exception exists for a numeric 0 W battery independently confirmed at its configured charging cutoff/full boundary; that unchanged full-idle value may remain valid physical evidence for House-load accounting. The support report records whether House inference was accepted or blocked and why, whether post-trigger HPVC PV was stripped, and whether independent battery movement was classified as Other.
@@ -348,10 +352,10 @@ The supplied flow is split into four tabs:
 
 | Tab | Purpose |
 |---|---|
-| **HPVC Inputs v1.4.0** | Reads Home Assistant state, validates configuration and live inputs, and restores persisted runtime state. |
-| **HPVC Engine v1.4.0** | Evaluates prices, cooldown, Night Restore, battery eligibility, Charge Priority, and the total PV target. |
-| **HPVC Outputs v1.4.0** | Distributes inverter targets, performs writes, verifies results, and publishes status, Insights, and accuracy. |
-| **HPVC Reports v1.4.0** | Builds and publishes the on-demand HTML/TXT support report. |
+| **HPVC Inputs v1.5.0** | Reads Home Assistant state, validates configuration and live inputs, and restores persisted runtime state. |
+| **HPVC Engine v1.5.0** | Evaluates prices, cooldown, Night Restore, battery eligibility, Charge Priority, and the total PV target. |
+| **HPVC Outputs v1.5.0** | Distributes inverter targets, performs writes, verifies results, and publishes status, Insights, and accuracy. |
+| **HPVC Reports v1.5.0** | Builds and publishes the on-demand HTML/TXT support report. |
 
 Import the complete `hpvc_flow.json`; the tabs are designed to operate together.
 
@@ -363,3 +367,34 @@ HTML and TXT use the same report model. The report's timestamps and current-day 
 
 [← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
 
+
+
+## v1.4.3 runtime state and performance model
+
+HPVC no longer deep-copies Home Assistant's complete `homeassistant.homeAssistant.states` object on each 10-second evaluation. The Inputs tab resolves the fixed HPVC helpers plus configured dynamic grid, price, PV and inverter-limit entities, then copies only those required state entries into a compact `msg.hpvc.cycleStates` snapshot. Predictable HBC/Marstek entities needed by battery safety and Charge Priority are included directly.
+
+This preserves one coherent state picture for a control cycle without allocating a second copy of every Home Assistant entity and its attributes. `msg.hpvc.haStates` is not used by v1.4.1 and is explicitly removed before output publication as a migration safety guard.
+
+For issue #2 verification, major runtime stages record bounded per-cycle elapsed times. HPVC stores only the latest stage timings plus aggregate total timing in `homePvControlPerformanceDiagnostics`. When the Node-RED Function sandbox exposes `process.memoryUsage()`, a heap sample is added at most once per minute; otherwise heap sampling is marked unavailable without affecting control. The same bounded diagnostics are rendered in both the HTML and TXT support reports.
+
+
+## Stable-input rate limiting
+
+HPVC still wakes every 10 seconds. When the relevant live control inputs remain stable, it can skip the heavier downstream evaluation. Grid and PV changes use the same 20 W + 2% significance thresholds, measured against the values from the **last full HPVC evaluation** so gradual changes accumulate instead of being reset every 10 seconds. A complete evaluation is forced at least every 30 seconds, and pending safety, write-verification, recovery, startup, and settings work always bypasses the limiter.
+
+
+### v1.4.3 helper publishing
+
+v1.4.3 keeps HPVC-owned dashboard/output helpers out of the stable-input rate-limiter hash and uses flow-context publication caches to avoid resending unchanged helper values. Status and reason publish on change, target JSON is limited to at most one changed publish per 30 seconds, accuracy diagnostics to at most one changed publish per 60 seconds, and Insight rows are written individually only when that row changes. A five-minute forced refresh keeps the dashboard synchronized after unusual external helper changes. These changes affect diagnostics/UI traffic only; PV control decisions and safety gates are unchanged.
+
+### Percentage target quantization
+
+Percent-controlled inverter targets are converted to the entity's representable percentage step before per-inverter change detection. HPVC therefore compares the live limit with the effective command value, avoiding repeated writes of an already-applied percentage. The configured minimum Watt limit is never rounded downward.
+
+
+
+## Generic inverter adapter pipeline
+
+The control engine continues to calculate and distribute plant targets in Watts. The per-inverter adapter then converts the finalized target into the selected output mechanism. Number-entity adapters call `number.set_value`. Action/service adapters execute optional pre-actions, then the main service call with the dynamic Watt/Percent value inserted into the configured data field, and then optional post-actions. Each step waits for the previous Home Assistant action to complete successfully; any failure stops the remaining sequence. HPVC does not add an artificial delay, so integrations that require timed inter-step waits should be wrapped in a Home Assistant script. If an Action/service call fails, HPVC invalidates the optimistic command cache for that inverter, removes the failed item from the pending verification lock, raises a persistent notification, and allows the next eligible cycle to retry. When no cached Action/service command exists, HPVC performs one initial synchronization write so a fresh runtime cannot silently assume that the inverter is already at the desired limit. HPVC also fingerprints each adapter configuration; changing its method, action, payload, unit, range, step, readback or sequence invalidates the cached command and forces a new synchronization write. Action/service adapters can also refresh the current command at a configured interval for integrations that require a heartbeat. Initial synchronization and due refreshes are treated as pending runtime work, so the stable-input rate limiter does not postpone them; delivery follows the normal HPVC timer cadence.
+
+A configured readback entity participates in normal write verification. Without readback, HPVC records command-state only and does not claim physical confirmation.
