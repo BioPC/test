@@ -1,6 +1,6 @@
-# Troubleshooting
-
 [← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
+
+# Troubleshooting
 
 Use the generated support report first. **Executive summary**, **Decision evaluation**, **Sensor health**, **Inverters**, and **Today’s Insights** usually identify the blocking condition quickly.
 
@@ -266,3 +266,5 @@ This is expected when the writable percentage entity has a coarse `step`. HPVC u
 ### Action/service adapter does not control the inverter
 
 Check that the action is written as `domain.service`, the fixed-data field contains valid JSON, and the value field matches the integration's service schema. If the inverter requires an enable switch, mode selection, trigger button, or heartbeat, put those calls in the per-inverter pre/post action arrays. Configure a numeric readback entity when available so HPVC can verify the applied limit. The readback must use the same unit as the configured Limit unit. If an action/service call itself fails, HPVC clears that inverter's cached command and retries on a later eligible cycle; check the persistent notification and Node-RED/Home Assistant logs for the rejected payload. Pre/main/post calls execute sequentially and stop on the first failed Home Assistant action, but HPVC does not insert built-in delays. Use a Home Assistant script when timed waits are required. The advanced JSON helper fields are limited to 255 characters.
+
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
