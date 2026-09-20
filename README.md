@@ -36,12 +36,12 @@ See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configurati
 
 ## Contents
 
+- [Requirements](#requirements)
 - [Quick install](#quick-install)
 - [Main features](#main-features)
-- [HBC permissions](#hbc-permissions)
-- [Requirements](#requirements)
-- [Shipped defaults](#shipped-defaults)
 - [How HPVC works](#how-hpvc-works)
+- [Shipped defaults](#shipped-defaults)
+- [HBC permissions](#hbc-permissions)
 - [Safety and recovery](#safety-and-recovery)
 - [Accuracy, Insights and reports](#accuracy-insights-and-reports)
 - [Architecture and persistence](#architecture-and-persistence)
@@ -51,6 +51,15 @@ See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configurati
 - [Support](#support)
 - [Repository structure](#repository-structure)
 - [License](#license)
+
+## Requirements
+
+- Home Assistant with package support.
+- Node-RED with `node-red-contrib-home-assistant-websocket` **0.80.3 or newer**.
+- One or more PV inverters with either a writable `number.*` active-power limit or a stable Home Assistant action/service that can apply an active-power limit.
+- A valid grid-power sensor, market/export-price sensor, all-in-price sensor and PV-power sensor.
+- ApexCharts Card for the supplied dashboard graphs.
+- Home Battery Control only for optional HBC execution tracking and Charge Priority.
 
 ## Quick install
 
@@ -89,22 +98,23 @@ See the full [installation guide](docs/01-installation.md) for dependencies and 
 | On-demand HTML and TXT support reports | ✅ |
 | Ready-to-import Home Assistant dashboard | ✅ |
 
-## HBC permissions
+## How HPVC works
 
-**Enable HBC** is the master permission for HPVC to control charging in HBC.
+HPVC evaluates:
 
-The separate **Force charge at negative price** option only applies while HBC control is enabled.
+- every **10 seconds**;
+- immediately after deploy/startup;
+- when relevant HPVC settings change.
 
-If HBC permission is removed during an already-active override, HPVC permits only the required restore sequence and then stops HBC writes.
+Normal control follows a simple priority order:
 
-## Requirements
-
-- Home Assistant with package support.
-- Node-RED with `node-red-contrib-home-assistant-websocket` **0.80.3 or newer**.
-- One or more PV inverters with either a writable `number.*` active-power limit or a stable Home Assistant action/service that can apply an active-power limit.
-- A valid grid-power sensor, market/export-price sensor, all-in-price sensor and PV-power sensor.
-- ApexCharts Card for the supplied dashboard graphs.
-- Home Battery Control only for optional HBC execution tracking and Charge Priority.
+1. Validate required inputs and configured inverter limits.
+2. Apply negative-price protection when the all-in price is `<= 0`.
+3. Handle Night Restore when PV production has effectively ended.
+4. Coordinate available PV with HBC Charge Priority when HBC is enabled and eligible.
+5. Limit export when price and grid conditions require it.
+6. Restore PV when import or price recovery makes more output appropriate.
+7. Respect cooldown and deadband so unnecessary writes are avoided.
 
 ## Shipped defaults
 
@@ -129,23 +139,13 @@ These are starting points, not universal recommendations. Review them for your i
 
 See [Settings](docs/02-configuration.md#marketexport-price-sensor) for sensor guidance and examples.
 
-## How HPVC works
+## HBC permissions
 
-HPVC evaluates:
+**Enable HBC** is the master permission for HPVC to control charging in HBC.
 
-- every **10 seconds**;
-- immediately after deploy/startup;
-- when relevant HPVC settings change.
+The separate **Force charge at negative price** option only applies while HBC control is enabled.
 
-Normal control follows a simple priority order:
-
-1. Validate required inputs and configured inverter limits.
-2. Apply negative-price protection when the all-in price is `<= 0`.
-3. Handle Night Restore when PV production has effectively ended.
-4. Coordinate available PV with HBC Charge Priority when HBC is enabled and eligible.
-5. Limit export when price and grid conditions require it.
-6. Restore PV when import or price recovery makes more output appropriate.
-7. Respect cooldown and deadband so unnecessary writes are avoided.
+If HBC permission is removed during an already-active override, HPVC permits only the required restore sequence and then stops HBC writes.
 
 ### HBC Charge Priority
 
