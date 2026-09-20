@@ -28,7 +28,7 @@ Home PV Control (HPVC) dynamically limits and restores PV inverter output in Hom
 > [!IMPORTANT]
 > HPVC requires at least one configured inverter control path: either a writable Home Assistant `number` entity or a stable Home Assistant action/service adapter. Limits can use Watts or Percent. HPVC controls through Home Assistant integrations; it does not communicate with inverter hardware directly.
 
-See [Inverter compatibility](docs/05-inverter-compatibility.md) and and [Configuration](docs/02-configuration.md) for the four compatibility statuses, current brand/integration matrix and configuration.
+See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configuration](docs/02-configuration.md) for the four compatibility statuses, current brand/integration matrix and configuration.
 
 <p align="center">
   <img src="assets/screenshots/dashboard_main.png" alt="Home PV Control dashboard" width="70%">
