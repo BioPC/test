@@ -53,12 +53,6 @@ See [Inverter compatibility](docs/05-inverter-compatibility.md) and and [Configu
 - [Repository structure](#repository-structure)
 - [License](#license)
 
-## Generic inverter adapters (v1.5.0)
-
-HPVC can now control each inverter through either a writable Home Assistant `number` entity or a generic Home Assistant action/service adapter. Action/service adapters can include fixed data, a dynamic target field, sequential stop-on-failure pre/post actions, and an optional readback entity. This makes service/register-based integrations usable without changing HPVC's core Watt-based control logic.
-
-See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configuration](docs/02-configuration.md).
-
 ## Quick install
 
 1. Enable Home Assistant packages:
