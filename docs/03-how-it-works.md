@@ -336,6 +336,8 @@ PV limiting enters at or below the configured limiting price. Once active, it re
 
 HPVC keeps small target corrections responsive. Larger corrections are bounded relative to the configured total inverter range and applied in stages, with fresh plant feedback between stages. If the immediately preceding HPVC command was a large move in the opposite direction, the first reverse step is capped more conservatively. During HBC Charge Priority, loss of confirmed battery charging also starts a short bounded transition-settle window so the independent battery controller can change state before HPVC reacts to the full transient grid error. These rules are plant-size-relative and do not depend on a particular inverter, battery model, or entity name.
 
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
+
 Delayed inverter-limit motion remains associated with its originating HPVC command while that command is pending. If a newer HPVC command supersedes it, any progress already observed on the old command is retained for causal attribution so that the delayed HPVC response is not reclassified as a manual/external inverter change.
 
 ## HBC strategy integration
