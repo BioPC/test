@@ -399,10 +399,5 @@ The control engine continues to calculate and distribute plant targets in Watts.
 
 A configured readback entity participates in normal write verification. Without readback, HPVC records command-state only and does not claim physical confirmation.
 
-
-## Next steps
-
-- [Troubleshoot unexpected behavior](04-troubleshooting.md)
-
 [← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
 
