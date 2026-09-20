@@ -36,7 +36,6 @@ See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configurati
 
 ## Contents
 
-- [Generic inverter adapters (v1.5.0)](#generic-inverter-adapters-v150)
 - [Quick install](#quick-install)
 - [Main features](#main-features)
 - [HBC permissions](#hbc-permissions)
