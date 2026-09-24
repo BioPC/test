@@ -54,7 +54,7 @@ See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configurati
 
 ## Requirements
 
-- Home Assistant with package support.
+- Home Assistant Core **2025.12 or newer** with package support. Earlier versions may work but are outside the documented support baseline.
 - Node-RED with `node-red-contrib-home-assistant-websocket` **0.80.3 or newer**.
 - One or more PV inverters with either a writable `number.*` active-power limit or a stable Home Assistant action/service that can apply an active-power limit.
 - A valid grid-power sensor, market/export-price sensor, all-in-price sensor and PV-power sensor.
@@ -245,10 +245,6 @@ When upgrading, keep the Home Assistant package, Node-RED flow and dashboard on 
 
 See the [v1.5.0 release notes](releases/v1.5.0/release.md) for the full release summary.
 
-### Percentage target resolution
-
-Percentage targets are quantized before change detection using the writable Home Assistant `number.*` entity's advertised `step`. This prevents repeated equivalent writes when an inverter only accepts coarse percentage increments. The configured Minimum power remains a hard Watt floor; HPVC rounds upward to the first supported percentage when nearest-step rounding would otherwise go below that minimum.
-
 ## Documentation
 
 - [Installation](docs/01-installation.md)
@@ -261,7 +257,6 @@ Percentage targets are quantized before change detection using the writable Home
 - [v1.5.0 release notes](releases/v1.5.0/release.md)
 
 For Home Battery Control itself, see the [HBC documentation](https://docs.homebatterycontrol.com/).
-
 
 ## Screenshots
 
