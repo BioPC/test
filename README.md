@@ -76,9 +76,17 @@ On later HACS updates, HACS updates the custom integration plus its bundled dash
 
 ### Option 2 — Manual installation
 
-The traditional package + Node-RED + YAML-dashboard workflow is unchanged:
+The traditional package + Node-RED + YAML-dashboard workflow is unchanged.
 
-1. Enable Home Assistant packages with `packages: !include_dir_named packages`.
+> This section applies only to the manual installation method. HACS users do not need to enable Home Assistant packages or edit `configuration.yaml`.
+
+1. Enable Home Assistant packages in `configuration.yaml`:
+
+   ```yaml
+   homeassistant:
+     packages: !include_dir_named packages
+   ```
+
 2. Copy [`home assistant/hpvc_config.yaml`](home%20assistant/hpvc_config.yaml) to `/config/packages/hpvc_config.yaml`.
 3. Restart Home Assistant or reload the supported YAML configuration.
 4. Import [`node-red/hpvc_flow.json`](node-red/hpvc_flow.json) into Node-RED and deploy it.
@@ -359,6 +367,8 @@ HPVC v1.5.2 supports a HACS custom-integration installation and the original man
 Inspired by the Home Assistant and Node-RED workflow of [Home Battery Control](https://github.com/gitcodebob/marstek-venus-rs485-node-red).
 
 ## HACS integration files
+
+The HACS integration includes local Home Assistant brand images in `custom_components/hpvc/brand/`, generated from `assets/logo.svg`, so Home Assistant can show the HPVC icon/logo after installation and restart.
 
 The HACS installation is implemented in `custom_components/hpvc/`. Its bundled files are copies of the same v1.5.2 Home Assistant package, dashboard definition and Node-RED flow shipped for manual installation.
 

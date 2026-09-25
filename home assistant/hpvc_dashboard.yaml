@@ -60,7 +60,7 @@ views:
     visibility:
     - condition: state
       entity: binary_sensor.hpvc_negative_price_mode
-      state_not: 'off'
+      state: 'on'
   - type: entity
     show_name: true
     show_state: true
