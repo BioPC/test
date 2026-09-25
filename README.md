@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="assets/banner.png" alt="Home PV Control banner">
-</p>
+![Home PV Control banner](assets/banner.png)
 
 <p align="center">
   <a href="releases/v1.5.2/release.md"><img src="https://img.shields.io/badge/release-v1.5.2-blue" alt="Release v1.5.2"></a>
@@ -30,9 +28,7 @@ Home PV Control (HPVC) dynamically controls, limits and restores PV inverter out
 
 See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configuration](docs/02-configuration.md) for the four compatibility statuses, current brand/integration matrix and configuration.
 
-<p align="center">
-  <img src="assets/screenshots/dashboard_main.png" alt="Home PV Control dashboard" width="70%">
-</p>
+![Home PV Control dashboard](assets/screenshots/dashboard_main.png)
 
 ## Contents
 
@@ -278,15 +274,11 @@ The bundled screenshots are retained for orientation and may show an earlier HPV
 
 ### Settings
 
-<p align="center">
-  <img src="assets/screenshots/dashboard_settings.png" alt="Home PV Control settings" width="50%">
-</p>
+![Home PV Control settings](assets/screenshots/dashboard_settings.png)
 
 ### Report
 
-<p align="center">
-  <img src="assets/screenshots/hpvc_report.png" alt="HPVC report" width="50%">
-</p>
+![HPVC report](assets/screenshots/hpvc_report.png)
 
 ### Node-RED flow
 
