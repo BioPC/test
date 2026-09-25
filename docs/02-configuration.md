@@ -1,4 +1,4 @@
-[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)
 
 # Settings
 
@@ -55,7 +55,7 @@ See [Inverter compatibility](05-inverter-compatibility.md) before selecting an e
 
 HPVC always calculates plant and inverter targets internally in watts. With **Limit unit = Percent**, only the Home Assistant I/O boundary is converted: `target % = target W / Full power W × 100`. The live percentage state is converted back to watts before allocation, deadband and write-verification logic. This allows percentage-controlled integrations to use the same HPVC control model without changing thresholds or proportional distribution.
 
-The writable number entity is also used as the command-state readback for write verification. In **Number entity** mode, HPVC v1.5.0 does not require a separate physical inverter-feedback sensor. If **Limit unit** is missing, unavailable, or not exactly `Watts` or `Percent`, configuration is treated as invalid and inverter writes are blocked rather than silently assuming Watts. For percentage entities, HPVC uses the Home Assistant `number` entity's `step` attribute when available, rounds commands to that supported percentage resolution, and verifies the effective Watt equivalent. If an integration does not expose a writable percentage `number` entity directly, use the v1.5.0 **Action/service** control method when the integration exposes a stable action/register-write path. A template/bridge number remains an alternative when preferred. A bridge that mirrors its requested value provides command-state confirmation only; it is not independent proof that the physical inverter accepted the underlying service/register write.
+The writable number entity is also used as the command-state readback for write verification. In **Number entity** mode, HPVC v1.5.1 does not require a separate physical inverter-feedback sensor. If **Limit unit** is missing, unavailable, or not exactly `Watts` or `Percent`, configuration is treated as invalid and inverter writes are blocked rather than silently assuming Watts. For percentage entities, HPVC uses the Home Assistant `number` entity's `step` attribute when available, rounds commands to that supported percentage resolution, and verifies the effective Watt equivalent. If an integration does not expose a writable percentage `number` entity directly, use the v1.5.0 **Action/service** control method when the integration exposes a stable action/register-write path. A template/bridge number remains an alternative when preferred. A bridge that mirrors its requested value provides command-state confirmation only; it is not independent proof that the physical inverter accepted the underlying service/register write.
 
 Invalid inverter limits or a percentage entity reporting outside 0–100% block writes and produce a configuration error.
 
@@ -158,9 +158,8 @@ The restore sequence also starts if either HBC permission is turned off. The ove
 The **Restore defaults** tile reapplies shipped configurable values after confirmation. It preserves:
 
 - configured sensor entity IDs;
-- inverter limit entity selections;
-- inverter limit-unit selections;
 - active inverter count;
+- all per-inverter control-path settings, including Control method, Limit entity, Limit unit, Maximum/Minimum power, Action/service, Value field, fixed/target JSON, Action Step, Refresh interval, pre/post actions, and readback entity;
 - the current HBC Strategy Control on/off state.
 
 It resets **Force charge at negative price** to its shipped default of **On**. The setting is also seeded **On** once on a fresh install or when first introduced by an upgrade. After that, a manual Off choice survives normal restarts and reloads. This does not grant HBC control by itself; **Enable HBC** remains the master permission and is preserved.
@@ -187,8 +186,8 @@ Use this when the integration exposes a Home Assistant action/service or registe
 - **Value field** — the field inside the service data that receives HPVC's dynamic target (default `value`; dotted paths are supported).
 - **Fixed data JSON** — constant service data such as hub, device, register or address.
 - **Target JSON** — optional Home Assistant target object for the main action, such as an `entity_id`.
-- **Action step** — command resolution in the selected Limit unit, for both Watts and Percent. `0` uses the default resolution of `1`; set a positive value such as `100` W, `0.1%`, or `1%` when the integration has a known command step. HPVC quantizes the effective target before change detection so representable commands are not repeatedly resent.
-- **Refresh seconds** — optional command heartbeat interval; `0` disables periodic refresh. When due, the refresh bypasses the stable-input skip and is sent on the next HPVC timer cycle (normally within about 10 seconds of the configured interval).
+- **Action step** — command resolution in the selected Limit unit. Leave it at `0` unless the integration documents a required resolution; `0` uses HPVC's default step of `1` in the selected unit. In **Percent** mode, a positive Action step must be `≤ 100`. In **Watts** mode, it must be `≤ Maximum power` for that inverter. The dashboard keeps the compact `Action step (0=auto)` label for mobile; the unit-specific limits are documented here, and HPVC marks the configuration invalid instead of silently clamping an out-of-range value. Examples: `100` W, `0.1%`, or `1%`. HPVC quantizes the effective target before change detection so representable commands are not repeatedly resent.
+- **Refresh seconds** — optional command heartbeat interval. Leave it at `0` unless the integration requires periodic re-sending; `0` disables periodic refresh. Valid helper range is `0–3600 s`. When due, the refresh bypasses the stable-input skip and is sent on the next HPVC timer cycle (normally within about 10 seconds of the configured interval).
 - **Pre-actions JSON** — optional calls executed sequentially before the main write. The next step starts only after the previous Home Assistant action completes successfully.
 - **Post-actions JSON** — optional calls executed sequentially after the main write. Any action failure stops the remaining sequence.
 - **Readback entity** — optional numeric entity used to verify and track the applied command.
@@ -209,10 +208,43 @@ The adapter settings are normal Home Assistant helpers and persist across restar
 > **Upgrade note — sensor → binary_sensor migration:** v1.5.0 corrects several HPVC helper domains (`hpvc_show_inverter_slot_2`…`_10`, inverter limit-range warnings and the export-threshold warning) from `sensor.*` to `binary_sensor.*`. If an earlier installed package created the old `sensor.*` registry entries, Home Assistant may leave those old entities orphaned. They can be removed from the entity registry after confirming the new `binary_sensor.*` entities are present.
 
 
+## Optional diagnostic compatibility sensors
+
+The package intentionally retains these nine schema-11 diagnostic sensors even though the supplied dashboard and control flow read the compact diagnostics JSON directly:
+
+- `sensor.hpvc_daily_band_excursions`
+- `sensor.hpvc_daily_rms_control_error`
+- `sensor.hpvc_daily_mae_control_error`
+- `sensor.hpvc_daily_time_outside_target_deadband`
+- `sensor.hpvc_deadband_exceedance_rms_mae_ratio`
+- `sensor.hpvc_tracking_error_attribution_coverage`
+- `sensor.hpvc_tracking_error_no_action_excluded`
+- `sensor.hpvc_tracking_error_continuity_gap_excluded`
+- `sensor.hpvc_tracking_error_factor_state`
+
+They are retained for backward compatibility with v1.4.3 installations and for user automations, history cards, or external dashboards. Removing them from the package would leave existing installations with orphaned entity-registry entries. They are therefore **public diagnostic outputs**, not runtime dependencies.
+
+`default_entity_id` is used only for `sensor.hpvc_diag_market_export_price` because that entity was renamed in v1.3.0 and the explicit default preserves the intended fresh-install entity ID. The remaining template sensors derive their default entity IDs from their names and `unique_id` values.
+
 ## Next steps
 
 - [Understand the control sequence](03-how-it-works.md)
 - [Troubleshoot unexpected behavior](04-troubleshooting.md)
 
-[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)
 
+
+## External PV release interface (v1.5.1)
+
+HPVC exposes a small Home Assistant handshake for companion controllers such as EV/forecast automations. It is generic and is not tied to any charger, forecast provider or external project.
+
+- `input_boolean.hpvc_external_release_request`: set this **On** to ask HPVC to release HPVC-controlled PV curtailment at the next safe opportunity. This helper is intended primarily for automations/integrations and is not shown as a normal dashboard control.
+- `binary_sensor.hpvc_external_release_active`: turns **On** only after HPVC considers the configured inverter limits restored to full and the normal PV-curtailment path is suspended for the request. The dashboard shows this sensor as a status badge only while active.
+
+A requester must wait for `binary_sensor.hpvc_external_release_active = on` before assuming that PV has been handed over. Do not use `input_boolean.hpvc_enabled` as a release acknowledgement. When the request is switched Off, HPVC immediately returns to its normal evaluation path.
+
+Mandatory negative-price/minimum protection, HBC override restoration, Night Restore and safety/fault states keep priority over an external release request. The normal PV cooldown is respected before a release write; there is no fixed 30-second success promise.
+
+### Safe master disable
+
+Switching `input_boolean.hpvc_enabled` Off no longer means “freeze the last HPVC limit”. When a usable inverter control path remains available, HPVC first restores configured inverter limits to full and restores any HPVC-owned negative-price HBC override, then settles into `Disabled`. The support report records the resulting runtime status and external-release state.

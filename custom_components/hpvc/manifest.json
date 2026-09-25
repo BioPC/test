@@ -1,0 +1,18 @@
+{
+  "domain": "hpvc",
+  "name": "Home PV Control",
+  "codeowners": [
+    "@BioPC"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/BioPC/home-pv-control",
+  "issue_tracker": "https://github.com/BioPC/home-pv-control/issues",
+  "iot_class": "local_push",
+  "version": "1.5.2",
+  "dependencies": [
+    "frontend",
+    "http",
+    "webhook"
+  ],
+  "single_config_entry": true
+}

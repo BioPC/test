@@ -1,4 +1,3 @@
-- HACS native mode no longer requires editing `configuration.yaml` or enabling `/config/packages`; HPVC configuration entities are created by the integration.
 # Home PV Control v1.5.2
 
 v1.5.2 adds a HACS-friendly installation and update layer around the existing HPVC architecture. The PV-control, HBC, safe-disable and external-release behavior from v1.5.1 is intentionally kept unchanged.
@@ -36,3 +35,10 @@ The existing manual workflow is unchanged: replace/copy `hpvc_config.yaml`, impo
 - Node-RED with `node-red-contrib-home-assistant-websocket` 0.80.3+
 - Existing v1.5.1 inverter Number entity / Action-service configuration remains compatible.
 - Existing HBC, external release and safe-disable behavior remains compatible.
+
+### Native HACS configuration
+
+- HACS installations no longer require `homeassistant: packages:` or any edit to `configuration.yaml`.
+- HPVC helpers and diagnostic template entities are provided natively by `custom_components/hpvc`.
+- The HACS dashboard and bundled Node-RED flow use the native HPVC entities automatically.
+- The traditional manual package/dashboard/Node-RED installation remains supported unchanged.

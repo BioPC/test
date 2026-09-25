@@ -1,0 +1,7 @@
+DOMAIN = "hpvc"
+VERSION = "1.5.2"
+PANEL_URL = "home-pv-control"
+PANEL_TITLE = "Home PV Control"
+PANEL_ICON = "mdi:solar-power-variant"
+DATA_RUNTIME = "runtime_config"
+INSTALLATION_MODE = "HACS native"

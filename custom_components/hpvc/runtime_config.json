@@ -1,0 +1,2273 @@
+{
+  "helpers": {
+    "switch": [
+      {
+        "key": "hpvc_enabled",
+        "config": {
+          "name": "Home PV Control Enabled",
+          "icon": "mdi:solar-power"
+        }
+      },
+      {
+        "key": "hpvc_external_release_request",
+        "config": {
+          "name": "HPVC External PV Release Request",
+          "icon": "mdi:transmission-tower-export"
+        }
+      },
+      {
+        "key": "hpvc_notifications",
+        "config": {
+          "name": "Home PV Control Notifications",
+          "icon": "mdi:bell-outline"
+        }
+      },
+      {
+        "key": "hpvc_control_hbc_strategy",
+        "config": {
+          "name": "Enable HBC Strategy Control",
+          "icon": "mdi:battery-sync"
+        }
+      },
+      {
+        "key": "hpvc_negative_price_hbc_charge",
+        "config": {
+          "name": "Force Charge at Negative Price",
+          "icon": "mdi:battery-charging"
+        }
+      },
+      {
+        "key": "hpvc_negative_price_hbc_charge_default_applied",
+        "config": {
+          "name": "HPVC Negative-Price Charging Default Applied",
+          "icon": "mdi:check-circle-outline"
+        }
+      },
+      {
+        "key": "hpvc_defaults_applied",
+        "config": {
+          "name": "Home PV Control Defaults Applied",
+          "icon": "mdi:check-circle-outline"
+        }
+      },
+      {
+        "key": "hpvc_onboarding_complete",
+        "config": {
+          "name": "Home PV Control Onboarding Complete",
+          "icon": "mdi:check-decagram-outline"
+        }
+      },
+      {
+        "key": "hpvc_auto_resume_pending",
+        "config": {
+          "name": "HPVC Automatic Resume Pending",
+          "icon": "mdi:restart-alert"
+        }
+      },
+      {
+        "key": "hpvc_report_ready",
+        "config": {
+          "name": "HPVC Report Ready",
+          "icon": "mdi:file-check-outline",
+          "initial": false
+        }
+      },
+      {
+        "key": "hpvc_report_generating",
+        "config": {
+          "name": "HPVC Report Generating",
+          "icon": "mdi:progress-clock",
+          "initial": false
+        }
+      },
+      {
+        "key": "hpvc_negative_override_fault",
+        "config": {
+          "name": "HPVC Negative-Price Override Fault",
+          "icon": "mdi:alert-circle-outline",
+          "initial": false
+        }
+      }
+    ],
+    "text": [
+      {
+        "key": "hpvc_market_price_sensor",
+        "config": {
+          "name": "Market/export Price Sensor",
+          "icon": "mdi:cash",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_all_in_price_sensor",
+        "config": {
+          "name": "All-in Import Price Sensor",
+          "icon": "mdi:cash-multiple",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_grid_power_sensor",
+        "config": {
+          "name": "Grid Power Sensor",
+          "icon": "mdi:transmission-tower",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv_power_sensor",
+        "config": {
+          "name": "Total PV Power Sensor",
+          "icon": "mdi:solar-power",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_status",
+        "config": {
+          "name": "Home PV Control Status",
+          "icon": "mdi:solar-power-variant",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_nodered_version",
+        "config": {
+          "name": "HPVC Node-RED Version",
+          "icon": "mdi:source-branch",
+          "max": 32
+        }
+      },
+      {
+        "key": "hpvc_reason",
+        "config": {
+          "name": "Home PV Control Reason",
+          "icon": "mdi:information-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_last_action",
+        "config": {
+          "name": "Home PV Control Last Action",
+          "icon": "mdi:clock-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_last_targets_json",
+        "config": {
+          "name": "Home PV Control Last Targets JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_accuracy_diagnostics_json",
+        "config": {
+          "name": "Home Control Accuracy Diagnostics JSON",
+          "icon": "mdi:chart-box-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_1",
+        "config": {
+          "name": "Home PV Control Insight 1",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_2",
+        "config": {
+          "name": "Home PV Control Insight 2",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_3",
+        "config": {
+          "name": "Home PV Control Insight 3",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_4",
+        "config": {
+          "name": "Home PV Control Insight 4",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_5",
+        "config": {
+          "name": "Home PV Control Insight 5",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_6",
+        "config": {
+          "name": "Home PV Control Insight 6",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_7",
+        "config": {
+          "name": "Home PV Control Insight 7",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_8",
+        "config": {
+          "name": "Home PV Control Insight 8",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_9",
+        "config": {
+          "name": "Home PV Control Insight 9",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_10",
+        "config": {
+          "name": "Home PV Control Insight 10",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_11",
+        "config": {
+          "name": "Home PV Control Insight 11",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_12",
+        "config": {
+          "name": "Home PV Control Insight 12",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_13",
+        "config": {
+          "name": "Home PV Control Insight 13",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_14",
+        "config": {
+          "name": "Home PV Control Insight 14",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_15",
+        "config": {
+          "name": "Home PV Control Insight 15",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_16",
+        "config": {
+          "name": "Home PV Control Insight 16",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_17",
+        "config": {
+          "name": "Home PV Control Insight 17",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_18",
+        "config": {
+          "name": "Home PV Control Insight 18",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_19",
+        "config": {
+          "name": "Home PV Control Insight 19",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_insight_20",
+        "config": {
+          "name": "Home PV Control Insight 20",
+          "icon": "mdi:lightbulb-on-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv1_limit_number",
+        "config": {
+          "name": "PV1 Limit Entity",
+          "icon": "mdi:solar-panel",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv2_limit_number",
+        "config": {
+          "name": "PV2 Limit Entity",
+          "icon": "mdi:solar-panel",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv3_limit_number",
+        "config": {
+          "name": "PV3 Limit Entity",
+          "icon": "mdi:solar-panel",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv4_limit_number",
+        "config": {
+          "name": "PV4 Limit Entity",
+          "icon": "mdi:solar-panel",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv5_limit_number",
+        "config": {
+          "name": "PV5 Limit Entity",
+          "icon": "mdi:solar-panel",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv6_limit_number",
+        "config": {
+          "name": "PV6 Limit Entity",
+          "icon": "mdi:solar-panel",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv7_limit_number",
+        "config": {
+          "name": "PV7 Limit Entity",
+          "icon": "mdi:solar-panel",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv8_limit_number",
+        "config": {
+          "name": "PV8 Limit Entity",
+          "icon": "mdi:solar-panel",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv9_limit_number",
+        "config": {
+          "name": "PV9 Limit Entity",
+          "icon": "mdi:solar-panel",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv10_limit_number",
+        "config": {
+          "name": "PV10 Limit Entity",
+          "icon": "mdi:solar-panel",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv1_action",
+        "config": {
+          "name": "PV1 Action Service",
+          "icon": "mdi:call-split",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv1_value_field",
+        "config": {
+          "name": "PV1 Action Value Field",
+          "icon": "mdi:form-textbox",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv1_fixed_data_json",
+        "config": {
+          "name": "PV1 Action Fixed Data JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv1_pre_actions_json",
+        "config": {
+          "name": "PV1 Pre-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv1_post_actions_json",
+        "config": {
+          "name": "PV1 Post-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv1_readback_entity",
+        "config": {
+          "name": "PV1 Readback Entity",
+          "icon": "mdi:eye-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv2_action",
+        "config": {
+          "name": "PV2 Action Service",
+          "icon": "mdi:call-split",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv2_value_field",
+        "config": {
+          "name": "PV2 Action Value Field",
+          "icon": "mdi:form-textbox",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv2_fixed_data_json",
+        "config": {
+          "name": "PV2 Action Fixed Data JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv2_pre_actions_json",
+        "config": {
+          "name": "PV2 Pre-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv2_post_actions_json",
+        "config": {
+          "name": "PV2 Post-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv2_readback_entity",
+        "config": {
+          "name": "PV2 Readback Entity",
+          "icon": "mdi:eye-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv3_action",
+        "config": {
+          "name": "PV3 Action Service",
+          "icon": "mdi:call-split",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv3_value_field",
+        "config": {
+          "name": "PV3 Action Value Field",
+          "icon": "mdi:form-textbox",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv3_fixed_data_json",
+        "config": {
+          "name": "PV3 Action Fixed Data JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv3_pre_actions_json",
+        "config": {
+          "name": "PV3 Pre-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv3_post_actions_json",
+        "config": {
+          "name": "PV3 Post-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv3_readback_entity",
+        "config": {
+          "name": "PV3 Readback Entity",
+          "icon": "mdi:eye-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv4_action",
+        "config": {
+          "name": "PV4 Action Service",
+          "icon": "mdi:call-split",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv4_value_field",
+        "config": {
+          "name": "PV4 Action Value Field",
+          "icon": "mdi:form-textbox",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv4_fixed_data_json",
+        "config": {
+          "name": "PV4 Action Fixed Data JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv4_pre_actions_json",
+        "config": {
+          "name": "PV4 Pre-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv4_post_actions_json",
+        "config": {
+          "name": "PV4 Post-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv4_readback_entity",
+        "config": {
+          "name": "PV4 Readback Entity",
+          "icon": "mdi:eye-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv5_action",
+        "config": {
+          "name": "PV5 Action Service",
+          "icon": "mdi:call-split",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv5_value_field",
+        "config": {
+          "name": "PV5 Action Value Field",
+          "icon": "mdi:form-textbox",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv5_fixed_data_json",
+        "config": {
+          "name": "PV5 Action Fixed Data JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv5_pre_actions_json",
+        "config": {
+          "name": "PV5 Pre-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv5_post_actions_json",
+        "config": {
+          "name": "PV5 Post-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv5_readback_entity",
+        "config": {
+          "name": "PV5 Readback Entity",
+          "icon": "mdi:eye-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv6_action",
+        "config": {
+          "name": "PV6 Action Service",
+          "icon": "mdi:call-split",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv6_value_field",
+        "config": {
+          "name": "PV6 Action Value Field",
+          "icon": "mdi:form-textbox",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv6_fixed_data_json",
+        "config": {
+          "name": "PV6 Action Fixed Data JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv6_pre_actions_json",
+        "config": {
+          "name": "PV6 Pre-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv6_post_actions_json",
+        "config": {
+          "name": "PV6 Post-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv6_readback_entity",
+        "config": {
+          "name": "PV6 Readback Entity",
+          "icon": "mdi:eye-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv7_action",
+        "config": {
+          "name": "PV7 Action Service",
+          "icon": "mdi:call-split",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv7_value_field",
+        "config": {
+          "name": "PV7 Action Value Field",
+          "icon": "mdi:form-textbox",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv7_fixed_data_json",
+        "config": {
+          "name": "PV7 Action Fixed Data JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv7_pre_actions_json",
+        "config": {
+          "name": "PV7 Pre-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv7_post_actions_json",
+        "config": {
+          "name": "PV7 Post-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv7_readback_entity",
+        "config": {
+          "name": "PV7 Readback Entity",
+          "icon": "mdi:eye-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv8_action",
+        "config": {
+          "name": "PV8 Action Service",
+          "icon": "mdi:call-split",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv8_value_field",
+        "config": {
+          "name": "PV8 Action Value Field",
+          "icon": "mdi:form-textbox",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv8_fixed_data_json",
+        "config": {
+          "name": "PV8 Action Fixed Data JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv8_pre_actions_json",
+        "config": {
+          "name": "PV8 Pre-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv8_post_actions_json",
+        "config": {
+          "name": "PV8 Post-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv8_readback_entity",
+        "config": {
+          "name": "PV8 Readback Entity",
+          "icon": "mdi:eye-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv9_action",
+        "config": {
+          "name": "PV9 Action Service",
+          "icon": "mdi:call-split",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv9_value_field",
+        "config": {
+          "name": "PV9 Action Value Field",
+          "icon": "mdi:form-textbox",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv9_fixed_data_json",
+        "config": {
+          "name": "PV9 Action Fixed Data JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv9_pre_actions_json",
+        "config": {
+          "name": "PV9 Pre-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv9_post_actions_json",
+        "config": {
+          "name": "PV9 Post-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv9_readback_entity",
+        "config": {
+          "name": "PV9 Readback Entity",
+          "icon": "mdi:eye-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv10_action",
+        "config": {
+          "name": "PV10 Action Service",
+          "icon": "mdi:call-split",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv10_value_field",
+        "config": {
+          "name": "PV10 Action Value Field",
+          "icon": "mdi:form-textbox",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv10_fixed_data_json",
+        "config": {
+          "name": "PV10 Action Fixed Data JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv10_pre_actions_json",
+        "config": {
+          "name": "PV10 Pre-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv10_post_actions_json",
+        "config": {
+          "name": "PV10 Post-actions JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv10_readback_entity",
+        "config": {
+          "name": "PV10 Readback Entity",
+          "icon": "mdi:eye-outline",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv1_target_json",
+        "config": {
+          "name": "PV1 Action Target JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv2_target_json",
+        "config": {
+          "name": "PV2 Action Target JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv3_target_json",
+        "config": {
+          "name": "PV3 Action Target JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv4_target_json",
+        "config": {
+          "name": "PV4 Action Target JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv5_target_json",
+        "config": {
+          "name": "PV5 Action Target JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv6_target_json",
+        "config": {
+          "name": "PV6 Action Target JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv7_target_json",
+        "config": {
+          "name": "PV7 Action Target JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv8_target_json",
+        "config": {
+          "name": "PV8 Action Target JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv9_target_json",
+        "config": {
+          "name": "PV9 Action Target JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      },
+      {
+        "key": "hpvc_pv10_target_json",
+        "config": {
+          "name": "PV10 Action Target JSON",
+          "icon": "mdi:code-json",
+          "max": 255
+        }
+      }
+    ],
+    "select": [
+      {
+        "key": "hpvc_pv1_control_method",
+        "config": {
+          "name": "PV1 Control Method",
+          "options": [
+            "Number entity",
+            "Action/service"
+          ],
+          "icon": "mdi:transit-connection-variant"
+        }
+      },
+      {
+        "key": "hpvc_pv2_control_method",
+        "config": {
+          "name": "PV2 Control Method",
+          "options": [
+            "Number entity",
+            "Action/service"
+          ],
+          "icon": "mdi:transit-connection-variant"
+        }
+      },
+      {
+        "key": "hpvc_pv3_control_method",
+        "config": {
+          "name": "PV3 Control Method",
+          "options": [
+            "Number entity",
+            "Action/service"
+          ],
+          "icon": "mdi:transit-connection-variant"
+        }
+      },
+      {
+        "key": "hpvc_pv4_control_method",
+        "config": {
+          "name": "PV4 Control Method",
+          "options": [
+            "Number entity",
+            "Action/service"
+          ],
+          "icon": "mdi:transit-connection-variant"
+        }
+      },
+      {
+        "key": "hpvc_pv5_control_method",
+        "config": {
+          "name": "PV5 Control Method",
+          "options": [
+            "Number entity",
+            "Action/service"
+          ],
+          "icon": "mdi:transit-connection-variant"
+        }
+      },
+      {
+        "key": "hpvc_pv6_control_method",
+        "config": {
+          "name": "PV6 Control Method",
+          "options": [
+            "Number entity",
+            "Action/service"
+          ],
+          "icon": "mdi:transit-connection-variant"
+        }
+      },
+      {
+        "key": "hpvc_pv7_control_method",
+        "config": {
+          "name": "PV7 Control Method",
+          "options": [
+            "Number entity",
+            "Action/service"
+          ],
+          "icon": "mdi:transit-connection-variant"
+        }
+      },
+      {
+        "key": "hpvc_pv8_control_method",
+        "config": {
+          "name": "PV8 Control Method",
+          "options": [
+            "Number entity",
+            "Action/service"
+          ],
+          "icon": "mdi:transit-connection-variant"
+        }
+      },
+      {
+        "key": "hpvc_pv9_control_method",
+        "config": {
+          "name": "PV9 Control Method",
+          "options": [
+            "Number entity",
+            "Action/service"
+          ],
+          "icon": "mdi:transit-connection-variant"
+        }
+      },
+      {
+        "key": "hpvc_pv10_control_method",
+        "config": {
+          "name": "PV10 Control Method",
+          "options": [
+            "Number entity",
+            "Action/service"
+          ],
+          "icon": "mdi:transit-connection-variant"
+        }
+      },
+      {
+        "key": "hpvc_pv1_limit_unit",
+        "config": {
+          "name": "PV1 Limit Unit",
+          "options": [
+            "Watts",
+            "Percent"
+          ],
+          "icon": "mdi:gauge"
+        }
+      },
+      {
+        "key": "hpvc_pv2_limit_unit",
+        "config": {
+          "name": "PV2 Limit Unit",
+          "options": [
+            "Watts",
+            "Percent"
+          ],
+          "icon": "mdi:gauge"
+        }
+      },
+      {
+        "key": "hpvc_pv3_limit_unit",
+        "config": {
+          "name": "PV3 Limit Unit",
+          "options": [
+            "Watts",
+            "Percent"
+          ],
+          "icon": "mdi:gauge"
+        }
+      },
+      {
+        "key": "hpvc_pv4_limit_unit",
+        "config": {
+          "name": "PV4 Limit Unit",
+          "options": [
+            "Watts",
+            "Percent"
+          ],
+          "icon": "mdi:gauge"
+        }
+      },
+      {
+        "key": "hpvc_pv5_limit_unit",
+        "config": {
+          "name": "PV5 Limit Unit",
+          "options": [
+            "Watts",
+            "Percent"
+          ],
+          "icon": "mdi:gauge"
+        }
+      },
+      {
+        "key": "hpvc_pv6_limit_unit",
+        "config": {
+          "name": "PV6 Limit Unit",
+          "options": [
+            "Watts",
+            "Percent"
+          ],
+          "icon": "mdi:gauge"
+        }
+      },
+      {
+        "key": "hpvc_pv7_limit_unit",
+        "config": {
+          "name": "PV7 Limit Unit",
+          "options": [
+            "Watts",
+            "Percent"
+          ],
+          "icon": "mdi:gauge"
+        }
+      },
+      {
+        "key": "hpvc_pv8_limit_unit",
+        "config": {
+          "name": "PV8 Limit Unit",
+          "options": [
+            "Watts",
+            "Percent"
+          ],
+          "icon": "mdi:gauge"
+        }
+      },
+      {
+        "key": "hpvc_pv9_limit_unit",
+        "config": {
+          "name": "PV9 Limit Unit",
+          "options": [
+            "Watts",
+            "Percent"
+          ],
+          "icon": "mdi:gauge"
+        }
+      },
+      {
+        "key": "hpvc_pv10_limit_unit",
+        "config": {
+          "name": "PV10 Limit Unit",
+          "options": [
+            "Watts",
+            "Percent"
+          ],
+          "icon": "mdi:gauge"
+        }
+      }
+    ],
+    "number": [
+      {
+        "key": "hpvc_inverter_count",
+        "config": {
+          "name": "Number of PV Inverters",
+          "min": 1,
+          "max": 10,
+          "step": 1,
+          "mode": "box",
+          "icon": "mdi:counter"
+        }
+      },
+      {
+        "key": "hpvc_pv1_full_limit",
+        "config": {
+          "name": "PV1 Full Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv1_low_limit",
+        "config": {
+          "name": "PV1 Low Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv2_full_limit",
+        "config": {
+          "name": "PV2 Full Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv2_low_limit",
+        "config": {
+          "name": "PV2 Low Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv3_full_limit",
+        "config": {
+          "name": "PV3 Full Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv3_low_limit",
+        "config": {
+          "name": "PV3 Low Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv4_full_limit",
+        "config": {
+          "name": "PV4 Full Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv4_low_limit",
+        "config": {
+          "name": "PV4 Low Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv5_full_limit",
+        "config": {
+          "name": "PV5 Full Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv5_low_limit",
+        "config": {
+          "name": "PV5 Low Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv6_full_limit",
+        "config": {
+          "name": "PV6 Full Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv6_low_limit",
+        "config": {
+          "name": "PV6 Low Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv7_full_limit",
+        "config": {
+          "name": "PV7 Full Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv7_low_limit",
+        "config": {
+          "name": "PV7 Low Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv8_full_limit",
+        "config": {
+          "name": "PV8 Full Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv8_low_limit",
+        "config": {
+          "name": "PV8 Low Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv9_full_limit",
+        "config": {
+          "name": "PV9 Full Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv9_low_limit",
+        "config": {
+          "name": "PV9 Low Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv10_full_limit",
+        "config": {
+          "name": "PV10 Full Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv10_low_limit",
+        "config": {
+          "name": "PV10 Low Limit",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-panel"
+        }
+      },
+      {
+        "key": "hpvc_pv_limiting_price",
+        "config": {
+          "name": "PV Limiting Price",
+          "min": -0.5,
+          "max": 0.2,
+          "step": 0.01,
+          "mode": "box",
+          "unit_of_measurement": "€/kWh",
+          "icon": "mdi:cash"
+        }
+      },
+      {
+        "key": "hpvc_battery_price_hysteresis",
+        "config": {
+          "name": "Price Hysteresis",
+          "min": 0.0,
+          "max": 0.1,
+          "step": 0.01,
+          "mode": "box",
+          "unit_of_measurement": "€/kWh",
+          "icon": "mdi:swap-horizontal"
+        }
+      },
+      {
+        "key": "hpvc_export_start_threshold",
+        "config": {
+          "name": "Export Start Threshold",
+          "min": -5000,
+          "max": 0,
+          "step": 10,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:transmission-tower-export"
+        }
+      },
+      {
+        "key": "hpvc_export_stop_threshold",
+        "config": {
+          "name": "Target Export Power",
+          "min": -5000,
+          "max": 500,
+          "step": 5,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:target"
+        }
+      },
+      {
+        "key": "hpvc_import_restore_threshold",
+        "config": {
+          "name": "Import Restore Threshold",
+          "min": 0,
+          "max": 5000,
+          "step": 10,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:transmission-tower-import"
+        }
+      },
+      {
+        "key": "hpvc_pv_min_power_for_control",
+        "config": {
+          "name": "Min PV for Control",
+          "min": 0,
+          "max": 5000,
+          "step": 10,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:solar-power"
+        }
+      },
+      {
+        "key": "hpvc_pv_night_restore_power",
+        "config": {
+          "name": "Night Restore PV Fallback Threshold",
+          "min": 0,
+          "max": 1000,
+          "step": 5,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:weather-night"
+        }
+      },
+      {
+        "key": "hpvc_cooldown_seconds",
+        "config": {
+          "name": "PV Cooldown (sec)",
+          "min": 10,
+          "max": 60,
+          "step": 5,
+          "mode": "slider",
+          "unit_of_measurement": "sec",
+          "icon": "mdi:timer-outline"
+        }
+      },
+      {
+        "key": "hpvc_pv_adjust_deadband",
+        "config": {
+          "name": "PV Adjustment Deadband",
+          "min": 1,
+          "max": 500,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "W",
+          "icon": "mdi:approximately-equal"
+        }
+      },
+      {
+        "key": "hpvc_pv1_action_step",
+        "config": {
+          "name": "PV1 Action Step",
+          "min": 0,
+          "max": 10000,
+          "step": 0.001,
+          "mode": "box",
+          "icon": "mdi:stairs"
+        }
+      },
+      {
+        "key": "hpvc_pv1_refresh_seconds",
+        "config": {
+          "name": "PV1 Action Refresh Seconds",
+          "min": 0,
+          "max": 3600,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "s",
+          "icon": "mdi:refresh-auto"
+        }
+      },
+      {
+        "key": "hpvc_pv2_action_step",
+        "config": {
+          "name": "PV2 Action Step",
+          "min": 0,
+          "max": 10000,
+          "step": 0.001,
+          "mode": "box",
+          "icon": "mdi:stairs"
+        }
+      },
+      {
+        "key": "hpvc_pv2_refresh_seconds",
+        "config": {
+          "name": "PV2 Action Refresh Seconds",
+          "min": 0,
+          "max": 3600,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "s",
+          "icon": "mdi:refresh-auto"
+        }
+      },
+      {
+        "key": "hpvc_pv3_action_step",
+        "config": {
+          "name": "PV3 Action Step",
+          "min": 0,
+          "max": 10000,
+          "step": 0.001,
+          "mode": "box",
+          "icon": "mdi:stairs"
+        }
+      },
+      {
+        "key": "hpvc_pv3_refresh_seconds",
+        "config": {
+          "name": "PV3 Action Refresh Seconds",
+          "min": 0,
+          "max": 3600,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "s",
+          "icon": "mdi:refresh-auto"
+        }
+      },
+      {
+        "key": "hpvc_pv4_action_step",
+        "config": {
+          "name": "PV4 Action Step",
+          "min": 0,
+          "max": 10000,
+          "step": 0.001,
+          "mode": "box",
+          "icon": "mdi:stairs"
+        }
+      },
+      {
+        "key": "hpvc_pv4_refresh_seconds",
+        "config": {
+          "name": "PV4 Action Refresh Seconds",
+          "min": 0,
+          "max": 3600,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "s",
+          "icon": "mdi:refresh-auto"
+        }
+      },
+      {
+        "key": "hpvc_pv5_action_step",
+        "config": {
+          "name": "PV5 Action Step",
+          "min": 0,
+          "max": 10000,
+          "step": 0.001,
+          "mode": "box",
+          "icon": "mdi:stairs"
+        }
+      },
+      {
+        "key": "hpvc_pv5_refresh_seconds",
+        "config": {
+          "name": "PV5 Action Refresh Seconds",
+          "min": 0,
+          "max": 3600,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "s",
+          "icon": "mdi:refresh-auto"
+        }
+      },
+      {
+        "key": "hpvc_pv6_action_step",
+        "config": {
+          "name": "PV6 Action Step",
+          "min": 0,
+          "max": 10000,
+          "step": 0.001,
+          "mode": "box",
+          "icon": "mdi:stairs"
+        }
+      },
+      {
+        "key": "hpvc_pv6_refresh_seconds",
+        "config": {
+          "name": "PV6 Action Refresh Seconds",
+          "min": 0,
+          "max": 3600,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "s",
+          "icon": "mdi:refresh-auto"
+        }
+      },
+      {
+        "key": "hpvc_pv7_action_step",
+        "config": {
+          "name": "PV7 Action Step",
+          "min": 0,
+          "max": 10000,
+          "step": 0.001,
+          "mode": "box",
+          "icon": "mdi:stairs"
+        }
+      },
+      {
+        "key": "hpvc_pv7_refresh_seconds",
+        "config": {
+          "name": "PV7 Action Refresh Seconds",
+          "min": 0,
+          "max": 3600,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "s",
+          "icon": "mdi:refresh-auto"
+        }
+      },
+      {
+        "key": "hpvc_pv8_action_step",
+        "config": {
+          "name": "PV8 Action Step",
+          "min": 0,
+          "max": 10000,
+          "step": 0.001,
+          "mode": "box",
+          "icon": "mdi:stairs"
+        }
+      },
+      {
+        "key": "hpvc_pv8_refresh_seconds",
+        "config": {
+          "name": "PV8 Action Refresh Seconds",
+          "min": 0,
+          "max": 3600,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "s",
+          "icon": "mdi:refresh-auto"
+        }
+      },
+      {
+        "key": "hpvc_pv9_action_step",
+        "config": {
+          "name": "PV9 Action Step",
+          "min": 0,
+          "max": 10000,
+          "step": 0.001,
+          "mode": "box",
+          "icon": "mdi:stairs"
+        }
+      },
+      {
+        "key": "hpvc_pv9_refresh_seconds",
+        "config": {
+          "name": "PV9 Action Refresh Seconds",
+          "min": 0,
+          "max": 3600,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "s",
+          "icon": "mdi:refresh-auto"
+        }
+      },
+      {
+        "key": "hpvc_pv10_action_step",
+        "config": {
+          "name": "PV10 Action Step",
+          "min": 0,
+          "max": 10000,
+          "step": 0.001,
+          "mode": "box",
+          "icon": "mdi:stairs"
+        }
+      },
+      {
+        "key": "hpvc_pv10_refresh_seconds",
+        "config": {
+          "name": "PV10 Action Refresh Seconds",
+          "min": 0,
+          "max": 3600,
+          "step": 1,
+          "mode": "box",
+          "unit_of_measurement": "s",
+          "icon": "mdi:refresh-auto"
+        }
+      }
+    ],
+    "button": [
+      {
+        "key": "hpvc_defaults_restored_event",
+        "config": {
+          "name": "HPVC Defaults Restored Event",
+          "icon": "mdi:restore"
+        }
+      },
+      {
+        "key": "hpvc_export_report",
+        "config": {
+          "name": "HPVC Generate Report",
+          "icon": "mdi:file-document-plus-outline"
+        }
+      }
+    ]
+  },
+  "templates": {
+    "sensor": [
+      {
+        "name": "HPVC Diag Market/Export Price",
+        "default_entity_id": "sensor.hpvc_diag_market_export_price",
+        "unique_id": "hpvc_diag_market_export_price",
+        "unit_of_measurement": "€/kWh",
+        "icon": "mdi:cash",
+        "availability": "{% set ent = states('text.hpvc_market_price_sensor') %} {{ ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', ''] and (ent | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) and is_number(states(ent)) }}",
+        "state": "{% set ent = states('text.hpvc_market_price_sensor') %} {{ states(ent) | float }}"
+      },
+      {
+        "name": "HPVC Diag All In Price",
+        "unique_id": "hpvc_diag_all_in_price",
+        "unit_of_measurement": "€/kWh",
+        "icon": "mdi:cash-multiple",
+        "availability": "{% set ent = states('text.hpvc_all_in_price_sensor') %} {{ ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', ''] and (ent | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) and is_number(states(ent)) }}",
+        "state": "{% set ent = states('text.hpvc_all_in_price_sensor') %} {{ states(ent) | float }}"
+      },
+      {
+        "name": "HPVC Diag Grid Power",
+        "unique_id": "hpvc_diag_grid_power",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:transmission-tower",
+        "availability": "{% set ent = states('text.hpvc_grid_power_sensor') %} {{ ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', ''] and (ent | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) and is_number(states(ent)) }}",
+        "state": "{% set ent = states('text.hpvc_grid_power_sensor') %} {{ states(ent) | float | round(0) }}"
+      },
+      {
+        "name": "HPVC Diag PV Power",
+        "unique_id": "hpvc_diag_pv_power",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:solar-power",
+        "availability": "{% set ent = states('text.hpvc_pv_power_sensor') %} {{ ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', ''] and (ent | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) and is_number(states(ent)) }}",
+        "state": "{% set ent = states('text.hpvc_pv_power_sensor') %} {{ states(ent) | float | round(0) }}"
+      },
+      {
+        "name": "HPVC Diag HBC Strategy",
+        "unique_id": "hpvc_diag_hbc_strategy",
+        "icon": "mdi:battery-sync",
+        "state": "{{ states('input_select.house_battery_strategy') }}"
+      },
+      {
+        "name": "HPVC Total HBC Charging Power",
+        "unique_id": "hpvc_total_hbc_charging_power",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:battery-arrow-down",
+        "state": "{% set count = states('input_number.house_battery_count') | int(0) %} {% set ns = namespace(total=0) %} {% for i in range(1, [count, 6] | min + 1) %}\n  {% set ent = 'sensor.marstek_m' ~ i ~ '_ac_power' %}\n  {% if has_value(ent) %}\n    {% set power = states(ent) | float(0) %}\n    {% if power < 0 %}\n      {% set ns.total = ns.total + (power * -1) %}\n    {% endif %}\n  {% endif %}\n{% endfor %} {{ ns.total | round(0) }}"
+      },
+      {
+        "name": "HPVC Daily Target Accuracy",
+        "unique_id": "hpvc_daily_target_accuracy",
+        "unit_of_measurement": "%",
+        "icon": "mdi:target",
+        "availability": "{% set data = states('text.hpvc_last_targets_json') | from_json(default={}) %} {{ data.get('da', none) is not none }}",
+        "state": "{% set data = states('text.hpvc_last_targets_json') | from_json(default={}) %} {% set value = data.get('da', 0) %} {{ [[value | float(0), 0] | max, 100] | min | round(1) }}"
+      },
+      {
+        "name": "HPVC Daily Target Accuracy Samples",
+        "unique_id": "hpvc_daily_target_accuracy_samples",
+        "icon": "mdi:counter",
+        "availability": "{% set raw = states('text.hpvc_accuracy_diagnostics_json') %} {% set data = raw | from_json(default={}) %} {{ raw not in ['unknown', 'unavailable', 'none', ''] and data.get('tc', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('tc', 0) | int(0) }}"
+      },
+      {
+        "name": "HPVC Daily Band Excursions",
+        "unique_id": "hpvc_daily_band_excursions",
+        "icon": "mdi:chart-scatter-plot",
+        "availability": "{% set data = states('text.hpvc_accuracy_diagnostics_json') | from_json(default={}) %} {{ data.get('tbx', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('tbx', 0) | int(0) }}"
+      },
+      {
+        "name": "HPVC Daily RMS Control Error",
+        "unique_id": "hpvc_daily_rms_control_error",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:chart-bell-curve-cumulative",
+        "availability": "{% set data = states('text.hpvc_accuracy_diagnostics_json') | from_json(default={}) %} {{ data.get('trms', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('trms', 0) | float(0) | round(1) }}"
+      },
+      {
+        "name": "HPVC Daily MAE Control Error",
+        "unique_id": "hpvc_daily_mae_control_error",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:chart-line",
+        "availability": "{% set data = states('text.hpvc_accuracy_diagnostics_json') | from_json(default={}) %} {{ data.get('tmae', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('tmae', 0) | float(0) | round(1) }}"
+      },
+      {
+        "name": "HPVC Daily Time Outside Target Deadband",
+        "unique_id": "hpvc_daily_time_outside_target_deadband",
+        "unit_of_measurement": "%",
+        "state_class": "measurement",
+        "icon": "mdi:timer-alert-outline",
+        "availability": "{% set data = states('text.hpvc_accuracy_diagnostics_json') | from_json(default={}) %} {{ data.get('toutp', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('toutp', 0) | float(0) | round(1) }}"
+      },
+      {
+        "name": "HPVC Deadband Exceedance RMS MAE Ratio",
+        "unique_id": "hpvc_deadband_exceedance_rms_mae_ratio",
+        "icon": "mdi:division",
+        "availability": "{% set data = states('text.hpvc_accuracy_diagnostics_json') | from_json(default={}) %} {{ data.get('tratio', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('tratio', 0) | float(0) | round(2) }}"
+      },
+      {
+        "name": "HPVC Tracking Error Attribution Coverage",
+        "unique_id": "hpvc_tracking_error_attribution_coverage",
+        "unit_of_measurement": "%",
+        "state_class": "measurement",
+        "icon": "mdi:percent-box-outline",
+        "availability": "{% set data = states('text.hpvc_accuracy_diagnostics_json') | from_json(default={}) %} {{ data.get('tcoverp', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('tcoverp', 0) | float(0) | round(1) }}"
+      },
+      {
+        "name": "HPVC Tracking Error No Action Excluded",
+        "unique_id": "hpvc_tracking_error_no_action_excluded",
+        "unit_of_measurement": "%",
+        "state_class": "measurement",
+        "icon": "mdi:pause-circle-outline",
+        "availability": "{% set data = states('text.hpvc_accuracy_diagnostics_json') | from_json(default={}) %} {{ data.get('tpolicyx', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('tpolicyx', 0) | float(0) | round(1) }}"
+      },
+      {
+        "name": "HPVC Tracking Error Continuity Gap Excluded",
+        "unique_id": "hpvc_tracking_error_continuity_gap_excluded",
+        "unit_of_measurement": "%",
+        "state_class": "measurement",
+        "icon": "mdi:timeline-alert-outline",
+        "availability": "{% set data = states('text.hpvc_accuracy_diagnostics_json') | from_json(default={}) %} {{ data.get('tgapx', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('tgapx', 0) | float(0) | round(1) }}"
+      },
+      {
+        "name": "HPVC Tracking Error Factor State",
+        "unique_id": "hpvc_tracking_error_factor_state",
+        "icon": "mdi:state-machine",
+        "availability": "{% set data = states('text.hpvc_accuracy_diagnostics_json') | from_json(default={}) %} {{ data.get('tfs', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('tfs', 'no_error') }}"
+      },
+      {
+        "name": "HPVC Target Control Response Impact",
+        "unique_id": "hpvc_target_control_response_impact",
+        "unit_of_measurement": "%",
+        "icon": "mdi:swap-horizontal-bold",
+        "availability": "{% set raw = states('text.hpvc_accuracy_diagnostics_json') %} {% set data = raw | from_json(default={}) %} {{ raw not in ['unknown', 'unavailable', 'none', ''] and data.get('tctrlp', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('tctrlp', 0) | float(0) | round(1) }}"
+      },
+      {
+        "name": "HPVC Target Other Impact",
+        "unique_id": "hpvc_target_other_impact",
+        "unit_of_measurement": "%",
+        "icon": "mdi:arrow-oscillating",
+        "availability": "{% set raw = states('text.hpvc_accuracy_diagnostics_json') %} {% set data = raw | from_json(default={}) %} {{ raw not in ['unknown', 'unavailable', 'none', ''] and data.get('totherp', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('totherp', 0) | float(0) | round(1) }}"
+      },
+      {
+        "name": "HPVC Target PV Availability Impact",
+        "unique_id": "hpvc_target_pv_availability_impact",
+        "unit_of_measurement": "%",
+        "icon": "mdi:weather-cloudy",
+        "availability": "{% set raw = states('text.hpvc_accuracy_diagnostics_json') %} {% set data = raw | from_json(default={}) %} {{ raw not in ['unknown', 'unavailable', 'none', ''] and data.get('tpvavailp', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('tpvavailp', 0) | float(0) | round(1) }}"
+      },
+      {
+        "name": "HPVC Target House Load Changes Impact",
+        "unique_id": "hpvc_target_house_load_changes_impact",
+        "unit_of_measurement": "%",
+        "icon": "mdi:home-lightning-bolt-outline",
+        "availability": "{% set raw = states('text.hpvc_accuracy_diagnostics_json') %} {% set data = raw | from_json(default={}) %} {{ raw not in ['unknown', 'unavailable', 'none', ''] and data.get('thloadp', none) is not none }}",
+        "state": "{{ (states('text.hpvc_accuracy_diagnostics_json') | from_json(default={})).get('thloadp', 0) | float(0) | round(1) }}"
+      },
+      {
+        "name": "HPVC PV1 Actual Limit",
+        "unique_id": "hpvc_pv1_actual_limit",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:solar-panel",
+        "availability": "{% set method = states('select.hpvc_pv1_control_method') %} {% set ent = states('text.hpvc_pv1_limit_number') if method == 'Number entity' else states('text.hpvc_pv1_readback_entity') %} {{\n  states('number.hpvc_inverter_count') | int(0) >= 1\n  and ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', '']\n  and is_number(states(ent))\n  and states('select.hpvc_pv1_limit_unit') in ['Watts', 'Percent']\n}}",
+        "state": "{% set method = states('select.hpvc_pv1_control_method') %} {% set ent = states('text.hpvc_pv1_limit_number') if method == 'Number entity' else states('text.hpvc_pv1_readback_entity') %} {% set unit = states('select.hpvc_pv1_limit_unit') %} {% set maximum = states('number.hpvc_pv1_full_limit') | float(0) %} {% set raw = states(ent) | float(0) %} {{ ((raw / 100 * maximum) if unit == 'Percent' else raw) | round(0) }}"
+      },
+      {
+        "name": "HPVC PV2 Actual Limit",
+        "unique_id": "hpvc_pv2_actual_limit",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:solar-panel",
+        "availability": "{% set method = states('select.hpvc_pv2_control_method') %} {% set ent = states('text.hpvc_pv2_limit_number') if method == 'Number entity' else states('text.hpvc_pv2_readback_entity') %} {{\n  states('number.hpvc_inverter_count') | int(0) >= 2\n  and ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', '']\n  and is_number(states(ent))\n  and states('select.hpvc_pv2_limit_unit') in ['Watts', 'Percent']\n}}",
+        "state": "{% set method = states('select.hpvc_pv2_control_method') %} {% set ent = states('text.hpvc_pv2_limit_number') if method == 'Number entity' else states('text.hpvc_pv2_readback_entity') %} {% set unit = states('select.hpvc_pv2_limit_unit') %} {% set maximum = states('number.hpvc_pv2_full_limit') | float(0) %} {% set raw = states(ent) | float(0) %} {{ ((raw / 100 * maximum) if unit == 'Percent' else raw) | round(0) }}"
+      },
+      {
+        "name": "HPVC PV3 Actual Limit",
+        "unique_id": "hpvc_pv3_actual_limit",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:solar-panel",
+        "availability": "{% set method = states('select.hpvc_pv3_control_method') %} {% set ent = states('text.hpvc_pv3_limit_number') if method == 'Number entity' else states('text.hpvc_pv3_readback_entity') %} {{\n  states('number.hpvc_inverter_count') | int(0) >= 3\n  and ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', '']\n  and is_number(states(ent))\n  and states('select.hpvc_pv3_limit_unit') in ['Watts', 'Percent']\n}}",
+        "state": "{% set method = states('select.hpvc_pv3_control_method') %} {% set ent = states('text.hpvc_pv3_limit_number') if method == 'Number entity' else states('text.hpvc_pv3_readback_entity') %} {% set unit = states('select.hpvc_pv3_limit_unit') %} {% set maximum = states('number.hpvc_pv3_full_limit') | float(0) %} {% set raw = states(ent) | float(0) %} {{ ((raw / 100 * maximum) if unit == 'Percent' else raw) | round(0) }}"
+      },
+      {
+        "name": "HPVC PV4 Actual Limit",
+        "unique_id": "hpvc_pv4_actual_limit",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:solar-panel",
+        "availability": "{% set method = states('select.hpvc_pv4_control_method') %} {% set ent = states('text.hpvc_pv4_limit_number') if method == 'Number entity' else states('text.hpvc_pv4_readback_entity') %} {{\n  states('number.hpvc_inverter_count') | int(0) >= 4\n  and ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', '']\n  and is_number(states(ent))\n  and states('select.hpvc_pv4_limit_unit') in ['Watts', 'Percent']\n}}",
+        "state": "{% set method = states('select.hpvc_pv4_control_method') %} {% set ent = states('text.hpvc_pv4_limit_number') if method == 'Number entity' else states('text.hpvc_pv4_readback_entity') %} {% set unit = states('select.hpvc_pv4_limit_unit') %} {% set maximum = states('number.hpvc_pv4_full_limit') | float(0) %} {% set raw = states(ent) | float(0) %} {{ ((raw / 100 * maximum) if unit == 'Percent' else raw) | round(0) }}"
+      },
+      {
+        "name": "HPVC PV5 Actual Limit",
+        "unique_id": "hpvc_pv5_actual_limit",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:solar-panel",
+        "availability": "{% set method = states('select.hpvc_pv5_control_method') %} {% set ent = states('text.hpvc_pv5_limit_number') if method == 'Number entity' else states('text.hpvc_pv5_readback_entity') %} {{\n  states('number.hpvc_inverter_count') | int(0) >= 5\n  and ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', '']\n  and is_number(states(ent))\n  and states('select.hpvc_pv5_limit_unit') in ['Watts', 'Percent']\n}}",
+        "state": "{% set method = states('select.hpvc_pv5_control_method') %} {% set ent = states('text.hpvc_pv5_limit_number') if method == 'Number entity' else states('text.hpvc_pv5_readback_entity') %} {% set unit = states('select.hpvc_pv5_limit_unit') %} {% set maximum = states('number.hpvc_pv5_full_limit') | float(0) %} {% set raw = states(ent) | float(0) %} {{ ((raw / 100 * maximum) if unit == 'Percent' else raw) | round(0) }}"
+      },
+      {
+        "name": "HPVC PV6 Actual Limit",
+        "unique_id": "hpvc_pv6_actual_limit",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:solar-panel",
+        "availability": "{% set method = states('select.hpvc_pv6_control_method') %} {% set ent = states('text.hpvc_pv6_limit_number') if method == 'Number entity' else states('text.hpvc_pv6_readback_entity') %} {{\n  states('number.hpvc_inverter_count') | int(0) >= 6\n  and ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', '']\n  and is_number(states(ent))\n  and states('select.hpvc_pv6_limit_unit') in ['Watts', 'Percent']\n}}",
+        "state": "{% set method = states('select.hpvc_pv6_control_method') %} {% set ent = states('text.hpvc_pv6_limit_number') if method == 'Number entity' else states('text.hpvc_pv6_readback_entity') %} {% set unit = states('select.hpvc_pv6_limit_unit') %} {% set maximum = states('number.hpvc_pv6_full_limit') | float(0) %} {% set raw = states(ent) | float(0) %} {{ ((raw / 100 * maximum) if unit == 'Percent' else raw) | round(0) }}"
+      },
+      {
+        "name": "HPVC PV7 Actual Limit",
+        "unique_id": "hpvc_pv7_actual_limit",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:solar-panel",
+        "availability": "{% set method = states('select.hpvc_pv7_control_method') %} {% set ent = states('text.hpvc_pv7_limit_number') if method == 'Number entity' else states('text.hpvc_pv7_readback_entity') %} {{\n  states('number.hpvc_inverter_count') | int(0) >= 7\n  and ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', '']\n  and is_number(states(ent))\n  and states('select.hpvc_pv7_limit_unit') in ['Watts', 'Percent']\n}}",
+        "state": "{% set method = states('select.hpvc_pv7_control_method') %} {% set ent = states('text.hpvc_pv7_limit_number') if method == 'Number entity' else states('text.hpvc_pv7_readback_entity') %} {% set unit = states('select.hpvc_pv7_limit_unit') %} {% set maximum = states('number.hpvc_pv7_full_limit') | float(0) %} {% set raw = states(ent) | float(0) %} {{ ((raw / 100 * maximum) if unit == 'Percent' else raw) | round(0) }}"
+      },
+      {
+        "name": "HPVC PV8 Actual Limit",
+        "unique_id": "hpvc_pv8_actual_limit",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:solar-panel",
+        "availability": "{% set method = states('select.hpvc_pv8_control_method') %} {% set ent = states('text.hpvc_pv8_limit_number') if method == 'Number entity' else states('text.hpvc_pv8_readback_entity') %} {{\n  states('number.hpvc_inverter_count') | int(0) >= 8\n  and ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', '']\n  and is_number(states(ent))\n  and states('select.hpvc_pv8_limit_unit') in ['Watts', 'Percent']\n}}",
+        "state": "{% set method = states('select.hpvc_pv8_control_method') %} {% set ent = states('text.hpvc_pv8_limit_number') if method == 'Number entity' else states('text.hpvc_pv8_readback_entity') %} {% set unit = states('select.hpvc_pv8_limit_unit') %} {% set maximum = states('number.hpvc_pv8_full_limit') | float(0) %} {% set raw = states(ent) | float(0) %} {{ ((raw / 100 * maximum) if unit == 'Percent' else raw) | round(0) }}"
+      },
+      {
+        "name": "HPVC PV9 Actual Limit",
+        "unique_id": "hpvc_pv9_actual_limit",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:solar-panel",
+        "availability": "{% set method = states('select.hpvc_pv9_control_method') %} {% set ent = states('text.hpvc_pv9_limit_number') if method == 'Number entity' else states('text.hpvc_pv9_readback_entity') %} {{\n  states('number.hpvc_inverter_count') | int(0) >= 9\n  and ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', '']\n  and is_number(states(ent))\n  and states('select.hpvc_pv9_limit_unit') in ['Watts', 'Percent']\n}}",
+        "state": "{% set method = states('select.hpvc_pv9_control_method') %} {% set ent = states('text.hpvc_pv9_limit_number') if method == 'Number entity' else states('text.hpvc_pv9_readback_entity') %} {% set unit = states('select.hpvc_pv9_limit_unit') %} {% set maximum = states('number.hpvc_pv9_full_limit') | float(0) %} {% set raw = states(ent) | float(0) %} {{ ((raw / 100 * maximum) if unit == 'Percent' else raw) | round(0) }}"
+      },
+      {
+        "name": "HPVC PV10 Actual Limit",
+        "unique_id": "hpvc_pv10_actual_limit",
+        "unit_of_measurement": "W",
+        "device_class": "power",
+        "state_class": "measurement",
+        "icon": "mdi:solar-panel",
+        "availability": "{% set method = states('select.hpvc_pv10_control_method') %} {% set ent = states('text.hpvc_pv10_limit_number') if method == 'Number entity' else states('text.hpvc_pv10_readback_entity') %} {{\n  states('number.hpvc_inverter_count') | int(0) >= 10\n  and ent not in ['unknown', 'unavailable', 'none', 'select_entity_first', '']\n  and is_number(states(ent))\n  and states('select.hpvc_pv10_limit_unit') in ['Watts', 'Percent']\n}}",
+        "state": "{% set method = states('select.hpvc_pv10_control_method') %} {% set ent = states('text.hpvc_pv10_limit_number') if method == 'Number entity' else states('text.hpvc_pv10_readback_entity') %} {% set unit = states('select.hpvc_pv10_limit_unit') %} {% set maximum = states('number.hpvc_pv10_full_limit') | float(0) %} {% set raw = states(ent) | float(0) %} {{ ((raw / 100 * maximum) if unit == 'Percent' else raw) | round(0) }}"
+      },
+      {
+        "name": "HPVC Charge Priority State",
+        "unique_id": "hpvc_charge_priority_state",
+        "icon": "mdi:battery-sync-outline",
+        "state": "{% set data = states('text.hpvc_last_targets_json') | from_json(default={}) %} {% set code = data.get('cps', 'a' if data.get('cp', false) else 'o') %} {{ {'a':'Active', 'w':'Waiting', 'r':'Requested', 'o':'Off'}.get(code, 'Off') }}",
+        "attributes": {
+          "requested": "{% set data = states('text.hpvc_last_targets_json') | from_json(default={}) %} {{ data.get('cps', 'a' if data.get('cp', false) else 'o') in ['a','w','r'] }}",
+          "operational": "{% set data = states('text.hpvc_last_targets_json') | from_json(default={}) %} {{ data.get('cps', 'a' if data.get('cp', false) else 'o') == 'a' }}"
+        }
+      }
+    ],
+    "binary_sensor": [
+      {
+        "name": "HPVC Show Inverter Slot 2",
+        "unique_id": "hpvc_show_inverter_slot_2",
+        "icon": "mdi:eye-outline",
+        "state": "{{ states('number.hpvc_inverter_count')|int(1) >= 2 }}"
+      },
+      {
+        "name": "HPVC Show Inverter Slot 3",
+        "unique_id": "hpvc_show_inverter_slot_3",
+        "icon": "mdi:eye-outline",
+        "state": "{{ states('number.hpvc_inverter_count')|int(1) >= 3 }}"
+      },
+      {
+        "name": "HPVC Show Inverter Slot 4",
+        "unique_id": "hpvc_show_inverter_slot_4",
+        "icon": "mdi:eye-outline",
+        "state": "{{ states('number.hpvc_inverter_count')|int(1) >= 4 }}"
+      },
+      {
+        "name": "HPVC Show Inverter Slot 5",
+        "unique_id": "hpvc_show_inverter_slot_5",
+        "icon": "mdi:eye-outline",
+        "state": "{{ states('number.hpvc_inverter_count')|int(1) >= 5 }}"
+      },
+      {
+        "name": "HPVC Show Inverter Slot 6",
+        "unique_id": "hpvc_show_inverter_slot_6",
+        "icon": "mdi:eye-outline",
+        "state": "{{ states('number.hpvc_inverter_count')|int(1) >= 6 }}"
+      },
+      {
+        "name": "HPVC Show Inverter Slot 7",
+        "unique_id": "hpvc_show_inverter_slot_7",
+        "icon": "mdi:eye-outline",
+        "state": "{{ states('number.hpvc_inverter_count')|int(1) >= 7 }}"
+      },
+      {
+        "name": "HPVC Show Inverter Slot 8",
+        "unique_id": "hpvc_show_inverter_slot_8",
+        "icon": "mdi:eye-outline",
+        "state": "{{ states('number.hpvc_inverter_count')|int(1) >= 8 }}"
+      },
+      {
+        "name": "HPVC Show Inverter Slot 9",
+        "unique_id": "hpvc_show_inverter_slot_9",
+        "icon": "mdi:eye-outline",
+        "state": "{{ states('number.hpvc_inverter_count')|int(1) >= 9 }}"
+      },
+      {
+        "name": "HPVC Show Inverter Slot 10",
+        "unique_id": "hpvc_show_inverter_slot_10",
+        "icon": "mdi:eye-outline",
+        "state": "{{ states('number.hpvc_inverter_count')|int(1) >= 10 }}"
+      },
+      {
+        "name": "HPVC PV1 Limit Range Invalid",
+        "unique_id": "hpvc_pv1_limit_range_invalid",
+        "icon": "mdi:alert-outline",
+        "state": "{{\n  states('number.hpvc_inverter_count') | int(1) >= 1\n  and is_number(states('number.hpvc_pv1_full_limit'))\n  and is_number(states('number.hpvc_pv1_low_limit'))\n  and states('number.hpvc_pv1_low_limit') | float(0)\n      >= states('number.hpvc_pv1_full_limit') | float(0)\n}}"
+      },
+      {
+        "name": "HPVC PV2 Limit Range Invalid",
+        "unique_id": "hpvc_pv2_limit_range_invalid",
+        "icon": "mdi:alert-outline",
+        "state": "{{\n  states('number.hpvc_inverter_count') | int(1) >= 2\n  and is_number(states('number.hpvc_pv2_full_limit'))\n  and is_number(states('number.hpvc_pv2_low_limit'))\n  and states('number.hpvc_pv2_low_limit') | float(0)\n      >= states('number.hpvc_pv2_full_limit') | float(0)\n}}"
+      },
+      {
+        "name": "HPVC PV3 Limit Range Invalid",
+        "unique_id": "hpvc_pv3_limit_range_invalid",
+        "icon": "mdi:alert-outline",
+        "state": "{{\n  states('number.hpvc_inverter_count') | int(1) >= 3\n  and is_number(states('number.hpvc_pv3_full_limit'))\n  and is_number(states('number.hpvc_pv3_low_limit'))\n  and states('number.hpvc_pv3_low_limit') | float(0)\n      >= states('number.hpvc_pv3_full_limit') | float(0)\n}}"
+      },
+      {
+        "name": "HPVC PV4 Limit Range Invalid",
+        "unique_id": "hpvc_pv4_limit_range_invalid",
+        "icon": "mdi:alert-outline",
+        "state": "{{\n  states('number.hpvc_inverter_count') | int(1) >= 4\n  and is_number(states('number.hpvc_pv4_full_limit'))\n  and is_number(states('number.hpvc_pv4_low_limit'))\n  and states('number.hpvc_pv4_low_limit') | float(0)\n      >= states('number.hpvc_pv4_full_limit') | float(0)\n}}"
+      },
+      {
+        "name": "HPVC PV5 Limit Range Invalid",
+        "unique_id": "hpvc_pv5_limit_range_invalid",
+        "icon": "mdi:alert-outline",
+        "state": "{{\n  states('number.hpvc_inverter_count') | int(1) >= 5\n  and is_number(states('number.hpvc_pv5_full_limit'))\n  and is_number(states('number.hpvc_pv5_low_limit'))\n  and states('number.hpvc_pv5_low_limit') | float(0)\n      >= states('number.hpvc_pv5_full_limit') | float(0)\n}}"
+      },
+      {
+        "name": "HPVC PV6 Limit Range Invalid",
+        "unique_id": "hpvc_pv6_limit_range_invalid",
+        "icon": "mdi:alert-outline",
+        "state": "{{\n  states('number.hpvc_inverter_count') | int(1) >= 6\n  and is_number(states('number.hpvc_pv6_full_limit'))\n  and is_number(states('number.hpvc_pv6_low_limit'))\n  and states('number.hpvc_pv6_low_limit') | float(0)\n      >= states('number.hpvc_pv6_full_limit') | float(0)\n}}"
+      },
+      {
+        "name": "HPVC PV7 Limit Range Invalid",
+        "unique_id": "hpvc_pv7_limit_range_invalid",
+        "icon": "mdi:alert-outline",
+        "state": "{{\n  states('number.hpvc_inverter_count') | int(1) >= 7\n  and is_number(states('number.hpvc_pv7_full_limit'))\n  and is_number(states('number.hpvc_pv7_low_limit'))\n  and states('number.hpvc_pv7_low_limit') | float(0)\n      >= states('number.hpvc_pv7_full_limit') | float(0)\n}}"
+      },
+      {
+        "name": "HPVC PV8 Limit Range Invalid",
+        "unique_id": "hpvc_pv8_limit_range_invalid",
+        "icon": "mdi:alert-outline",
+        "state": "{{\n  states('number.hpvc_inverter_count') | int(1) >= 8\n  and is_number(states('number.hpvc_pv8_full_limit'))\n  and is_number(states('number.hpvc_pv8_low_limit'))\n  and states('number.hpvc_pv8_low_limit') | float(0)\n      >= states('number.hpvc_pv8_full_limit') | float(0)\n}}"
+      },
+      {
+        "name": "HPVC PV9 Limit Range Invalid",
+        "unique_id": "hpvc_pv9_limit_range_invalid",
+        "icon": "mdi:alert-outline",
+        "state": "{{\n  states('number.hpvc_inverter_count') | int(1) >= 9\n  and is_number(states('number.hpvc_pv9_full_limit'))\n  and is_number(states('number.hpvc_pv9_low_limit'))\n  and states('number.hpvc_pv9_low_limit') | float(0)\n      >= states('number.hpvc_pv9_full_limit') | float(0)\n}}"
+      },
+      {
+        "name": "HPVC PV10 Limit Range Invalid",
+        "unique_id": "hpvc_pv10_limit_range_invalid",
+        "icon": "mdi:alert-outline",
+        "state": "{{\n  states('number.hpvc_inverter_count') | int(1) >= 10\n  and is_number(states('number.hpvc_pv10_full_limit'))\n  and is_number(states('number.hpvc_pv10_low_limit'))\n  and states('number.hpvc_pv10_low_limit') | float(0)\n      >= states('number.hpvc_pv10_full_limit') | float(0)\n}}"
+      },
+      {
+        "name": "HPVC Export Threshold Range Invalid",
+        "unique_id": "hpvc_export_threshold_range_invalid",
+        "icon": "mdi:alert-outline",
+        "state": "{{\n  is_number(states('number.hpvc_export_start_threshold'))\n  and is_number(states('number.hpvc_export_stop_threshold'))\n  and is_number(states('number.hpvc_import_restore_threshold'))\n  and (\n    states('number.hpvc_export_start_threshold') | float(0)\n    >= states('number.hpvc_export_stop_threshold') | float(0)\n    or states('number.hpvc_export_stop_threshold') | float(0)\n    >= states('number.hpvc_import_restore_threshold') | float(0)\n  )\n}}"
+      },
+      {
+        "name": "HPVC Configuration Valid",
+        "unique_id": "hpvc_configuration_valid",
+        "icon": "mdi:check-decagram-outline",
+        "state": "{% set bad = ['unknown', 'unavailable', 'none', 'select_entity_first', ''] %} {% set core = [\n  states('text.hpvc_grid_power_sensor') | trim | lower,\n  states('text.hpvc_market_price_sensor') | trim | lower,\n  states('text.hpvc_all_in_price_sensor') | trim | lower,\n  states('text.hpvc_pv_power_sensor') | trim | lower\n] %} {% set ns = namespace(valid=true, inverter_entities=[]) %} {% for ent in core %}\n  {% if ent in bad or not (ent | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) %}\n    {% set ns.valid = false %}\n  {% endif %}\n{% endfor %}\n{% set numeric_helpers = [\n  'number.hpvc_pv_limiting_price',\n  'number.hpvc_battery_price_hysteresis',\n  'number.hpvc_export_start_threshold',\n  'number.hpvc_export_stop_threshold',\n  'number.hpvc_import_restore_threshold',\n  'number.hpvc_pv_min_power_for_control',\n  'number.hpvc_pv_night_restore_power',\n  'number.hpvc_cooldown_seconds',\n  'number.hpvc_pv_adjust_deadband',\n  'number.hpvc_inverter_count'\n] %} {% for helper in numeric_helpers %}\n  {% if not is_number(states(helper)) %}{% set ns.valid = false %}{% endif %}\n{% endfor %}\n{% set limiting_price = states('number.hpvc_pv_limiting_price') | float(999999) %} {% set export_start = states('number.hpvc_export_start_threshold') | float(999999) %} {% set target_export = states('number.hpvc_export_stop_threshold') | float(999999) %} {% set import_restore = states('number.hpvc_import_restore_threshold') | float(-1) %} {% set hysteresis = states('number.hpvc_battery_price_hysteresis') | float(-1) %} {% set minimum_pv = states('number.hpvc_pv_min_power_for_control') | float(-1) %} {% set night_pv = states('number.hpvc_pv_night_restore_power') | float(-1) %} {% set cooldown = states('number.hpvc_cooldown_seconds') | float(-1) %} {% set deadband = states('number.hpvc_pv_adjust_deadband') | float(-1) %} {% if not (\n  -0.50 <= limiting_price <= 0.20\n  and 0 <= hysteresis <= 0.10\n  and -5000 <= export_start <= 0\n  and -5000 <= target_export <= 500\n  and 0 <= import_restore <= 5000\n  and export_start < target_export < import_restore\n  and 0 <= minimum_pv <= 5000\n  and 0 <= night_pv <= 1000\n  and 10 <= cooldown <= 60\n  and 1 <= deadband <= 500\n) %}\n  {% set ns.valid = false %}\n{% endif %}\n{% set count_raw = states('number.hpvc_inverter_count') | float(0) %} {% set count = states('number.hpvc_inverter_count') | int(0) %} {% if count_raw != count or count < 1 or count > 10 %}{% set ns.valid = false %}{% endif %} {% for i in range(1, count + 1) %}\n  {% set method = states('select.hpvc_pv' ~ i ~ '_control_method') | trim %}\n  {% set unit = states('select.hpvc_pv' ~ i ~ '_limit_unit') | trim %}\n  {% set limit_ent = states('text.hpvc_pv' ~ i ~ '_limit_number') | trim | lower %}\n  {% set readback_ent = states('text.hpvc_pv' ~ i ~ '_readback_entity') | trim | lower %}\n  {% set action = states('text.hpvc_pv' ~ i ~ '_action') | trim | lower %}\n  {% set value_field = states('text.hpvc_pv' ~ i ~ '_value_field') | trim %}\n  {% set fixed_data = states('text.hpvc_pv' ~ i ~ '_fixed_data_json') | from_json(default=none) %}\n  {% set target_data = states('text.hpvc_pv' ~ i ~ '_target_json') | from_json(default=none) %}\n  {% set pre_actions = states('text.hpvc_pv' ~ i ~ '_pre_actions_json') | from_json(default=none) %}\n  {% set post_actions = states('text.hpvc_pv' ~ i ~ '_post_actions_json') | from_json(default=none) %}\n  {% set action_step = states('number.hpvc_pv' ~ i ~ '_action_step') | float(-1) %}\n  {% set refresh_seconds = states('number.hpvc_pv' ~ i ~ '_refresh_seconds') | float(-1) %}\n  {% set full = states('number.hpvc_pv' ~ i ~ '_full_limit') | float(0) %}\n  {% set low = states('number.hpvc_pv' ~ i ~ '_low_limit') | float(-1) %}\n\n  {% if method not in ['Number entity', 'Action/service'] or unit not in ['Watts', 'Percent'] %}\n    {% set ns.valid = false %}\n  {% endif %}\n\n  {% if method == 'Number entity' %}\n    {% if limit_ent in bad or not (limit_ent | regex_match('^number[.][a-z0-9_]+$')) %}\n      {% set ns.valid = false %}\n    {% elif limit_ent in ns.inverter_entities %}\n      {% set ns.valid = false %}\n    {% else %}\n      {% set ns.inverter_entities = ns.inverter_entities + [limit_ent] %}\n    {% endif %}\n  {% elif method == 'Action/service' %}\n    {% if not (action | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) or value_field == '' %}\n      {% set ns.valid = false %}\n    {% endif %}\n    {% if fixed_data is not mapping or target_data is not mapping %}\n      {% set ns.valid = false %}\n    {% endif %}\n    {% if pre_actions is not sequence or pre_actions is string or post_actions is not sequence or post_actions is string %}\n      {% set ns.valid = false %}\n    {% else %}\n      {% for step in pre_actions %}\n        {% if step is not mapping or step.get('action', '') is not string or not (step.get('action', '') | trim | lower | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) %}\n          {% set ns.valid = false %}\n        {% endif %}\n      {% endfor %}\n      {% for step in post_actions %}\n        {% if step is not mapping or step.get('action', '') is not string or not (step.get('action', '') | trim | lower | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) %}\n          {% set ns.valid = false %}\n        {% endif %}\n      {% endfor %}\n    {% endif %}\n    {% if readback_ent not in bad and not (readback_ent | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) %}\n      {% set ns.valid = false %}\n    {% endif %}\n    {% if action_step < 0 or refresh_seconds < 0 %}\n      {% set ns.valid = false %}\n    {% endif %}\n    {% if unit == 'Percent' and action_step > 100 %}\n      {% set ns.valid = false %}\n    {% elif unit == 'Watts' and full > 0 and action_step > full %}\n      {% set ns.valid = false %}\n    {% endif %}\n  {% endif %}\n\n  {% if full <= 0 or full > 10000 or low < 0 or low > 10000 or low >= full %}\n    {% set ns.valid = false %}\n  {% endif %}\n{% endfor %} {{ ns.valid }}"
+      },
+      {
+        "name": "HPVC Required Inputs Ready",
+        "unique_id": "hpvc_required_inputs_ready",
+        "icon": "mdi:check-network-outline",
+        "state": "{% set bad = ['unknown', 'unavailable', 'none', 'select_entity_first', ''] %} {% set ns = namespace(ready=is_state('binary_sensor.hpvc_configuration_valid', 'on')) %} {% set night_restore = states('text.hpvc_status') in ['Night Restore', 'Night Restore pending'] %} {% set core = [\n  states('text.hpvc_grid_power_sensor'),\n  states('text.hpvc_market_price_sensor'),\n  states('text.hpvc_all_in_price_sensor')\n] %} {% for ent in core %}\n  {% if ent in bad or not (ent | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) or not is_number(states(ent)) %}\n    {% set ns.ready = false %}\n  {% endif %}\n{% endfor %} {% if not night_restore %}\n  {% set ent = states('text.hpvc_pv_power_sensor') | trim %}\n  {% if ent in bad or not (ent | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) or not is_number(states(ent)) %}\n    {% set ns.ready = false %}\n  {% endif %}\n{% endif %} {% set count = states('number.hpvc_inverter_count') | int(0) %} {% if count < 1 or count > 10 %}{% set ns.ready = false %}{% endif %} {% if not night_restore %}\n  {% for i in range(1, count + 1) %}\n    {% set method = states('select.hpvc_pv' ~ i ~ '_control_method') | trim %}\n    {% set limit_ent = states('text.hpvc_pv' ~ i ~ '_limit_number') | trim | lower %}\n    {% set readback_ent = states('text.hpvc_pv' ~ i ~ '_readback_entity') | trim | lower %}\n    {% if method == 'Number entity' %}\n      {% if limit_ent in bad or not (limit_ent | regex_match('^number[.][a-z0-9_]+$')) or not is_number(states(limit_ent)) %}\n        {% set ns.ready = false %}\n      {% endif %}\n    {% elif method == 'Action/service' and readback_ent not in bad %}\n      {% if not (readback_ent | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) or not is_number(states(readback_ent)) %}\n        {% set ns.ready = false %}\n      {% endif %}\n    {% endif %}\n  {% endfor %}\n{% endif %} {{ ns.ready }}",
+        "attributes": {
+          "unavailable_entities": "{% set bad = ['unknown', 'unavailable', 'none', 'select_entity_first', ''] %} {% set ns = namespace(items=[]) %} {% if not is_state('binary_sensor.hpvc_configuration_valid', 'on') %}\n  {% set ns.items = ns.items + ['configuration'] %}\n{% endif %} {% set night_restore = states('text.hpvc_status') in ['Night Restore', 'Night Restore pending'] %} {% set core = [\n  states('text.hpvc_grid_power_sensor'),\n  states('text.hpvc_market_price_sensor'),\n  states('text.hpvc_all_in_price_sensor')\n] %} {% for ent in core %}\n  {% if ent in bad or not (ent | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) or not is_number(states(ent)) %}\n    {% set ns.items = ns.items + [ent if ent not in bad else 'unconfigured core sensor'] %}\n  {% endif %}\n{% endfor %} {% if not night_restore %}\n  {% set ent = states('text.hpvc_pv_power_sensor') | trim %}\n  {% if ent in bad or not (ent | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) or not is_number(states(ent)) %}\n    {% set ns.items = ns.items + [ent if ent not in bad else 'unconfigured PV sensor'] %}\n  {% endif %}\n{% endif %} {% set count = states('number.hpvc_inverter_count') | int(0) %} {% if not night_restore %}\n  {% for i in range(1, count + 1) %}\n    {% set method = states('select.hpvc_pv' ~ i ~ '_control_method') | trim %}\n    {% set limit_ent = states('text.hpvc_pv' ~ i ~ '_limit_number') | trim | lower %}\n    {% set readback_ent = states('text.hpvc_pv' ~ i ~ '_readback_entity') | trim | lower %}\n    {% if method == 'Number entity' %}\n      {% if limit_ent in bad or not (limit_ent | regex_match('^number[.][a-z0-9_]+$')) or not is_number(states(limit_ent)) %}\n        {% set ns.items = ns.items + [limit_ent if limit_ent not in bad else 'PV' ~ i ~ ' limit'] %}\n      {% endif %}\n    {% elif method == 'Action/service' and readback_ent not in bad %}\n      {% if not (readback_ent | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) or not is_number(states(readback_ent)) %}\n        {% set ns.items = ns.items + [readback_ent] %}\n      {% endif %}\n    {% endif %}\n  {% endfor %}\n{% endif %} {{ ns.items | unique | join(', ') }}"
+        }
+      },
+      {
+        "name": "HPVC HBC Available",
+        "unique_id": "hpvc_hbc_available",
+        "icon": "mdi:battery-check",
+        "state": "{% set strategy = 'input_select.house_battery_strategy' %} {% set executing = 'input_text.house_battery_strategy_active_sub_strategy' %} {% set bad = ['unknown', 'unavailable', 'none', 'select_entity_first', ''] %} {% set options = state_attr(strategy, 'options') %} {{ states(strategy) not in bad and options is sequence and options is not string and options | count > 0 and states(executing) not in bad }}"
+      },
+      {
+        "name": "HPVC External Release Active",
+        "unique_id": "hpvc_external_release_active",
+        "icon": "mdi:solar-power-variant",
+        "state": "{{ is_state('switch.hpvc_external_release_request', 'on')\n   and is_state('text.hpvc_status', 'External PV release active') }}"
+      },
+      {
+        "name": "HPVC PV Limited",
+        "unique_id": "hpvc_pv_limited",
+        "icon": "mdi:solar-power-variant",
+        "state": "{% set bad = ['unknown','unavailable','none','select_entity_first',''] %} {% set count = states('number.hpvc_inverter_count') | int(1) %} {% set db = states('number.hpvc_pv_adjust_deadband') | float(25) %} {% set debug = states('text.hpvc_last_targets_json') | from_json(default={}) %} {% set ns = namespace(limited=debug.get('lim', false)) %} {% for i in range(1, count + 1) %}\n  {% set method = states('select.hpvc_pv' ~ i ~ '_control_method') %}\n  {% set unit = states('select.hpvc_pv' ~ i ~ '_limit_unit') %}\n  {% set ent = states('text.hpvc_pv' ~ i ~ '_limit_number') if method == 'Number entity' else states('text.hpvc_pv' ~ i ~ '_readback_entity') %}\n  {% set full = states('number.hpvc_pv' ~ i ~ '_full_limit') | float(0) %}\n  {% if ent not in bad and full > 0 and is_number(states(ent)) %}\n    {% set raw = states(ent) | float(0) %}\n    {% set current = (raw / 100 * full) if unit == 'Percent' else raw %}\n    {% if current < (full - db) %}{% set ns.limited = true %}{% endif %}\n  {% endif %}\n{% endfor %} {{ ns.limited }}"
+      },
+      {
+        "name": "HPVC Charge Priority Active",
+        "unique_id": "hpvc_charge_priority_active",
+        "icon": "mdi:battery-charging-high",
+        "state": "{% set data = states('text.hpvc_last_targets_json') | from_json(default={}) %} {{ data.get('cps', 'a' if data.get('cp', false) else 'o') == 'a' }}"
+      },
+      {
+        "name": "HPVC Cooldown Active",
+        "unique_id": "hpvc_cooldown_active",
+        "icon": "mdi:timer-sand",
+        "state": "{% set data = states('text.hpvc_last_targets_json') | from_json(default={}) %} {{ data.get('cd', false) }}\n"
+      },
+      {
+        "name": "HPVC Negative Price Mode",
+        "unique_id": "hpvc_negative_price_mode",
+        "icon": "mdi:cash-minus",
+        "state": "{% set ent = states('text.hpvc_all_in_price_sensor') %}\n{% if ent in ['unknown','unavailable','select_entity_first',''] %}false{% else %}{{ states(ent)|float(999) <= 0 }}{% endif %}"
+      },
+      {
+        "name": "HPVC At Minimum PV",
+        "unique_id": "hpvc_at_minimum_pv",
+        "icon": "mdi:solar-power-variant-outline",
+        "state": "{% set bad = ['unknown','unavailable','none','select_entity_first',''] %} {% set count = states('number.hpvc_inverter_count') | int(1) %} {% set min_tol = 1 %} {% set debug = states('text.hpvc_last_targets_json') | from_json(default={}) %} {% set ns = namespace(any=false, all_min=true, missing=false) %} {% for i in range(1, count + 1) %}\n  {% set method = states('select.hpvc_pv' ~ i ~ '_control_method') %}\n  {% set unit = states('select.hpvc_pv' ~ i ~ '_limit_unit') %}\n  {% set ent = states('text.hpvc_pv' ~ i ~ '_limit_number') if method == 'Number entity' else states('text.hpvc_pv' ~ i ~ '_readback_entity') %}\n  {% set full = states('number.hpvc_pv' ~ i ~ '_full_limit') | float(0) %}\n  {% set low = states('number.hpvc_pv' ~ i ~ '_low_limit') | float(0) %}\n  {% if ent not in bad and full > 0 and is_number(states(ent)) %}\n    {% set ns.any = true %}\n    {% set raw = states(ent) | float(0) %}\n    {% set current = (raw / 100 * full) if unit == 'Percent' else raw %}\n    {% if ((current - low) | abs) >= min_tol %}{% set ns.all_min = false %}{% endif %}\n  {% elif method == 'Action/service' %}\n    {% set ns.missing = true %}\n  {% endif %}\n{% endfor %} {% if ns.missing %}\n  {{ debug.get('am', false) and ns.all_min }}\n{% else %}\n  {{ ns.any and ns.all_min }}\n{% endif %}"
+      }
+    ]
+  }
+}

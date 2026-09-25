@@ -1,12 +1,36 @@
-[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)
 
 # Installation
 
+## Installation methods in v1.5.2
+
+HPVC supports two installation paths. **HACS is the convenience path; manual installation remains supported exactly as a separate workflow.**
+
+### HACS installation
+
+[![Open your Home Assistant instance and add this repository to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BioPC&repository=home-pv-control&category=integration)
+
+1. Install HPVC through HACS and restart Home Assistant.
+2. Add **Home PV Control** under **Settings → Devices & services**.
+3. HPVC creates its required switches, text fields, selects, numbers, buttons and diagnostic entities natively.
+4. HPVC registers the bundled dashboard as **Home PV Control** in the sidebar.
+5. Import/deploy the bundled HACS Node-RED flow manually. HACS does not silently deploy or replace Node-RED flows.
+6. Configure HPVC from the sidebar **Settings** tab.
+
+**No `configuration.yaml` change is required for HACS installation.** HACS mode does not use `/config/packages/hpvc_config.yaml`.
+
+#### Updates
+
+HACS updates `custom_components/hpvc`, the bundled sidebar dashboard and the bundled HACS Node-RED flow. Restart Home Assistant after updating the integration. The running HACS Node-RED flow publishes its version to `text.hpvc_nodered_version`; HPVC exposes integration/flow version sensors so a stale flow is shown as **Update required**. Import and deploy the updated flow deliberately in Node-RED.
+
+### Manual installation
+
+Continue with the steps below. The original package, Node-RED flow and YAML dashboard remain first-class supported files.
 Home PV Control can run independently or alongside Home Battery Control. Use Steps 1–6 for a fresh installation. Existing installations should also read the upgrade section before replacing files.
 
 ## Requirements
 
-- Home Assistant
+- Home Assistant Core **2025.12 or newer** (documented support baseline; package configuration is required only for manual installation)
 - Node-RED with `node-red-contrib-home-assistant-websocket` version **0.80.3 or newer**
 - At least one inverter control path: either a writable Home Assistant `number` power-limit entity or a stable Home Assistant action/service adapter; limits may represent Watts or Percent
 - ApexCharts Card for the supplied dashboard graphs
@@ -66,10 +90,12 @@ Review these starting values during first-install setup. HPVC enables automatica
 | HBC integration / Charge Priority | Off |
 | Force charge at negative price | On by default; used only when HBC control is enabled |
 | PV limiting price | `0.00 €/kWh` |
+| Price hysteresis | `0.02 €/kWh` |
 | Export start | `-150 W` |
 | Target export | `0 W` |
 | Import restore | `150 W` |
 | Min PV for control | `100 W` |
+| Night Restore threshold | `10 W` |
 | Cooldown | `30 s` |
 | Deadband | `25 W` |
 
@@ -101,7 +127,28 @@ Version 1.3.0 renames active legacy helper entity IDs from `pv_ems_*` to `hpvc_*
 5. Reload packages or restart Home Assistant, then deploy Node-RED.
 6. Copy or re-enter your sensor entities, inverter entities, limits, thresholds, and HBC integration preference in the new `hpvc_*` helpers.
 
-Do not mix v1.5.0 files with older runtime files. Home Assistant may keep obsolete `pv_ems_*` helpers visible until their old package definitions are removed and Home Assistant is restarted.
+Do not mix v1.5.2 files with older runtime files. Home Assistant may keep obsolete `pv_ems_*` helpers visible until their old package definitions are removed and Home Assistant is restarted.
+
+
+### Upgrading to v1.5.2
+
+v1.5.2 adds HACS/custom-integration packaging, native HPVC configuration entities, automatic sidebar registration and Node-RED version detection. HACS installations no longer require `configuration.yaml` package setup. It does not change the v1.5.1 safe-disable or external-release control semantics.
+
+- **HACS:** update HPVC in HACS and restart Home Assistant. No package update is involved. If `sensor.hpvc_nodered_status` reports `Update required`, import/deploy the new bundled HACS Node-RED flow.
+- **Manual:** replace the Home Assistant package, Node-RED flow and dashboard together, then restart/deploy as before.
+
+### Upgrading to v1.5.1
+
+v1.5.1 adds safe master-disable restoration and a generic external PV-release handshake. Replace the Home Assistant package, Node-RED flow and dashboard together. Existing inverter and HBC settings are preserved.
+
+Two new HPVC-owned entities are created:
+
+- `input_boolean.hpvc_external_release_request` — request interface for external controllers.
+- `binary_sensor.hpvc_external_release_active` — acknowledgement that HPVC has restored PV to full and suspended normal curtailment for the active request.
+
+The request helper restores its Home Assistant state across restarts. HPVC always re-evaluates the request after startup; the acknowledgement is derived from HPVC runtime status and is never a blind mirror of the request.
+
+When the master `input_boolean.hpvc_enabled` is switched off, HPVC now restores configured inverter limits to full and releases an HPVC-owned negative-price HBC override before settling into the disabled state, where the configured control path is available.
 
 ### Upgrading to v1.5.0
 
@@ -125,5 +172,4 @@ After deployment, allow normal 10-second evaluations to run and verify HPVC stat
 - [Understand the control sequence](03-how-it-works.md)
 - [Diagnose problems](04-troubleshooting.md)
 
-[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md)
-
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)

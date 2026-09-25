@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Home PV Control",
+        "description": "Set up the HPVC HACS integration. It creates HPVC configuration entities natively, registers the sidebar dashboard, and does not require configuration.yaml package setup. The Node-RED flow remains a deliberate semi-automatic import."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "integration_version": {
+        "name": "Integration version"
+      },
+      "nodered_version": {
+        "name": "Node-RED version"
+      },
+      "nodered_status": {
+        "name": "Node-RED status"
+      },
+      "installation_mode": {
+        "name": "Installation mode"
+      }
+    }
+  }
+}

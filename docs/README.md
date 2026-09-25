@@ -9,4 +9,4 @@
 Release-level changes are listed in [Release notes](../RELEASE_NOTES.md); version history is in the [Changelog](../CHANGELOG.md).
 
 
-Current documentation targets Home PV Control v1.5.0.
+Current documentation targets Home PV Control v1.5.2. Installation is available through HACS or through the original manual package + Node-RED + YAML-dashboard workflow.

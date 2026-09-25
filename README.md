@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="releases/v1.5.0/release.md"><img src="https://img.shields.io/badge/release-v1.5.0-blue" alt="Release v1.5.0"></a>
+  <a href="releases/v1.5.2/release.md"><img src="https://img.shields.io/badge/release-v1.5.2-blue" alt="Release v1.5.2"></a>
   <a href="https://www.home-assistant.io/"><img src="https://img.shields.io/badge/Home%20Assistant-ready-41BDF5" alt="Home Assistant ready"></a>
   <a href="https://nodered.org/"><img src="https://img.shields.io/badge/Node--RED-flow-8F0000" alt="Node-RED flow"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="GPL-3.0-or-later"></a>
@@ -17,7 +17,7 @@
 
 # Home PV Control
 
-Home PV Control (HPVC) dynamically limits and restores PV inverter output in Home Assistant through Node-RED. It is designed for dynamic electricity contracts and can run as a standalone PV controller or integrate with Home Battery Control (HBC).
+Home PV Control (HPVC) dynamically controls, limits and restores PV inverter output in Home Assistant through Node-RED. It is designed for dynamic electricity contracts and can run as a standalone PV controller or integrate with Home Battery Control (HBC).
 
 - Reduce unwanted or uneconomic PV export.
 - Preserve useful PV for household consumption.
@@ -54,7 +54,7 @@ See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configurati
 
 ## Requirements
 
-- Home Assistant Core **2025.12 or newer** with package support. Earlier versions may work but are outside the documented support baseline.
+- Home Assistant Core **2025.12 or newer**. HACS/native installation does not require Home Assistant package configuration; package support is needed only for the manual installation path.
 - Node-RED with `node-red-contrib-home-assistant-websocket` **0.80.3 or newer**.
 - One or more PV inverters with either a writable `number.*` active-power limit or a stable Home Assistant action/service that can apply an active-power limit.
 - A valid grid-power sensor, market/export-price sensor, all-in-price sensor and PV-power sensor.
@@ -63,21 +63,33 @@ See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configurati
 
 ## Quick install
 
-1. Enable Home Assistant packages:
+HPVC v1.5.2 supports both **HACS** and the existing **manual installation** method. Manual installation remains fully supported.
 
-   ```yaml
-   homeassistant:
-     packages: !include_dir_named packages
-   ```
+### Option 1 — HACS
 
+[![Open your Home Assistant instance and add this repository to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BioPC&repository=home-pv-control&category=integration)
+
+1. Open the button above and install **Home PV Control** as a HACS custom integration.
+2. Restart Home Assistant so the new custom integration becomes available.
+3. Go to **Settings → Devices & services → Add integration → Home PV Control** and add it.
+4. HPVC creates its required configuration/diagnostic entities natively and registers **Home PV Control** in the Home Assistant sidebar. **No `configuration.yaml` edit and no `/config/packages` setup are required.**
+5. Import the bundled HACS `hpvc_flow.json` into Node-RED and deploy it. This remains deliberately semi-automatic: HPVC never silently replaces a user's Node-RED flow.
+6. Configure HPVC from the sidebar **Settings** tab.
+
+On later HACS updates, HACS updates the custom integration plus its bundled dashboard and Node-RED flow. Restart Home Assistant after the HACS update. The HPVC integration compares its version with the version published by the running Node-RED flow and exposes **Update required** when the flow still needs to be imported/deployed. HACS mode does not create or update `hpvc_config.yaml`.
+
+### Option 2 — Manual installation
+
+The traditional package + Node-RED + YAML-dashboard workflow is unchanged:
+
+1. Enable Home Assistant packages with `packages: !include_dir_named packages`.
 2. Copy [`home assistant/hpvc_config.yaml`](home%20assistant/hpvc_config.yaml) to `/config/packages/hpvc_config.yaml`.
 3. Restart Home Assistant or reload the supported YAML configuration.
 4. Import [`node-red/hpvc_flow.json`](node-red/hpvc_flow.json) into Node-RED and deploy it.
 5. Add [`home assistant/hpvc_dashboard.yaml`](home%20assistant/hpvc_dashboard.yaml) as a YAML dashboard or view.
-6. Open the always-visible **Settings** tab and configure the grid-power, market/export-price, all-in-price, PV-power and per-inverter control paths.
-7. Wait for first-install validation to complete. HPVC enables automatically once all required live inputs and control settings are valid.
+6. Configure the required sensors and inverter control paths from **Settings**.
 
-See the full [installation guide](docs/01-installation.md) for dependencies and first-run verification.
+See the full [installation guide](docs/01-installation.md) for dependencies, update behavior and first-run verification.
 
 ## Main features
 
@@ -87,7 +99,7 @@ See the full [installation guide](docs/01-installation.md) for dependencies and 
 | Dynamic export limiting and import recovery | ✅ |
 | Multi-inverter support with per-inverter minimum/maximum limits | ✅ |
 | Per-inverter Watt or percentage limits | ✅ |
-| Generic per-inverter Number entity / Action-service adapters | ✅ |
+| Generic per-inverter Number entity / Action/service adapters | ✅ |
 | Negative all-in-price minimum-PV protection | ✅ |
 | Optional HBC grid charging during negative prices | ✅ |
 | Optional HBC Charge Priority for `Charge` / `Charge PV` | ✅ |
@@ -197,6 +209,7 @@ On-demand HTML/TXT reports include:
 
 - current HPVC decision and control mode;
 - inverter state and calculated targets;
+- inverter adapter, control-method and readback diagnostics;
 - required sensor health;
 - HBC strategy/execution and Charge Priority state;
 - battery eligibility, headroom and taper diagnostics;
@@ -243,7 +256,7 @@ When upgrading, keep the Home Assistant package, Node-RED flow and dashboard on 
 7. Review **Force charge at negative price**. It is seeded **On** once on fresh installs and upgrades. After that, a manual Off choice survives normal Home Assistant restarts and package/automation reloads. **Restore defaults** turns it On again.
 8. Generate a support report to confirm the installation is healthy.
 
-See the [v1.5.0 release notes](releases/v1.5.0/release.md) for the full release summary.
+See the [v1.5.2 release notes](releases/v1.5.2/release.md) for the full release summary.
 
 ## Documentation
 
@@ -254,13 +267,14 @@ See the [v1.5.0 release notes](releases/v1.5.0/release.md) for the full release 
 - [Inverter compatibility](docs/05-inverter-compatibility.md)
 - [Documentation index](docs/README.md)
 - [Changelog](CHANGELOG.md)
-- [v1.5.0 release notes](releases/v1.5.0/release.md)
+- [v1.5.2 release notes](releases/v1.5.2/release.md)
+- [v1.5.1 release notes](releases/v1.5.1/release.md)
 
 For Home Battery Control itself, see the [HBC documentation](https://docs.homebatterycontrol.com/).
 
 ## Screenshots
 
-The bundled screenshots are retained for orientation and may show an earlier HPVC version. The shipped v1.5.0 YAML and Node-RED flow are authoritative.
+The bundled screenshots are retained for orientation and may show an earlier HPVC version. The shipped v1.5.2 HACS integration, YAML and Node-RED flow are authoritative.
 
 ### Settings
 
@@ -310,7 +324,7 @@ home assistant/
   hpvc_dashboard.yaml   # Separate Home Assistant dashboard
 
 node-red/
-  hpvc_flow.json        # Importable Node-RED flow with four v1.5.0 tabs
+  hpvc_flow.json        # Importable Node-RED flow with four functional tabs
 
 examples/
   hoymiles-opendtu-2-inverters.reference.json
@@ -332,19 +346,29 @@ docs/
   05-inverter-compatibility.md
   README.md
 
+custom_components/
+  hpvc/                 # HACS companion integration and bundled runtime files
+
+hacs.json               # HACS repository metadata
+
 releases/
   v1.0.0/
   ...
-  v1.5.0/
+  v1.5.1/
+  v1.5.2/
 ```
 
 ## Installation format
 
-HPVC is distributed as a manual GitHub release ZIP, not as a HACS custom integration, plugin, theme or template repository. Install the Home Assistant package, Node-RED flow and dashboard manually as described above.
+HPVC v1.5.2 supports a HACS custom-integration installation and the original manual GitHub release ZIP. HACS manages the Home Assistant companion integration and bundled files; Node-RED import remains deliberate/semi-automatic, and the manual package + flow + dashboard workflow remains fully supported.
 
 ## Credits
 
 Inspired by the Home Assistant and Node-RED workflow of [Home Battery Control](https://github.com/gitcodebob/marstek-venus-rs485-node-red).
+
+## HACS integration files
+
+The HACS installation is implemented in `custom_components/hpvc/`. Its bundled files are copies of the same v1.5.2 Home Assistant package, dashboard definition and Node-RED flow shipped for manual installation.
 
 ## License
 

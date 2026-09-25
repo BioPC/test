@@ -1,5 +1,32 @@
 # Changelog
 
+## v1.5.2
+- HACS native mode no longer requires editing `configuration.yaml` or enabling `/config/packages`; HPVC configuration entities are created by the integration.
+
+- Added a HACS-ready `custom_components/hpvc` companion integration while preserving the existing manual installation path.
+- Added one-click HACS repository links to the README and installation guide.
+- Added automatic **Home PV Control** sidebar panel registration for HACS installations, rendering the bundled dashboard definition.
+- Added protected HACS-native HACS configuration installation/update: absent packages can be installed automatically, HACS-managed copies can be updated, and manually maintained `/config/packages/hpvc_config.yaml` files are not overwritten.
+- Bundled the matching Home Assistant package, dashboard and Node-RED flow with the custom integration.
+- Added `input_text.hpvc_nodered_version`; the v1.5.2 Node-RED flow publishes its version on deploy/startup.
+- Added integration sensors for HPVC integration version, Node-RED version/status and package installation mode. A version mismatch is reported as `Update required`.
+- Node-RED deployment remains deliberately semi-automatic: HACS updates the bundled flow, but the user explicitly imports/deploys it so local flow edits are never silently replaced.
+- Documented restart/update behavior for HACS and manual installations.
+- PV/HBC control logic from v1.5.1 is otherwise unchanged.
+
+## v1.5.1
+
+- Added safe master-disable restoration: switching HPVC Off now restores configured inverter limits to full before normal control stops, where a usable control path is available.
+- HPVC-owned negative-price HBC overrides are restored during the safe-disable sequence instead of being left active until HPVC is enabled again.
+- Added the generic external PV-release handshake: `input_boolean.hpvc_external_release_request` and `binary_sensor.hpvc_external_release_active`.
+- External release keeps HPVC enabled, respects higher-priority safety/minimum/restore states, restores PV to full through the normal inverter adapter path, and suspends ordinary curtailment until the request is removed.
+- Support reports retain the most recent safe-disable restore result, including whether PV and HPVC-owned HBC restoration were required and confirmed.
+- External release respects the normal PV cooldown/write-confirmation window; safe master-disable restoration bypasses the ordinary PV cooldown so a user-requested shutdown does not leave PV curtailed unnecessarily.
+- Added an active-only External PV Release badge to the dashboard; the request helper remains an integration/API helper rather than a normal user control.
+- Expanded HTML and TXT support reports with external-release request/active state and updated report version metadata.
+- Updated installation, configuration, architecture, troubleshooting and inverter-compatibility documentation for the v1.5.1 handshake and safe-disable semantics.
+
+
 ## v1.5.0
 
 ### Added / changed
