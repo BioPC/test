@@ -1,4 +1,4 @@
-![Home PV Control banner](assets/banner.png)
+![Home PV Control banner](https://raw.githubusercontent.com/BioPC/test/main/assets/banner.png)
 
 <p align="center">
   <a href="releases/v1.5.2/release.md"><img src="https://img.shields.io/badge/release-v1.5.2-blue" alt="Release v1.5.2"></a>
@@ -28,7 +28,7 @@ Home PV Control (HPVC) dynamically controls, limits and restores PV inverter out
 
 See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configuration](docs/02-configuration.md) for the four compatibility statuses, current brand/integration matrix and configuration.
 
-![Home PV Control dashboard](assets/screenshots/dashboard_main.png)
+![Home PV Control dashboard](https://raw.githubusercontent.com/BioPC/test/main/assets/screenshots/dashboard_main.png)
 
 ## Contents
 
@@ -63,7 +63,7 @@ HPVC v1.5.2 supports both **HACS** and the existing **manual installation** meth
 
 ### Option 1 — HACS
 
-[![Open your Home Assistant instance and add this repository to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BioPC&repository=home-pv-control&category=integration)
+[![Open your Home Assistant instance and add this repository to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BioPC&repository=test&category=integration)
 
 1. Open the button above and install **Home PV Control** as a HACS custom integration.
 2. Restart Home Assistant so the new custom integration becomes available.
@@ -274,17 +274,17 @@ The bundled screenshots are retained for orientation and may show an earlier HPV
 
 ### Settings
 
-![Home PV Control settings](assets/screenshots/dashboard_settings.png)
+![Home PV Control settings](https://raw.githubusercontent.com/BioPC/test/main/assets/screenshots/dashboard_settings.png)
 
 ### Report
 
-![HPVC report](assets/screenshots/hpvc_report.png)
+![HPVC report](https://raw.githubusercontent.com/BioPC/test/main/assets/screenshots/hpvc_report.png)
 
 ### Node-RED flow
 
 Reference Node-RED architecture screenshot.
 
-![Home PV Control Node-RED flow](assets/screenshots/node_red_flow.png)
+![Home PV Control Node-RED flow](https://raw.githubusercontent.com/BioPC/test/main/assets/screenshots/node_red_flow.png)
 
 ## Support
 
