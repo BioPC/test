@@ -75,3 +75,5 @@ The traditional workflow is unchanged:
 - HBC availability now treats an empty active sub-strategy as valid when the HBC strategy selector and sub-strategy entity are present, preventing false "HBC unavailable" status while HBC is idle.
 - Added explicit regression checks for inverter-slot visibility from PV1 through PV10.
 - Synchronized installation/configuration/troubleshooting documentation for HACS/native and manual entity domains, mixed-install recovery, HBC availability, and Node-RED installer status. The PV2–PV10 visibility regression remains documented in the release history rather than as an expected troubleshooting case.
+
+- Fixed `hpvc.backup_remove_legacy_package` compatibility with Home Assistant's admin-service API; the migration button now invokes the backend handler correctly.

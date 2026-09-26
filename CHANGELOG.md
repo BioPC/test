@@ -396,3 +396,4 @@
 ## v1.0.0
 
 - Initial public release.
+- Fixed the legacy-package migration admin service handler signature for current Home Assistant, so `hpvc.backup_remove_legacy_package` executes instead of failing with a missing `call` argument.
