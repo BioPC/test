@@ -28,7 +28,7 @@ Home PV Control (HPVC) dynamically controls, limits and restores PV inverter out
 
 See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configuration](docs/02-configuration.md) for the four compatibility statuses, current brand/integration matrix and configuration.
 
-<img src="https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/dashboard_main.png" alt="Home PV Control dashboard" width="80%">
+<img src="https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/dashboard_main.png" alt="Home PV Control dashboard" width="60%">
 
 ## Contents
 
