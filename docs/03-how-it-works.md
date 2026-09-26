@@ -407,9 +407,6 @@ The control engine continues to calculate and distribute plant targets in Watts.
 
 A configured readback entity participates in normal write verification. Without readback, HPVC records command-state only and does not claim physical confirmation. The Daily Control Accuracy headline remains available, but physical Control attribution requires real readback; without it, controller-caused error may remain Other/unclassified and attribution coverage can be lower.
 
-[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)
-
-
 ## Safe disable and external PV release
 
 These safety and handover behaviors were introduced in v1.5.1 and remain part of the current control model.
@@ -427,3 +424,5 @@ If HPVC cannot access a usable configured inverter control path, it does not inv
 An external controller requests release with `input_boolean.hpvc_external_release_request`. HPVC remains enabled. Safety/minimum-price and restore states retain priority; otherwise HPVC waits for its ordinary cooldown/write-confirmation window, restores all configured inverter limits to full, and then publishes `binary_sensor.hpvc_external_release_active`.
 
 While the acknowledgement is On, normal HPVC PV curtailment is suspended but HPVC continues evaluating its safety and ownership states. When the request is removed, the acknowledgement clears and normal PV control resumes on the next evaluation. A requester should start its own handover/charger timer only after the acknowledgement turns On.
+
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)
