@@ -41,7 +41,7 @@ See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configurati
 - [Safety and recovery](#safety-and-recovery)
 - [Accuracy, Insights and reports](#accuracy-insights-and-reports)
 - [Architecture and persistence](#architecture-and-persistence)
-- [Upgrading](#upgrading)
+- [Updating HPVC](#updating-hpvc)
 - [Documentation](#documentation)
 - [Screenshots](#screenshots)
 - [Support](#support)
@@ -75,21 +75,7 @@ HPVC v1.5.2 supports both **HACS** and the existing **manual installation** meth
    For an external/direct Node-RED URL, configure an existing Home Assistant server in `node-red-contrib-home-assistant-websocket` first; HPVC reuses that server configuration instead of creating an add-on-specific one.
 7. Configure HPVC from the sidebar **Settings** tab.
 
-On later HACS updates, HPVC watches the installed integration files on disk. If **no Python files changed**, HPVC reports **Quick reload available** and creates a persistent notification. Press **Confirm & apply installed update** in HPVC Settings to apply any bundled Node-RED change and reload only the Home PV Control config entry; Home Assistant itself stays online. If any HPVC `.py` file changed, HPVC reports **Restart required** and deliberately blocks the quick reload because Home Assistant must load the new Python modules. Manual Node-RED install/update and connection-check buttons remain available. HACS mode does not create or update `hpvc_config.yaml`.
-
-
-### Smart HACS update apply
-
-HPVC v1.5.2 can distinguish an installed HACS update that changes Python from one that changes only reload-safe files. The running integration fingerprints its own files and checks the on-disk installation periodically.
-
-- **No Python change:** `sensor.hpvc_update_status` becomes **Quick reload available**. Press `button.hpvc_apply_installed_update` (shown as **Confirm & apply installed update** in HPVC Settings). HPVC applies a bundled Node-RED change when present and then calls a config-entry reload for Home PV Control only. Home Assistant is not restarted.
-- **Python changed:** the status becomes **Restart required**. Quick reload is blocked because Python modules already imported by Home Assistant cannot be safely replaced with a config-entry reload.
-- **Dashboard only:** the HPVC reload re-registers the sidebar panel with a new content fingerprint so the updated frontend is fetched.
-- **Runtime configuration:** `runtime_config.json` is re-read on every HPVC config-entry setup.
-
-The first HACS installation still requires one Home Assistant restart so the new custom integration Python code can be loaded initially.
-
-> **Do not combine Manual and HACS-native HPVC.** v1.5.2 includes a mixed-install safety interlock. If legacy `input_boolean.hpvc_*`, `input_number.hpvc_*`, `input_text.hpvc_*`, `input_select.hpvc_*` or `input_button.hpvc_*` helpers are detected while the HACS integration is present, HPVC blocks the native control stack and Node-RED management and creates a persistent Home Assistant notification. If the manual package is added while HACS-native HPVC is already running, HPVC first turns off the native master control and reloads into protection mode. Remove one installation method and restart/reload HPVC to continue. HPVC never deletes the manual YAML package automatically.
+For update behavior after installation, see [Updating HPVC](#updating-hpvc).
 
 ### Option 2 — Manual installation
 
@@ -111,6 +97,14 @@ The traditional package + Node-RED + YAML-dashboard workflow is unchanged.
 6. Configure the required sensors and inverter control paths from **Settings**.
 
 See the full [installation guide](docs/01-installation.md) for dependencies, update behavior and first-run verification.
+
+### Important — do not mix installation methods
+
+> **Do not combine Manual and HACS-native HPVC.** v1.5.2 includes a mixed-install safety interlock. If legacy `input_boolean.hpvc_*`, `input_number.hpvc_*`, `input_text.hpvc_*`, `input_select.hpvc_*` or `input_button.hpvc_*` helpers are detected while the HACS integration is present, HPVC blocks the native control stack and Node-RED management and creates a persistent Home Assistant notification.
+>
+> If the manual package is added while HACS-native HPVC is already running, HPVC first turns off the native master control and reloads into protection mode. Remove one installation method and restart or reload HPVC to continue. HPVC never deletes the manual YAML package automatically.
+
+See [Installation → Switching between Manual and HACS-native](docs/01-installation.md#switching-between-manual-and-hacs-native) for the safe migration order.
 
 ## Main features
 
@@ -277,13 +271,22 @@ Journal writes are serialized to prevent overlapping or stale writes.
 
 After Home Assistant or Node-RED restarts, HPVC restores the current-day runtime state before dependent control actions continue. This helps prevent startup or redeploy races and preserves the active day's control history.
 
-## Upgrading
+## Updating HPVC
 
-Keep all HPVC runtime components on the same release version, but follow the upgrade path for your installation mode.
+Keep all HPVC runtime components on the same release version, but follow the update path for your installation mode.
 
-**HACS/native:** update Home PV Control in HACS. HPVC classifies the installed-file changes. If no Python changed, confirm **Apply installed update** in HPVC Settings and HPVC reloads only its own config entry (and applies the bundled Node-RED update when needed). If Python changed, restart Home Assistant. No package replacement or `configuration.yaml` change is involved.
+### HACS/native updates
 
-**Manual:**
+Update **Home PV Control** in HACS. HPVC v1.5.2 then distinguishes an installed update that changes Python from one that changes only reload-safe files. The running integration fingerprints its installed files and periodically checks the on-disk installation for changes.
+
+- **No Python change:** `sensor.hpvc_update_status` becomes **Quick reload available**. Press `button.hpvc_apply_installed_update` (shown as **Confirm & apply installed update** in HPVC Settings). If the bundled Node-RED flow also changed, HPVC updates it first and then reloads only the Home PV Control config entry. Home Assistant is not restarted.
+- **Python changed:** the status becomes **Restart required**. Quick reload is blocked because Python modules already imported by Home Assistant cannot be safely replaced with a config-entry reload. Restart Home Assistant to load the updated Python code.
+- **Dashboard only:** the HPVC reload re-registers the sidebar panel with a new content fingerprint so the updated frontend is fetched.
+- **Runtime configuration:** `runtime_config.json` is re-read on every HPVC config-entry setup.
+
+Manual **Install / update Node-RED flow** and connection-check buttons remain available. HACS mode does not create or update `hpvc_config.yaml`, and no `configuration.yaml` change is required for an update.
+
+### Manual updates
 
 1. Back up the current package, dashboard, Node-RED flow and `hpvc-data` journal.
 2. Replace the Home Assistant package.
@@ -292,9 +295,9 @@ Keep all HPVC runtime components on the same release version, but follow the upg
 5. Restart Home Assistant and deploy Node-RED.
 6. Verify configured sensors and inverter limits.
 7. Review **Force charge at negative price**. It is seeded **On** once on fresh installs and upgrades. After that, a manual Off choice survives normal Home Assistant restarts and package/automation reloads. **Restore defaults** turns it On again.
+8. Generate a support report to confirm the installation is healthy.
 
 Do not switch installation modes by layering one on top of the other. See [Installation → Switching between Manual and HACS-native](docs/01-installation.md#switching-between-manual-and-hacs-native) for the safe migration order and mixed-install protection behavior.
-8. Generate a support report to confirm the installation is healthy.
 
 See the [v1.5.2 release notes](releases/v1.5.2/release.md) for the full release summary.
 
