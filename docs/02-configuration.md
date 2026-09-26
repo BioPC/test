@@ -223,7 +223,6 @@ The adapter settings are normal Home Assistant helpers and persist across restar
 
 > **Upgrade note — sensor → binary_sensor migration:** v1.5.0 corrects several HPVC helper domains (`hpvc_show_inverter_slot_2`…`_10`, inverter limit-range warnings and the export-threshold warning) from `sensor.*` to `binary_sensor.*`. If an earlier installed package created the old `sensor.*` registry entries, Home Assistant may leave those old entities orphaned. They can be removed from the entity registry after confirming the new `binary_sensor.*` entities are present.
 
-
 ## Optional diagnostic compatibility sensors
 
 The package intentionally retains these nine schema-11 diagnostic sensors even though the supplied dashboard and control flow read the compact diagnostics JSON directly:
@@ -242,14 +241,6 @@ They are retained for backward compatibility with v1.4.3 installations and for u
 
 `default_entity_id` is used only for `sensor.hpvc_diag_market_export_price` because that entity was renamed in v1.3.0 and the explicit default preserves the intended fresh-install entity ID. The remaining template sensors derive their default entity IDs from their names and `unique_id` values.
 
-## Next steps
-
-- [Understand the control sequence](03-how-it-works.md)
-- [Troubleshoot unexpected behavior](04-troubleshooting.md)
-
-[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)
-
-
 ## External PV release interface
 
 HPVC exposes a small Home Assistant handshake for companion controllers such as EV/forecast automations. It is generic and is not tied to any charger, forecast provider or external project.
@@ -264,3 +255,10 @@ Mandatory negative-price/minimum protection, HBC override restoration, Night Res
 ### Safe master disable
 
 Switching the HPVC master enable Off (`switch.hpvc_enabled` in HACS/native or `input_boolean.hpvc_enabled` in manual mode) no longer means “freeze the last HPVC limit”. When a usable inverter control path remains available, HPVC first restores configured inverter limits to full and restores any HPVC-owned negative-price HBC override, then settles into `Disabled`. The support report records the resulting runtime status and external-release state.
+
+## Next steps
+
+- [Understand the control sequence](03-how-it-works.md)
+- [Troubleshoot unexpected behavior](04-troubleshooting.md)
+
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)
