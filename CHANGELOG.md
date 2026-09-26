@@ -397,3 +397,5 @@
 
 - Initial public release.
 - Fixed the legacy-package migration admin service handler signature for current Home Assistant, so `hpvc.backup_remove_legacy_package` executes instead of failing with a missing `call` argument.
+
+- Added safe stale entity-registry cleanup for legacy Manual HPVC helpers. The migration UI can back up and remove only standalone `input_*.hpvc_*` entries with `config_entry_id = null` and matching helper platform via Home Assistant's official entity-registry API, followed by a required Home Assistant restart.

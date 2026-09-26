@@ -77,3 +77,5 @@ The traditional workflow is unchanged:
 - Synchronized installation/configuration/troubleshooting documentation for HACS/native and manual entity domains, mixed-install recovery, HBC availability, and Node-RED installer status. The PV2–PV10 visibility regression remains documented in the release history rather than as an expected troubleshooting case.
 
 - Fixed `hpvc.backup_remove_legacy_package` compatibility with Home Assistant's admin-service API; the migration button now invokes the backend handler correctly.
+
+- Added **Back up & remove stale HPVC registry entries** for Manual → HACS migration. This fixes legacy helpers that remain in `core.entity_registry` even when they are not storage-backed. HPVC uses the official Home Assistant entity-registry API and creates a JSON backup first; it never edits `.storage` directly.

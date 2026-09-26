@@ -428,3 +428,5 @@ By using this software, you acknowledge that:
 - The author is not responsible for financial loss, equipment damage, data loss, regulatory issues or other consequences resulting from use of this project.
 
 Use this project at your own risk.
+
+Migration also handles stale standalone legacy HPVC helper entries left in Home Assistant's entity registry. The migration screen can back up those matching `input_boolean.hpvc_*`, `input_button.hpvc_*`, `input_number.hpvc_*`, `input_select.hpvc_*`, and `input_text.hpvc_*` entries and remove them through Home Assistant's official entity-registry API. Only entries with no config entry and a matching helper platform are eligible. Restart Home Assistant afterward so any still-running legacy states unload.
