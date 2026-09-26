@@ -241,21 +241,6 @@ They are retained for backward compatibility with v1.4.3 installations and for u
 
 `default_entity_id` is used only for `sensor.hpvc_diag_market_export_price` because that entity was renamed in v1.3.0 and the explicit default preserves the intended fresh-install entity ID. The remaining template sensors derive their default entity IDs from their names and `unique_id` values.
 
-## External PV release interface
-
-HPVC exposes a small Home Assistant handshake for companion controllers such as EV/forecast automations. It is generic and is not tied to any charger, forecast provider or external project.
-
-- External release request: `switch.hpvc_external_release_request` in HACS/native mode or `input_boolean.hpvc_external_release_request` in manual mode. Set it **On** to ask HPVC to release HPVC-controlled PV curtailment at the next safe opportunity. This helper is intended primarily for automations/integrations and is not shown as a normal dashboard control.
-- `binary_sensor.hpvc_external_release_active`: turns **On** only after HPVC considers the configured inverter limits restored to full and the normal PV-curtailment path is suspended for the request. The dashboard shows this sensor as a status badge only while active.
-
-A requester must wait for `binary_sensor.hpvc_external_release_active = on` before assuming that PV has been handed over. Do not use the HPVC master-enable entity (`switch.hpvc_enabled` in HACS/native or `input_boolean.hpvc_enabled` in manual mode) as a release acknowledgement. When the request is switched Off, HPVC immediately returns to its normal evaluation path.
-
-Mandatory negative-price/minimum protection, HBC override restoration, Night Restore and safety/fault states keep priority over an external release request. The normal PV cooldown is respected before a release write; there is no fixed 30-second success promise.
-
-### Safe master disable
-
-Switching the HPVC master enable Off (`switch.hpvc_enabled` in HACS/native or `input_boolean.hpvc_enabled` in manual mode) no longer means “freeze the last HPVC limit”. When a usable inverter control path remains available, HPVC first restores configured inverter limits to full and restores any HPVC-owned negative-price HBC override, then settles into `Disabled`. The support report records the resulting runtime status and external-release state.
-
 ## Next steps
 
 - [Understand the control sequence](03-how-it-works.md)
