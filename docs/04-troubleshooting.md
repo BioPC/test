@@ -12,6 +12,37 @@ Use the generated support report first. **Executive summary**, **Decision evalua
 4. Check **Today’s Insights** for transitions, write warnings, or override faults.
 5. Generate a fresh report before changing settings.
 
+## v1.5.2 HACS/native installation problems
+
+### Home Assistant reports a mixed HPVC installation
+
+Do not run the manual package and HACS/native HPVC at the same time. The HACS integration detects legacy HPVC helpers in the `input_boolean.hpvc_*`, `input_number.hpvc_*`, `input_text.hpvc_*`, `input_select.hpvc_*` and `input_button.hpvc_*` namespaces. HBC's own `house_battery_*` helpers do **not** trigger this protection.
+
+If mixed mode is detected, HPVC blocks the native control stack and Node-RED management and creates a persistent Home Assistant notification. If the manual package appears while HACS-native HPVC is already running, HPVC turns `switch.hpvc_enabled` Off before reloading into protection mode. HPVC never deletes the user's YAML package automatically.
+
+To keep **Manual**: remove/disable the Home PV Control integration in **Settings → Devices & services** and keep the package, manual flow and YAML dashboard.
+
+To use **HACS-native**: remove `/config/packages/hpvc_config.yaml` (or the equivalent manual HPVC package definition), restart Home Assistant so the legacy `input_*` HPVC helpers disappear, then reload or add the Home PV Control integration. Do not continue until only one HPVC control set remains.
+
+### HBC is installed but HPVC says HBC unavailable
+
+Check these external HBC entities first:
+
+- `input_select.house_battery_strategy` must exist, be available and expose strategy options.
+- `input_text.house_battery_strategy_active_sub_strategy` must exist and not be `unknown`/`unavailable`. An empty string is valid while HBC is idle.
+
+In HACS/native mode also confirm `binary_sensor.hpvc_hbc_available` updates after either HBC entity changes. v1.5.2 fixes the native template-tracking regression that could leave this sensor stale. If it still does not update, reload the Home PV Control integration and include those three entity states in a support report.
+
+### Node-RED installer says blocked or update required
+
+Use `sensor.hpvc_nodered_installer_status` and `sensor.hpvc_nodered_status` together with **Check Node-RED connection**. `Blocked: mixed installation` means legacy/manual HPVC helpers are still present and must be removed or the HACS integration must be disabled before HPVC is allowed to write Node-RED.
+
+Automatic Node-RED install/update is opt-in. When it is Off, use **Install / update Node-RED flow** manually. HPVC v1.5.2 manages its marked tabs through the per-flow Admin API and does not post the complete Node-RED configuration.
+
+If Node-RED contains more than one Home Assistant `server` configuration, HPVC will not guess which Home Assistant instance to use. On the Home Assistant Node-RED add-on it reuses a uniquely marked add-on server; on external/direct Node-RED there must be exactly one compatible Home Assistant server configuration.
+
+During an install/update HPVC temporarily disables native control, snapshots the existing HPVC tabs and verifies all four managed tabs before re-enabling control. If a write fails, HPVC attempts an automatic rollback. `Rollback failed` means HPVC could not prove that the previous flow was fully restored, so control stays disabled until Node-RED is checked manually.
+
 ## Negative all-in-price override problems
 
 At a valid all-in price `<= 0`, HPVC always applies PV-minimum protection. Forced HBC charging occurs only when **Enable HBC** and **Force charge at negative price** are both on and the native HBC strategy/charge-goal entities exist. Exit, or disabling either permission, restores the saved charge goal first and then the saved strategy.
@@ -22,7 +53,7 @@ For `recovery_unknown_previous`:
 
 1. Select the intended HBC strategy and charge goal manually.
 2. Confirm neither entity still shows the forced values.
-3. Turn off `input_boolean.hpvc_negative_override_fault`.
+3. Turn off the negative-override fault entity (`switch.hpvc_negative_override_fault` in HACS/native mode or `input_boolean.hpvc_negative_override_fault` in manual mode).
 4. Wait for the next HPVC evaluation.
 
 Do not edit `runtime-history.json` manually unless this supported recovery path cannot run.
@@ -49,7 +80,7 @@ Replace the Home Assistant package, Node-RED flow, and dashboard together. Versi
 
 ### Restore defaults does not appear or cannot run
 
-Confirm that `script.hpvc_restore_defaults` exists and that the current dashboard YAML is loaded. Reload packages or restart Home Assistant after replacing `hpvc_config.yaml`.
+Manual mode: confirm that `script.hpvc_restore_defaults` exists and that the current dashboard YAML is loaded, then reload packages or restart Home Assistant after replacing `hpvc_config.yaml`. HACS/native mode uses the integration's native Restore defaults button instead; reload the Home PV Control integration if that button is missing.
 
 ### Configuration error: invalid power thresholds
 
@@ -130,11 +161,11 @@ This can be correct. Charge Priority is **Off** when HPVC intervention is not ne
 
 ### Insights card is empty
 
-Confirm that `input_text.hpvc_insight_1` through `input_text.hpvc_insight_20` exist, deploy the supplied flow, and wait for the next evaluation. The current-day journal is restored from `hpvc-data/runtime-history.json` when the supported Home Assistant configuration mount is writable.
+Manual mode: confirm that `input_text.hpvc_insight_1` through `input_text.hpvc_insight_20` exist. HACS/native mode uses `text.hpvc_insight_1` through `text.hpvc_insight_20`. In either mode, deploy/use the matching supplied flow and wait for the next evaluation. The current-day journal is restored from `hpvc-data/runtime-history.json` when the supported Home Assistant configuration mount is writable.
 
 ### Live Inputs does not show inverter 6–10
 
-Rows appear only for slots included by `input_number.hpvc_inverter_count`.
+Rows appear only for configured slots. The source is `number.hpvc_inverter_count` in HACS/native mode or `input_number.hpvc_inverter_count` in manual mode.
 
 ### Price Zones in older or custom dashboards
 
@@ -210,7 +241,7 @@ A warning appears only when a requested inverter value remains unconfirmed after
 
 ### Advanced diagnostic data is invalid or truncated
 
-`input_text.hpvc_last_targets_json` is limited to 255 characters. When necessary, HPVC stores a smaller valid diagnostic object instead of truncating JSON mid-field.
+The last-targets helper (`text.hpvc_last_targets_json` in HACS/native mode, `input_text.hpvc_last_targets_json` in manual mode) is limited to 255 characters. When necessary, HPVC stores a smaller valid diagnostic object instead of truncating JSON mid-field.
 
 ### Report shows a runtime data notice
 
@@ -218,7 +249,7 @@ Live grid, PV, and price values are captured when the report is generated, while
 
 ### Repeated or truncated Battery telemetry Insights
 
-The flow records a Battery telemetry warning when a battery becomes unusable and a recovery after 60 seconds of healthy telemetry. Truncated `input_text.hpvc_insight_*` values are startup fallback data only; older duplicate rows disappear at the next local-midnight reset.
+The flow records a Battery telemetry warning when a battery becomes unusable and a recovery after 60 seconds of healthy telemetry. Truncated HPVC Insight text values (`text.hpvc_insight_*` in HACS/native, `input_text.hpvc_insight_*` in manual mode) are startup fallback data only; older duplicate rows disappear at the next local-midnight reset.
 
 For deeper telemetry, cutoff, persistence, attribution, and report semantics, see [How it works](03-how-it-works.md).
 
@@ -284,7 +315,7 @@ After Node-RED loses its runtime command cache, an Action/service inverter perfo
 
 ### External release request is On but Active stays Off
 
-This can be normal while HPVC is finishing a higher-priority state or waiting for its normal cooldown/write-confirmation window. Check `input_text.hpvc_status`, `input_text.hpvc_reason`, the inverter rows in the support report, negative-price state, Night Restore and any HBC override/fault diagnostics. External controllers must wait for `binary_sensor.hpvc_external_release_active = on`; the request helper alone is not an acknowledgement.
+This can be normal while HPVC is finishing a higher-priority state or waiting for its normal cooldown/write-confirmation window. Check the HPVC status/reason entities (`text.hpvc_status` and `text.hpvc_reason` in HACS/native; `input_text.hpvc_status` and `input_text.hpvc_reason` in manual mode), the inverter rows in the support report, negative-price state, Night Restore and any HBC override/fault diagnostics. External controllers must wait for `binary_sensor.hpvc_external_release_active = on`; the request helper alone is not an acknowledgement.
 
 ### HPVC says “Disabling - restoring” after I switch it Off
 
@@ -295,3 +326,13 @@ The support report retains the most recent disable-restore result after HPVC has
 ### External release was active before a restart
 
 The request helper can restore as On after Home Assistant restarts, but the active sensor is not trusted blindly. HPVC re-evaluates the request and inverter state, performs any required restore-to-full action, and only then reports the release as active again.
+
+## HACS update says Quick reload available or Restart required
+
+This is intentional in v1.5.2. HPVC fingerprints the loaded integration files and compares them with the files HACS has installed on disk.
+
+- **Quick reload available** means no HPVC Python file changed. Press **Confirm & apply installed update** in HPVC Settings. HPVC applies a bundled Node-RED update if present and reloads only the Home PV Control config entry; Home Assistant stays online.
+- **Restart required** means at least one HPVC `.py` file changed. A config-entry reload is blocked because Home Assistant must import the new Python code during a full restart.
+- **Apply failed** means HPVC did not complete the confirmed update safely. Check `sensor.hpvc_update_status` attributes and `sensor.hpvc_nodered_installer_status`.
+
+Use **Check installed update** to force an immediate comparison if HACS has just finished updating and the status has not changed yet.

@@ -2,6 +2,8 @@
 
 # How it works
 
+> **Entity-name note for v1.5.2:** detailed runtime examples in this document historically use the manual-package `input_*` entity IDs. HACS/native mode uses the same logical keys with native domains (`switch.hpvc_*`, `text.hpvc_*`, `number.hpvc_*`, `select.hpvc_*`). The supplied HACS flow already contains those native references. External HBC entities such as `input_select.house_battery_strategy` remain unchanged.
+
 ## Control overview
 
 HPVC follows this execution order:

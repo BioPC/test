@@ -1837,10 +1837,11 @@ template:
     state: >-
       {% set strategy = 'input_select.house_battery_strategy' %}
       {% set executing = 'input_text.house_battery_strategy_active_sub_strategy' %}
-      {% set bad = ['unknown', 'unavailable', 'none', 'select_entity_first', ''] %}
+      {% set bad_strategy = ['unknown', 'unavailable', 'none', 'select_entity_first', ''] %}
+      {% set bad_entity = ['unknown', 'unavailable'] %}
       {% set options = state_attr(strategy, 'options') %}
-      {{ states(strategy) not in bad and options is sequence and options is not string
-      and options | count > 0 and states(executing) not in bad }}
+      {{ states(strategy) not in bad_strategy and options is sequence and options is not string
+      and options | count > 0 and states(executing) not in bad_entity }}
   - name: HPVC External Release Active
     unique_id: hpvc_external_release_active
     icon: mdi:solar-power-variant

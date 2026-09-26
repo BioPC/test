@@ -1,18 +1,43 @@
 # Changelog
 
-## v1.5.2
-- HACS native mode no longer requires editing `configuration.yaml` or enabling `/config/packages`; HPVC configuration entities are created by the integration.
+### Final release hardening
 
-- Added a HACS-ready `custom_components/hpvc` companion integration while preserving the existing manual installation path.
-- Added one-click HACS repository links to the README and installation guide.
-- Added automatic **Home PV Control** sidebar panel registration for HACS installations, rendering the bundled dashboard definition.
-- Added protected HACS-native HACS configuration installation/update: absent packages can be installed automatically, HACS-managed copies can be updated, and manually maintained `/config/packages/hpvc_config.yaml` files are not overwritten.
-- Bundled the matching Home Assistant package, dashboard and Node-RED flow with the custom integration.
-- Added `input_text.hpvc_nodered_version`; the v1.5.2 Node-RED flow publishes its version on deploy/startup.
-- Added integration sensors for HPVC integration version, Node-RED version/status and package installation mode. A version mismatch is reported as `Update required`.
-- Node-RED deployment remains deliberately semi-automatic: HACS updates the bundled flow, but the user explicitly imports/deploys it so local flow edits are never silently replaced.
-- Documented restart/update behavior for HACS and manual installations.
+- Removed a redundant duplicate Node-RED final verification read after the four managed tabs are written; the same final safety check is retained with one `GET /flows` instead of two.
+- Bound HPVC-owned background and delayed tasks to the Home Assistant config-entry lifecycle so unload/reload cancels stale work safely.
+- Node-RED Home Assistant server selection no longer guesses from reference counts when multiple HA server configs exist; ambiguous setups are blocked with a clear error.
+- Added transaction-style Node-RED flow protection: HPVC pauses control, snapshots all managed tabs, verifies all four writes, and automatically rolls back after a partial failure. HPVC remains disabled if rollback cannot be proven complete.
+- Removed stale RC4 frontend/troubleshooting labels and internal RC audit files from the release package.
+- Replaced the README Mermaid block with HACS-safe Markdown so the HACS repository page no longer shows raw Mermaid source.
+
+
+## v1.5.2
+
+- Added smart HACS update classification and quick apply: HPVC fingerprints loaded versus installed files and distinguishes reload-safe updates from Python changes.
+- Added `sensor.hpvc_update_status`, `button.hpvc_check_installed_update` and `button.hpvc_apply_installed_update`. A confirmed reload-safe update can apply the bundled Node-RED flow and reload only the HPVC config entry; Python changes require a full Home Assistant restart.
+- Runtime configuration is re-read on every native HPVC config-entry setup, and the sidebar panel URL includes a dashboard content fingerprint so dashboard-only updates refresh after the quick reload.
+- Runtime version reporting now reads the installed integration manifest dynamically, allowing metadata/dashboard/Node-RED-only version updates without forcing a Python module reload.
+- Added a HACS-ready `custom_components/hpvc` integration while preserving the existing manual package + Node-RED + YAML-dashboard workflow.
+- HACS/native mode no longer requires editing `configuration.yaml` or enabling `/config/packages`; HPVC configuration and diagnostic entities are created natively by the integration.
+- Added automatic **Home PV Control** sidebar panel registration using the bundled native dashboard.
+- Added native equivalents of the manual HPVC helpers/templates plus a matching HACS Node-RED flow variant.
+- Added `text.hpvc_nodered_version`; the v1.5.2 HACS Node-RED flow publishes its version on deploy/startup.
+- Added integration sensors for HPVC integration version, Node-RED version/status, Node-RED installer status and installation mode.
+- Added Node-RED Admin API installation/update support for the four HPVC-managed tabs.
+  - Uses per-flow `POST /flow`, `PUT /flow/:id` and `DELETE /flow/:id`; HPVC does not replace the complete Node-RED configuration through `POST /flows`.
+  - Adds persistent `HPVC_MANAGED`, `HPVC_ROLE` and `HPVC_VERSION` markers to HPVC tab descriptions for machine-readable ownership/version detection. Legacy tab labels are used only as a migration fallback.
+  - Backs up the currently detected HPVC tabs before replacement.
+  - Automatic Node-RED writes are explicit opt-in and default Off; manual Check and Install/Update buttons remain available.
+  - Empty Node-RED URL discovers the Home Assistant Node-RED add-on only. Direct/external Node-RED requires an existing Home Assistant server configuration that HPVC can safely reuse.
+- Added local HPVC brand assets for Home Assistant versions supporting custom-integration local branding.
+- Fixed the top Negative Price badge so it is hidden while unavailable/unknown/off and shown only while negative-price mode is active.
+- Documented HACS/manual restart and upgrade behavior.
 - PV/HBC control logic from v1.5.1 is otherwise unchanged.
+- Restored HACS dashboard rendering through Home Assistant's native Lovelace root so the v1.5.2 sidebar dashboard follows the same header/tab/section rendering model as the v1.5.1 YAML dashboard.
+- Fixed reactive native template tracking: HPVC template sensors and binary sensors now use Home Assistant-compatible template equality/refresh handling, so HBC availability and PV inverter-slot visibility update immediately when their source entities change.
+- HBC availability now treats an empty active sub-strategy as valid when the HBC strategy selector and sub-strategy entity are present, preventing false "HBC unavailable" status while HBC is idle.
+- Added explicit regression checks for inverter-slot visibility from PV1 through PV10.
+- Added a mixed-install safety interlock: when legacy/manual `input_*` HPVC helpers are present, HACS-native HPVC does not create a second control stack or run Node-RED management. If manual HPVC appears while native HPVC is running, the native master switch is turned off and the integration reloads into protection mode with a persistent warning.
+- Synchronized v1.5.2 documentation for HACS/native versus manual entity domains, safe migration/mixed-install recovery, Node-RED installer behavior, and HBC availability troubleshooting. The PV2–PV10 visibility issue remains recorded as a fixed regression in the release history, not as normal troubleshooting guidance.
 
 ## v1.5.1
 
@@ -369,4 +394,3 @@
 ## v1.0.0
 
 - Initial public release.
-

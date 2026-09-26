@@ -1,44 +1,72 @@
 # Home PV Control v1.5.2
 
-v1.5.2 adds a HACS-friendly installation and update layer around the existing HPVC architecture. The PV-control, HBC, safe-disable and external-release behavior from v1.5.1 is intentionally kept unchanged.
+v1.5.2 adds a HACS-native installation and update layer around the existing HPVC architecture. PV control, HBC coordination, safe-disable restoration and the external PV-release handshake from v1.5.1 remain unchanged.
 
 ## Highlights
 
-- HACS-ready Home Assistant custom integration under `custom_components/hpvc`.
-- One-click **Open in HACS** link in the README and installation guide.
-- Automatic **Home PV Control** sidebar panel for HACS installations using the bundled HPVC dashboard definition.
-- Protected native-HACS installation: HACS can install/update its own `/config/packages/hpvc_config.yaml`, while an existing manual package is preserved.
-- Matching Home Assistant package, dashboard and Node-RED flow bundled with the integration.
-- Node-RED version handshake through `input_text.hpvc_nodered_version`.
-- Home Assistant sensors expose the installed integration version, detected Node-RED version, Node-RED update status and package mode.
-- The Node-RED step remains deliberately semi-automatic. HACS supplies the matching flow but does not silently replace a user's deployed flow.
-- Manual installation remains fully supported as before.
+- Added a HACS-ready Home Assistant custom integration under `custom_components/hpvc`.
+- HACS/native installations create the HPVC configuration and diagnostic entities directly; they do **not** require `configuration.yaml` package setup or `/config/packages/hpvc_config.yaml`.
+- Added the automatic **Home PV Control** sidebar panel using the bundled native dashboard definition.
+- Added native equivalents of the manual HPVC helpers/templates and a matching HACS Node-RED flow variant.
+- Added HPVC integration, Node-RED version/status, installer-status and installation-mode sensors.
+- Added Node-RED Admin API integration for installing and updating the four HPVC-managed tabs.
+  - Uses the official per-flow endpoints (`POST /flow`, `PUT /flow/:id`, `DELETE /flow/:id`) instead of replacing the complete Node-RED configuration.
+  - HPVC tab ownership/version is identified by persistent machine-readable markers stored in each HPVC tab description, with the old tab labels used only as a migration fallback.
+  - Existing HPVC tabs are backed up under `/config/hpvc-data/nodered-backups/` before replacement.
+  - Automatic Node-RED writes are **opt-in**. If disabled, HPVC only checks status until the user presses **Install / update Node-RED flow**.
+  - Leaving the URL empty discovers the Home Assistant Node-RED add-on. A direct/external Node-RED URL is supported only when that runtime already has a Home Assistant server configuration that HPVC can reuse.
+- Added **Check Node-RED connection** and **Install / update Node-RED flow** buttons.
+- Manual package + Node-RED + YAML-dashboard installation remains fully supported.
 
 ## HACS installation
 
 1. Install HPVC through HACS and restart Home Assistant.
-2. Add **Home PV Control** from **Settings → Devices & services**.
-3. HPVC registers its sidebar dashboard and installs the package if no manual package exists.
-4. If HPVC installed/updated the native HACS configuration, restart Home Assistant once to load the YAML changes.
-5. Import/deploy the bundled v1.5.2 Node-RED flow.
-6. Configure HPVC from the sidebar Settings tab.
+2. Add **Home PV Control** under **Settings → Devices & services**.
+3. Leave the Node-RED URL empty for Home Assistant Node-RED add-on discovery, or enter a direct Admin API URL and credentials.
+4. Enable **Automatically install/update HPVC Node-RED flow** only if you want HPVC to perform Node-RED writes automatically after startup. It is Off by default.
+5. If automatic management is Off, open the HPVC **Settings** tab and press **Install / update Node-RED flow** once.
+6. Configure the required grid, price, PV and inverter control entities from the HPVC Settings tab.
 
-For later updates, update HPVC in HACS and restart Home Assistant. If the running Node-RED flow is older, `sensor.hpvc_nodered_status` reports **Update required**; import and deploy the updated bundled flow deliberately.
+No `configuration.yaml` edit is required for HACS/native installation.
+
+### Mixed-install protection
+
+Manual and HACS-native HPVC must not run at the same time. v1.5.2 checks for legacy/manual HPVC helpers in the `input_boolean`, `input_number`, `input_text`, `input_select` and `input_button` domains. When they are detected, the HACS integration enters protection mode: it does not create the native HPVC control entities, does not register the HPVC control dashboard, and does not run the Node-RED installer/updater. Home Assistant shows a persistent notification explaining how to keep the manual installation or migrate to HACS-native.
+
+If a manual HPVC package is loaded after HACS-native HPVC is already running, HPVC turns off `switch.hpvc_enabled` first and reloads the integration into protection mode. HPVC does not automatically delete or edit the user's YAML package.
+
+## HACS updates
+
+After a HACS update, HPVC compares fingerprints of the loaded integration with the files installed on disk. When no Python file changed, `sensor.hpvc_update_status` reports **Quick reload available**; the user confirms **Apply installed update**, HPVC applies any bundled Node-RED change and reloads only its own config entry. When Python changed, the status is **Restart required** and the quick reload is blocked. The first HACS installation still requires one Home Assistant restart to load the custom integration Python code.
+
+HPVC never writes the complete Node-RED flow configuration through `POST /flows` in this build.
 
 ## Manual installation
 
-The existing manual workflow is unchanged: replace/copy `hpvc_config.yaml`, import/deploy `hpvc_flow.json`, add `hpvc_dashboard.yaml`, and restart/reload as documented.
+The traditional workflow is unchanged:
+
+1. enable Home Assistant packages;
+2. copy `home assistant/hpvc_config.yaml` to `/config/packages/hpvc_config.yaml`;
+3. import/deploy `node-red/hpvc_flow.json`;
+4. add `home assistant/hpvc_dashboard.yaml`;
+5. restart/reload and configure HPVC as documented.
 
 ## Compatibility
 
-- Home Assistant Core 2025.12+
-- Node-RED with `node-red-contrib-home-assistant-websocket` 0.80.3+
+- Home Assistant Core 2025.12+ for HPVC functionality.
+- Local custom-integration brand images are cosmetic and require Home Assistant 2026.3+.
+- Node-RED with `node-red-contrib-home-assistant-websocket` 0.80.3+.
 - Existing v1.5.1 inverter Number entity / Action-service configuration remains compatible.
-- Existing HBC, external release and safe-disable behavior remains compatible.
+- Existing HBC, external-release and safe-disable behavior remains compatible.
 
-### Native HACS configuration
 
-- HACS installations no longer require `homeassistant: packages:` or any edit to `configuration.yaml`.
-- HPVC helpers and diagnostic template entities are provided natively by `custom_components/hpvc`.
-- The HACS dashboard and bundled Node-RED flow use the native HPVC entities automatically.
-- The traditional manual package/dashboard/Node-RED installation remains supported unchanged.
+## Final RC hardening
+
+### Final release hardening
+
+- Removed a redundant duplicate Node-RED final verification read after the four managed tabs are written; the same final safety check is retained with one `GET /flows` instead of two.
+- Bound HPVC-owned background and delayed tasks to the Home Assistant config-entry lifecycle so unload/reload cancels stale work safely.
+- Node-RED Home Assistant server selection no longer guesses from reference counts when multiple HA server configs exist; ambiguous setups are blocked with a clear error.
+- Added transaction-style Node-RED flow protection: HPVC pauses control, snapshots all managed tabs, verifies all four writes, and automatically rolls back after a partial failure. HPVC remains disabled if rollback cannot be proven complete.
+- Removed stale RC4 frontend/troubleshooting labels and internal RC audit files from the release package.
+- Replaced the README Mermaid block with HACS-safe Markdown so the HACS repository page no longer shows raw Mermaid source.

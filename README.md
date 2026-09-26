@@ -1,4 +1,4 @@
-![Home PV Control banner](https://raw.githubusercontent.com/BioPC/test/main/assets/banner.png)
+![Home PV Control banner](https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/banner.png)
 
 <p align="center">
   <a href="releases/v1.5.2/release.md"><img src="https://img.shields.io/badge/release-v1.5.2-blue" alt="Release v1.5.2"></a>
@@ -28,7 +28,7 @@ Home PV Control (HPVC) dynamically controls, limits and restores PV inverter out
 
 See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configuration](docs/02-configuration.md) for the four compatibility statuses, current brand/integration matrix and configuration.
 
-![Home PV Control dashboard](https://raw.githubusercontent.com/BioPC/test/main/assets/screenshots/dashboard_main.png)
+![Home PV Control dashboard](https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/dashboard_main.png)
 
 ## Contents
 
@@ -51,6 +51,7 @@ See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configurati
 ## Requirements
 
 - Home Assistant Core **2025.12 or newer**. HACS/native installation does not require Home Assistant package configuration; package support is needed only for the manual installation path.
+  Local HPVC brand artwork is shown by Home Assistant versions that support custom-integration local branding (HA 2026.3+); this is cosmetic and does not change the functional 2025.12 minimum.
 - Node-RED with `node-red-contrib-home-assistant-websocket` **0.80.3 or newer**.
 - One or more PV inverters with either a writable `number.*` active-power limit or a stable Home Assistant action/service that can apply an active-power limit.
 - A valid grid-power sensor, market/export-price sensor, all-in-price sensor and PV-power sensor.
@@ -63,16 +64,32 @@ HPVC v1.5.2 supports both **HACS** and the existing **manual installation** meth
 
 ### Option 1 — HACS
 
-[![Open your Home Assistant instance and add this repository to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BioPC&repository=test&category=integration)
+[![Open your Home Assistant instance and add this repository to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BioPC&repository=home-pv-control&category=integration)
 
 1. Open the button above and install **Home PV Control** as a HACS custom integration.
 2. Restart Home Assistant so the new custom integration becomes available.
 3. Go to **Settings → Devices & services → Add integration → Home PV Control** and add it.
 4. HPVC creates its required configuration/diagnostic entities natively and registers **Home PV Control** in the Home Assistant sidebar. **No `configuration.yaml` edit and no `/config/packages` setup are required.**
-5. Import the bundled HACS `hpvc_flow.json` into Node-RED and deploy it. This remains deliberately semi-automatic: HPVC never silently replaces a user's Node-RED flow.
-6. Configure HPVC from the sidebar **Settings** tab.
+5. During integration setup, leave the Node-RED URL empty to try automatic discovery, or enter the direct Node-RED Admin API URL and credentials if your Node-RED editor is protected. **Automatically install/update HPVC Node-RED flow** is an explicit opt-in. Leave it Off to use the manual install/update button.
+6. When automatic Node-RED management is enabled—or when you press the manual **Install / update Node-RED flow** button—HPVC installs or updates its managed Node-RED tabs through the official per-flow Node-RED Admin API (`POST /flow` and `PUT /flow/:id`); it never posts the complete Node-RED configuration. Before replacing an existing HPVC flow it saves a backup under `/config/hpvc-data/nodered-backups/`. If Node-RED cannot be reached, Home Assistant setup still completes and the flow can be installed later from the HPVC **Settings** tab.
+   For an external/direct Node-RED URL, configure an existing Home Assistant server in `node-red-contrib-home-assistant-websocket` first; HPVC reuses that server configuration instead of creating an add-on-specific one.
+7. Configure HPVC from the sidebar **Settings** tab.
 
-On later HACS updates, HACS updates the custom integration plus its bundled dashboard and Node-RED flow. Restart Home Assistant after the HACS update. The HPVC integration compares its version with the version published by the running Node-RED flow and exposes **Update required** when the flow still needs to be imported/deployed. HACS mode does not create or update `hpvc_config.yaml`.
+On later HACS updates, HPVC watches the installed integration files on disk. If **no Python files changed**, HPVC reports **Quick reload available** and creates a persistent notification. Press **Confirm & apply installed update** in HPVC Settings to apply any bundled Node-RED change and reload only the Home PV Control config entry; Home Assistant itself stays online. If any HPVC `.py` file changed, HPVC reports **Restart required** and deliberately blocks the quick reload because Home Assistant must load the new Python modules. Manual Node-RED install/update and connection-check buttons remain available. HACS mode does not create or update `hpvc_config.yaml`.
+
+
+### Smart HACS update apply
+
+HPVC v1.5.2 can distinguish an installed HACS update that changes Python from one that changes only reload-safe files. The running integration fingerprints its own files and checks the on-disk installation periodically.
+
+- **No Python change:** `sensor.hpvc_update_status` becomes **Quick reload available**. Press `button.hpvc_apply_installed_update` (shown as **Confirm & apply installed update** in HPVC Settings). HPVC applies a bundled Node-RED change when present and then calls a config-entry reload for Home PV Control only. Home Assistant is not restarted.
+- **Python changed:** the status becomes **Restart required**. Quick reload is blocked because Python modules already imported by Home Assistant cannot be safely replaced with a config-entry reload.
+- **Dashboard only:** the HPVC reload re-registers the sidebar panel with a new content fingerprint so the updated frontend is fetched.
+- **Runtime configuration:** `runtime_config.json` is re-read on every HPVC config-entry setup.
+
+The first HACS installation still requires one Home Assistant restart so the new custom integration Python code can be loaded initially.
+
+> **Do not combine Manual and HACS-native HPVC.** v1.5.2 includes a mixed-install safety interlock. If legacy `input_boolean.hpvc_*`, `input_number.hpvc_*`, `input_text.hpvc_*`, `input_select.hpvc_*` or `input_button.hpvc_*` helpers are detected while the HACS integration is present, HPVC blocks the native control stack and Node-RED management and creates a persistent Home Assistant notification. If the manual package is added while HACS-native HPVC is already running, HPVC first turns off the native master control and reloads into protection mode. Remove one installation method and restart/reload HPVC to continue. HPVC never deletes the manual YAML package automatically.
 
 ### Option 2 — Manual installation
 
@@ -225,23 +242,15 @@ Reports are generated from one shared fresh model and published atomically. Non-
 
 ## Architecture and persistence
 
-```mermaid
-flowchart LR
-    PRICE[Market / all-in price]
-    GRID[Grid power]
-    PV[PV power]
-    HBC[Optional HBC]
-    BAT[Battery telemetry]
-    HPVC["Home PV Control<br/>Node-RED"]
-    LIMITS[PV inverter limits]
+**Control path**
 
-    PRICE --> HPVC
-    GRID --> HPVC
-    PV --> HPVC
-    HBC --> HPVC
-    BAT --> HPVC
-    HPVC --> LIMITS
-```
+| Inputs | Controller | Output |
+|---|---|---|
+| Market / all-in price | Home PV Control (Node-RED) | PV inverter limits |
+| Grid power | ↑ | |
+| PV power | ↑ | |
+| Optional HBC | ↑ | |
+| Battery telemetry | ↑ | |
 
 The Node-RED flow is organized into four functional tabs. Current-day Insights, Power Control, Daily Control Accuracy and negative-price override state share the private `hpvc-data/runtime-history.json` journal.
 
@@ -249,15 +258,21 @@ Journal writes are serialized and guarded against stale completions. Runtime wai
 
 ## Upgrading
 
-When upgrading, keep the Home Assistant package, Node-RED flow and dashboard on the same release version.
+Keep all HPVC runtime components on the same release version, but follow the upgrade path for your installation mode.
+
+**HACS/native:** update Home PV Control in HACS. HPVC classifies the installed-file changes. If no Python changed, confirm **Apply installed update** in HPVC Settings and HPVC reloads only its own config entry (and applies the bundled Node-RED update when needed). If Python changed, restart Home Assistant. No package replacement or `configuration.yaml` change is involved.
+
+**Manual:**
 
 1. Back up the current package, dashboard, Node-RED flow and `hpvc-data` journal.
 2. Replace the Home Assistant package.
-3. Replace the complete Node-RED flow.
-4. Replace or merge the dashboard.
+3. Replace the complete manual Node-RED flow.
+4. Replace or merge the manual dashboard.
 5. Restart Home Assistant and deploy Node-RED.
 6. Verify configured sensors and inverter limits.
 7. Review **Force charge at negative price**. It is seeded **On** once on fresh installs and upgrades. After that, a manual Off choice survives normal Home Assistant restarts and package/automation reloads. **Restore defaults** turns it On again.
+
+Do not switch installation modes by layering one on top of the other. See [Installation → Switching between Manual and HACS-native](docs/01-installation.md#switching-between-manual-and-hacs-native) for the safe migration order and mixed-install protection behavior.
 8. Generate a support report to confirm the installation is healthy.
 
 See the [v1.5.2 release notes](releases/v1.5.2/release.md) for the full release summary.
@@ -282,17 +297,17 @@ The bundled screenshots are retained for orientation and may show an earlier HPV
 
 ### Settings
 
-![Home PV Control settings](https://raw.githubusercontent.com/BioPC/test/main/assets/screenshots/dashboard_settings.png)
+![Home PV Control settings](https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/dashboard_settings.png)
 
 ### Report
 
-![HPVC report](https://raw.githubusercontent.com/BioPC/test/main/assets/screenshots/hpvc_report.png)
+![HPVC report](https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/hpvc_report.png)
 
 ### Node-RED flow
 
 Reference Node-RED architecture screenshot.
 
-![Home PV Control Node-RED flow](https://raw.githubusercontent.com/BioPC/test/main/assets/screenshots/node_red_flow.png)
+![Home PV Control Node-RED flow](https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/node_red_flow.png)
 
 ## Support
 
@@ -360,7 +375,7 @@ releases/
 
 ## Installation format
 
-HPVC v1.5.2 supports a HACS custom-integration installation and the original manual GitHub release ZIP. HACS manages the Home Assistant companion integration and bundled files; Node-RED import remains deliberate/semi-automatic, and the manual package + flow + dashboard workflow remains fully supported.
+HPVC v1.5.2 supports a HACS custom-integration installation and the original manual GitHub release ZIP. HACS manages the Home Assistant companion integration and bundled files; the HACS/native integration can install and update the HPVC Node-RED flow through the official Node-RED Admin API, while the manual package + flow + dashboard workflow remains fully supported.
 
 ## Credits
 
@@ -370,7 +385,7 @@ Inspired by the Home Assistant and Node-RED workflow of [Home Battery Control](h
 
 The HACS integration includes local Home Assistant brand images in `custom_components/hpvc/brand/`, generated from `assets/logo.svg`, so Home Assistant can show the HPVC icon/logo after installation and restart.
 
-The HACS installation is implemented in `custom_components/hpvc/`. Its bundled files are copies of the same v1.5.2 Home Assistant package, dashboard definition and Node-RED flow shipped for manual installation.
+The HACS installation is implemented in `custom_components/hpvc/`. It ships native equivalents of the manual HPVC helpers/templates plus a matching dashboard and Node-RED flow variant. The manual and HACS files provide the same HPVC behavior but use different Home Assistant entity domains where required.
 
 ## License
 

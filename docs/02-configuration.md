@@ -2,14 +2,26 @@
 
 # Settings
 
-The Settings tab is always available and contains entity selection, inverter setup, control thresholds, optional HBC controls, and tuning options. Operational status, graphs, accuracy, and Insights remain on the Main tab.
+The Settings tab is available in both installation modes and contains entity selection, inverter setup, control thresholds, optional HBC controls, and tuning options. Operational status, graphs, accuracy, and Insights remain on the Main tab. In HACS/native mode the sidebar dashboard is registered automatically; in manual mode the supplied YAML dashboard must be added by the user.
 
 The Main-tab **Daily Control Accuracy** score grades excursions outside **Export Start…Import Restore**. Its four loss factors—**Control response**, **House load changes**, **PV availability**, and **Other**—split the displayed headline loss (`100 − accuracy`). Use the support report for detailed RMS/MAE, raw attribution, coverage, and exclusion diagnostics. Legacy accuracy entity IDs are retained for compatibility.
 
 
 ## Entity configuration
 
-Entity helpers are plain `input_text` fields. Paste the complete Home Assistant entity ID; HPVC reports an invalid or empty field as a configuration error instead of guessing.
+Paste the complete Home Assistant entity ID into the corresponding HPVC entity-selection field; HPVC reports an invalid or empty field as a configuration error instead of guessing.
+
+HPVC uses the same logical helper names in both installation modes, but the Home Assistant domains differ:
+
+| Purpose | HACS/native | Manual package |
+|---|---|---|
+| On/off settings | `switch.hpvc_*` | `input_boolean.hpvc_*` |
+| Entity IDs / text state | `text.hpvc_*` | `input_text.hpvc_*` |
+| Numeric settings | `number.hpvc_*` | `input_number.hpvc_*` |
+| Select settings | `select.hpvc_*` | `input_select.hpvc_*` |
+| HPVC command buttons | `button.hpvc_*` | package script/input-button equivalents |
+
+The supplied HACS dashboard and HACS Node-RED flow already use the native domains. The manual dashboard and manual flow use the package domains. Do not mix files from the two installation modes.
 
 ### Grid power sensor
 
@@ -41,6 +53,8 @@ Current total PV production in watts.
 
 The dashboard exposes HBC's native strategy selector and reads `input_text.house_battery_strategy_active_sub_strategy` as the executing sub-strategy. **Enable HBC** is the master permission for HBC execution tracking, Charge Priority, and any HPVC HBC write. During normal operation HPVC does not select HBC strategies; the only automatic strategy write is the optional negative-price charging override.
 
+HBC availability is detected from `input_select.house_battery_strategy` together with the presence/availability of `input_text.house_battery_strategy_active_sub_strategy`. An empty active sub-strategy is valid while HBC is idle and does not by itself make HBC unavailable. These HBC entities are external to HPVC and are deliberately excluded from mixed-install detection.
+
 ## PV inverter setup
 
 Each inverter requires a **Control method** plus its common power limits:
@@ -52,6 +66,8 @@ Each inverter requires a **Control method** plus its common power limits:
 - **Limit entity** — required only for `Number entity` control. Action/service fields are described below.
 
 See [Inverter compatibility](05-inverter-compatibility.md) before selecting an entity for an untested inverter brand/integration.
+
+**Inverter-count visibility:** PV1 is always shown. PV2–PV10 are revealed from the configured inverter count. In HACS/native mode `number.hpvc_inverter_count` drives `binary_sensor.hpvc_show_inverter_slot_2` through `_10`; in manual mode the equivalent source is `input_number.hpvc_inverter_count`. Changing the count should update the visible inverter cards without a Home Assistant restart.
 
 HPVC always calculates plant and inverter targets internally in watts. With **Limit unit = Percent**, only the Home Assistant I/O boundary is converted: `target % = target W / Full power W × 100`. The live percentage state is converted back to watts before allocation, deadband and write-verification logic. This allows percentage-controlled integrations to use the same HPVC control model without changing thresholds or proportional distribution.
 
@@ -151,7 +167,7 @@ When **Enable HBC** and **Force charge at negative price** are both on, and the 
 3. confirms charge goal `batteries are full`;
 4. restores the saved charge goal and then the saved strategy on exit.
 
-The restore sequence also starts if either HBC permission is turned off. The override is persisted in `/config/hpvc-data/runtime-history.json` so a restart cannot lose the original values. If an entry or restore phase remains unconfirmed for five minutes, `input_boolean.hpvc_negative_override_fault` and a persistent notification identify the stuck phase.
+The restore sequence also starts if either HBC permission is turned off. The override is persisted in `/config/hpvc-data/runtime-history.json` so a restart cannot lose the original values. If an entry or restore phase remains unconfirmed for five minutes, the negative-override fault entity (`switch.hpvc_negative_override_fault` in HACS/native mode or `input_boolean.hpvc_negative_override_fault` in manual mode) and a persistent notification identify the stuck phase.
 
 ## Restore defaults
 
@@ -238,13 +254,13 @@ They are retained for backward compatibility with v1.4.3 installations and for u
 
 HPVC exposes a small Home Assistant handshake for companion controllers such as EV/forecast automations. It is generic and is not tied to any charger, forecast provider or external project.
 
-- `input_boolean.hpvc_external_release_request`: set this **On** to ask HPVC to release HPVC-controlled PV curtailment at the next safe opportunity. This helper is intended primarily for automations/integrations and is not shown as a normal dashboard control.
+- External release request: `switch.hpvc_external_release_request` in HACS/native mode or `input_boolean.hpvc_external_release_request` in manual mode. Set it **On** to ask HPVC to release HPVC-controlled PV curtailment at the next safe opportunity. This helper is intended primarily for automations/integrations and is not shown as a normal dashboard control.
 - `binary_sensor.hpvc_external_release_active`: turns **On** only after HPVC considers the configured inverter limits restored to full and the normal PV-curtailment path is suspended for the request. The dashboard shows this sensor as a status badge only while active.
 
-A requester must wait for `binary_sensor.hpvc_external_release_active = on` before assuming that PV has been handed over. Do not use `input_boolean.hpvc_enabled` as a release acknowledgement. When the request is switched Off, HPVC immediately returns to its normal evaluation path.
+A requester must wait for `binary_sensor.hpvc_external_release_active = on` before assuming that PV has been handed over. Do not use the HPVC master-enable entity (`switch.hpvc_enabled` in HACS/native or `input_boolean.hpvc_enabled` in manual mode) as a release acknowledgement. When the request is switched Off, HPVC immediately returns to its normal evaluation path.
 
 Mandatory negative-price/minimum protection, HBC override restoration, Night Restore and safety/fault states keep priority over an external release request. The normal PV cooldown is respected before a release write; there is no fixed 30-second success promise.
 
 ### Safe master disable
 
-Switching `input_boolean.hpvc_enabled` Off no longer means “freeze the last HPVC limit”. When a usable inverter control path remains available, HPVC first restores configured inverter limits to full and restores any HPVC-owned negative-price HBC override, then settles into `Disabled`. The support report records the resulting runtime status and external-release state.
+Switching the HPVC master enable Off (`switch.hpvc_enabled` in HACS/native or `input_boolean.hpvc_enabled` in manual mode) no longer means “freeze the last HPVC limit”. When a usable inverter control path remains available, HPVC first restores configured inverter limits to full and restores any HPVC-owned negative-price HBC override, then settles into `Disabled`. The support report records the resulting runtime status and external-release state.

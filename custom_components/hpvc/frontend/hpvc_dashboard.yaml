@@ -26,10 +26,7 @@ views:
           '
       - type: markdown
         text_only: true
-        content: "<div align=\"center\">\n  <sup>\n    <font color=\"#888888\">\n      ☆ &nbsp; Like this project? Consider\
-          \ giving a star! &nbsp; ›\n    </font>\n  </sup>\n  &nbsp;\n  <a href=\"https://github.com/BioPC/home-pv-control\"\
-          >\n    <img src=\"https://img.shields.io/github/stars/BioPC/home-pv-control?style=flat&logo=github&label=Stars&logoColor=white&color=3a3a3a&labelColor=242424\"\
-          >\n  </a>\n</div>\n"
+        content: "<div align=\"center\">\n  <sup>\n    <font color=\"#888888\">\n      ☆ &nbsp; Like this project? Consider giving a star! &nbsp; ›\n    </font>\n  </sup>\n  &nbsp;\n  <a href=\"https://github.com/BioPC/home-pv-control\">\n    <img src=\"https://img.shields.io/github/stars/BioPC/home-pv-control?style=flat&logo=github&label=Stars&logoColor=white&color=3a3a3a&labelColor=242424\">\n  </a>\n</div>\n"
         tap_action:
           action: url
           url_path: https://github.com/BioPC/home-pv-control
@@ -132,36 +129,10 @@ views:
         state: 'off'
       card:
         type: markdown
-        content: "{% set bad = ['unknown', 'unavailable', 'none', 'select_entity_first', ''] %}\n{% set core = [\n  ('Grid\
-          \ sensor', states('text.hpvc_grid_power_sensor')),\n  ('Market/export price', states('text.hpvc_market_price_sensor')),\n\
-          \  ('All-in price', states('text.hpvc_all_in_price_sensor')),\n  ('Solar power', states('text.hpvc_pv_power_sensor'))\n\
-          ] %}\n{% set ns = namespace(done=0, total=4) %}\n<ha-alert title=\"Welcome to Home PV Control\" alert-type=\"warning\"\
-          >\nOpen the <b>Settings</b> tab using the <b>⚙️ Settings</b> button in the navigation bar and complete the required\
-          \ configuration. Once setup and all required live inputs are valid, HPVC switches on automatically.\n</ha-alert>\n\
-          <p><b>Setup progress:</b></p>\n{% for label, ent in core %}\n  {% set normalized = ent | trim | lower %}\n  {% set\
-          \ configured = normalized not in bad and (normalized | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) %}\n  {% set valid\
-          \ = configured and states(normalized) not in bad and is_number(states(normalized)) %}\n  {% if valid %}{% set ns.done\
-          \ = ns.done + 1 %}✅{% else %}❌{% endif %} **{{ label }}**\n{% endfor %}\n{% set count = states('number.hpvc_inverter_count')\
-          \ | int(0) %}\n{% set inv = namespace(valid=count > 0, entities=[]) %}\n{% for i in range(1, count + 1) %}\n  {%\
-          \ set method = states('select.hpvc_pv' ~ i ~ '_control_method') | trim %}\n  {% set unit = states('select.hpvc_pv'\
-          \ ~ i ~ '_limit_unit') | trim %}\n  {% set full = states('number.hpvc_pv' ~ i ~ '_full_limit') | float(0)\
-          \ %}\n  {% set low = states('number.hpvc_pv' ~ i ~ '_low_limit') | float(-1) %}\n  {% set base_valid = method\
-          \ in ['Number entity', 'Action/service'] and unit in ['Watts', 'Percent'] and full > 0 and low >= 0 and low < full\
-          \ %}\n  {% if method == 'Number entity' %}\n    {% set ent = states('text.hpvc_pv' ~ i ~ '_limit_number')\
-          \ | trim | lower %}\n    {% set configured = base_valid and ent not in bad and (ent | regex_match('^number[.][a-z0-9_]+$'))\
-          \ and ent not in inv.entities %}\n    {% set live = configured and states(ent) not in bad and is_number(states(ent))\
-          \ %}\n    {% if not live %}{% set inv.valid = false %}{% else %}{% set inv.entities = inv.entities + [ent] %}{%\
-          \ endif %}\n  {% elif method == 'Action/service' %}\n    {% set action = states('text.hpvc_pv' ~ i ~ '_action')\
-          \ | trim | lower %}\n    {% set value_field = states('text.hpvc_pv' ~ i ~ '_value_field') | trim %}\n    {%\
-          \ set readback = states('text.hpvc_pv' ~ i ~ '_readback_entity') | trim | lower %}\n    {% set configured\
-          \ = base_valid and (action | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) and value_field != '' and (readback in bad\
-          \ or (readback | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$'))) %}\n    {% set live = configured and (readback in bad\
-          \ or (states(readback) not in bad and is_number(states(readback)))) %}\n    {% if not live %}{% set inv.valid =\
-          \ false %}{% endif %}\n  {% else %}\n    {% set inv.valid = false %}\n  {% endif %}\n{% endfor %}\n{% set ns.total\
-          \ = ns.total + 1 %}\n{% if inv.valid %}{% set ns.done = ns.done + 1 %}✅{% else %}❌{% endif %} **Inverter setup**\n\
-          \n{% set ns.total = ns.total + 1 %}\n{% set setup_ready = is_state('switch.hpvc_defaults_applied', 'on') and is_state('binary_sensor.hpvc_configuration_valid',\
-          \ 'on') %}\n{% if setup_ready %}{% set ns.done = ns.done + 1 %}✅{% else %}❌{% endif %} **Control settings**\n<p><b>{{\
-          \ ns.done }}/{{ ns.total }} complete</b></p>"
+        content: "{% set bad = ['unknown', 'unavailable', 'none', 'select_entity_first', ''] %}\n{% set core = [\n  ('Grid sensor', states('text.hpvc_grid_power_sensor')),\n  ('Market/export price', states('text.hpvc_market_price_sensor')),\n  ('All-in price', states('text.hpvc_all_in_price_sensor')),\n  ('Solar power', states('text.hpvc_pv_power_sensor'))\n] %}\n{% set ns = namespace(done=0, total=4) %}\n<ha-alert title=\"Welcome to Home PV Control\" alert-type=\"warning\">\nOpen the <b>Settings</b> tab using the <b>⚙️ Settings</b> button in the navigation bar and complete the required configuration. Once setup and all required live inputs are valid, HPVC switches on automatically.\n</ha-alert>\n<p><b>Setup progress:</b></p>\n{% for label, ent in core %}\n  {% set normalized = ent | trim | lower %}\n  {% set configured = normalized not in bad and (normalized | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) %}\n  {% set valid = configured and states(normalized) not in bad and is_number(states(normalized))\
+          \ %}\n  {% if valid %}{% set ns.done = ns.done + 1 %}✅{% else %}❌{% endif %} **{{ label }}**\n{% endfor %}\n{% set count = states('number.hpvc_inverter_count') | int(0) %}\n{% set inv = namespace(valid=count > 0, entities=[]) %}\n{% for i in range(1, count + 1) %}\n  {% set method = states('select.hpvc_pv' ~ i ~ '_control_method') | trim %}\n  {% set unit = states('select.hpvc_pv' ~ i ~ '_limit_unit') | trim %}\n  {% set full = states('number.hpvc_pv' ~ i ~ '_full_limit') | float(0) %}\n  {% set low = states('number.hpvc_pv' ~ i ~ '_low_limit') | float(-1) %}\n  {% set base_valid = method in ['Number entity', 'Action/service'] and unit in ['Watts', 'Percent'] and full > 0 and low >= 0 and low < full %}\n  {% if method == 'Number entity' %}\n    {% set ent = states('text.hpvc_pv' ~ i ~ '_limit_number') | trim | lower %}\n    {% set configured = base_valid and ent not in bad and (ent | regex_match('^number[.][a-z0-9_]+$')) and ent not in inv.entities %}\n    {% set live = configured\
+          \ and states(ent) not in bad and is_number(states(ent)) %}\n    {% if not live %}{% set inv.valid = false %}{% else %}{% set inv.entities = inv.entities + [ent] %}{% endif %}\n  {% elif method == 'Action/service' %}\n    {% set action = states('text.hpvc_pv' ~ i ~ '_action') | trim | lower %}\n    {% set value_field = states('text.hpvc_pv' ~ i ~ '_value_field') | trim %}\n    {% set readback = states('text.hpvc_pv' ~ i ~ '_readback_entity') | trim | lower %}\n    {% set configured = base_valid and (action | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) and value_field != '' and (readback in bad or (readback | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$'))) %}\n    {% set live = configured and (readback in bad or (states(readback) not in bad and is_number(states(readback)))) %}\n    {% if not live %}{% set inv.valid = false %}{% endif %}\n  {% else %}\n    {% set inv.valid = false %}\n  {% endif %}\n{% endfor %}\n{% set ns.total = ns.total + 1 %}\n{% if inv.valid %}{% set ns.done = ns.done\
+          \ + 1 %}✅{% else %}❌{% endif %} **Inverter setup**\n\n{% set ns.total = ns.total + 1 %}\n{% set setup_ready = is_state('switch.hpvc_defaults_applied', 'on') and is_state('binary_sensor.hpvc_configuration_valid', 'on') %}\n{% if setup_ready %}{% set ns.done = ns.done + 1 %}✅{% else %}❌{% endif %} **Control settings**\n<p><b>{{ ns.done }}/{{ ns.total }} complete</b></p>"
     - type: conditional
       conditions:
       - condition: state
@@ -177,46 +148,11 @@ views:
           state: 'off'
       card:
         type: markdown
-        content: "{% set bad = ['unknown', 'unavailable', 'none', 'select_entity_first', ''] %}\n{% set config_ok = is_state('binary_sensor.hpvc_configuration_valid',\
-          \ 'on') %}\n{% set inputs_ok = is_state('binary_sensor.hpvc_required_inputs_ready', 'on') %}\n{% set core = [\n\
-          \  ('Grid power', states('text.hpvc_grid_power_sensor')),\n  ('Market/export price', states('text.hpvc_market_price_sensor')),\n\
-          \  ('All-in price', states('text.hpvc_all_in_price_sensor')),\n  ('Solar power', states('text.hpvc_pv_power_sensor'))\n\
-          ] %}\n<ha-alert title=\"Home PV Control unavailable\" alert-type=\"warning\">\n{% if not config_ok and not inputs_ok\
-          \ %}\nOne or more required configuration values or live inputs are missing, invalid, unavailable, or unknown. Open\
-          \ <b>Settings</b> and correct the items marked with ❌. HPVC remains off until the configuration and all required\
-          \ inputs are healthy.\n{% elif not config_ok %}\nOne or more required configuration values are missing or invalid.\
-          \ Open <b>Settings</b> and correct the items marked with ❌.\n{% elif is_state('switch.hpvc_auto_resume_pending',\
-          \ 'on') %}\nA required live input is unavailable, unknown, or invalid. HPVC was switched off automatically and will\
-          \ switch on again after the configuration and all required inputs have remained healthy for 5 seconds.\n{% elif\
-          \ is_state('switch.hpvc_enabled', 'on') %}\nA required live input is unavailable, unknown, or invalid. HPVC is being\
-          \ switched off automatically for safety.\n{% else %}\nA required live input is unavailable, unknown, or invalid.\
-          \ HPVC is off. It will resume automatically only if it was running before the problem. A manual switch-off remains\
-          \ off.\n{% endif %}\n</ha-alert>\n<p><b>Configuration and required inputs:</b></p>\n{% for label, ent in core %}\n\
-          \  {% set normalized = ent | trim | lower %}\n  {% set configured = normalized not in bad and (normalized | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$'))\
-          \ %}\n  {% set live = configured and states(normalized) not in bad and is_number(states(normalized)) %}\n  {% if\
-          \ live %}✅{% else %}❌{% endif %} **{{ label }}**{% if configured %} — `{{ normalized }}`{% endif %}\n{% endfor %}\n\
-          {% set count = states('number.hpvc_inverter_count') | int(0) %}\n{% set inv = namespace(number_entities=[]) %}\n\
-          {% for i in range(1, count + 1) %}\n  {% set method = states('select.hpvc_pv' ~ i ~ '_control_method') | trim\
-          \ %}\n  {% set unit = states('select.hpvc_pv' ~ i ~ '_limit_unit') | trim %}\n  {% set full = states('number.hpvc_pv'\
-          \ ~ i ~ '_full_limit') | float(0) %}\n  {% set low = states('number.hpvc_pv' ~ i ~ '_low_limit') | float(-1)\
-          \ %}\n  {% set base_valid = method in ['Number entity', 'Action/service'] and unit in ['Watts', 'Percent'] and full\
-          \ > 0 and low >= 0 and low < full %}\n  {% if method == 'Number entity' %}\n    {% set ent = states('text.hpvc_pv'\
-          \ ~ i ~ '_limit_number') | trim | lower %}\n    {% set configured = base_valid and ent not in bad and (ent | regex_match('^number[.][a-z0-9_]+$'))\
-          \ and ent not in inv.number_entities %}\n    {% set live = configured and states(ent) not in bad and is_number(states(ent))\
-          \ %}\n    {% if configured %}{% set inv.number_entities = inv.number_entities + [ent] %}{% endif %}\n    {% if live\
-          \ %}✅{% else %}❌{% endif %} **PV{{ i }} Number entity**{% if ent not in bad %} — `{{ ent }}`{% endif %}\n  {% elif\
-          \ method == 'Action/service' %}\n    {% set action = states('text.hpvc_pv' ~ i ~ '_action') | trim | lower\
-          \ %}\n    {% set value_field = states('text.hpvc_pv' ~ i ~ '_value_field') | trim %}\n    {% set readback\
-          \ = states('text.hpvc_pv' ~ i ~ '_readback_entity') | trim | lower %}\n    {% set configured = base_valid\
-          \ and (action | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) and value_field != '' and (readback in bad or (readback\
-          \ | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$'))) %}\n    {% set live = configured and (readback in bad or (states(readback)\
-          \ not in bad and is_number(states(readback)))) %}\n    {% if live %}✅{% else %}❌{% endif %} **PV{{ i }} Action/service**{%\
-          \ if action %} — `{{ action }}`{% endif %}{% if readback not in bad %} · readback `{{ readback }}`{% endif %}\n\
-          \  {% else %}\n    ❌ **PV{{ i }} control method**\n  {% endif %}\n{% endfor %}\n{% set export_start = states('number.hpvc_export_start_threshold')\
-          \ | float(999999) %}\n{% set target_export = states('number.hpvc_export_stop_threshold') | float(999999) %}\n{%\
-          \ set import_restore = states('number.hpvc_import_restore_threshold') | float(-1) %}\n{% set thresholds_valid =\
-          \ export_start < target_export and target_export < import_restore and import_restore >= 0 %}\n{% if thresholds_valid\
-          \ %}✅{% else %}❌{% endif %} **Power control settings**"
+        content: "{% set bad = ['unknown', 'unavailable', 'none', 'select_entity_first', ''] %}\n{% set config_ok = is_state('binary_sensor.hpvc_configuration_valid', 'on') %}\n{% set inputs_ok = is_state('binary_sensor.hpvc_required_inputs_ready', 'on') %}\n{% set core = [\n  ('Grid power', states('text.hpvc_grid_power_sensor')),\n  ('Market/export price', states('text.hpvc_market_price_sensor')),\n  ('All-in price', states('text.hpvc_all_in_price_sensor')),\n  ('Solar power', states('text.hpvc_pv_power_sensor'))\n] %}\n<ha-alert title=\"Home PV Control unavailable\" alert-type=\"warning\">\n{% if not config_ok and not inputs_ok %}\nOne or more required configuration values or live inputs are missing, invalid, unavailable, or unknown. Open <b>Settings</b> and correct the items marked with ❌. HPVC remains off until the configuration and all required inputs are healthy.\n{% elif not config_ok %}\nOne or more required configuration values are missing or invalid. Open <b>Settings</b> and correct\
+          \ the items marked with ❌.\n{% elif is_state('switch.hpvc_auto_resume_pending', 'on') %}\nA required live input is unavailable, unknown, or invalid. HPVC was switched off automatically and will switch on again after the configuration and all required inputs have remained healthy for 5 seconds.\n{% elif is_state('switch.hpvc_enabled', 'on') %}\nA required live input is unavailable, unknown, or invalid. HPVC is being switched off automatically for safety.\n{% else %}\nA required live input is unavailable, unknown, or invalid. HPVC is off. It will resume automatically only if it was running before the problem. A manual switch-off remains off.\n{% endif %}\n</ha-alert>\n<p><b>Configuration and required inputs:</b></p>\n{% for label, ent in core %}\n  {% set normalized = ent | trim | lower %}\n  {% set configured = normalized not in bad and (normalized | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) %}\n  {% set live = configured and states(normalized) not in bad and is_number(states(normalized))\
+          \ %}\n  {% if live %}✅{% else %}❌{% endif %} **{{ label }}**{% if configured %} — `{{ normalized }}`{% endif %}\n{% endfor %}\n{% set count = states('number.hpvc_inverter_count') | int(0) %}\n{% set inv = namespace(number_entities=[]) %}\n{% for i in range(1, count + 1) %}\n  {% set method = states('select.hpvc_pv' ~ i ~ '_control_method') | trim %}\n  {% set unit = states('select.hpvc_pv' ~ i ~ '_limit_unit') | trim %}\n  {% set full = states('number.hpvc_pv' ~ i ~ '_full_limit') | float(0) %}\n  {% set low = states('number.hpvc_pv' ~ i ~ '_low_limit') | float(-1) %}\n  {% set base_valid = method in ['Number entity', 'Action/service'] and unit in ['Watts', 'Percent'] and full > 0 and low >= 0 and low < full %}\n  {% if method == 'Number entity' %}\n    {% set ent = states('text.hpvc_pv' ~ i ~ '_limit_number') | trim | lower %}\n    {% set configured = base_valid and ent not in bad and (ent | regex_match('^number[.][a-z0-9_]+$')) and ent not in inv.number_entities %}\n    {% set\
+          \ live = configured and states(ent) not in bad and is_number(states(ent)) %}\n    {% if configured %}{% set inv.number_entities = inv.number_entities + [ent] %}{% endif %}\n    {% if live %}✅{% else %}❌{% endif %} **PV{{ i }} Number entity**{% if ent not in bad %} — `{{ ent }}`{% endif %}\n  {% elif method == 'Action/service' %}\n    {% set action = states('text.hpvc_pv' ~ i ~ '_action') | trim | lower %}\n    {% set value_field = states('text.hpvc_pv' ~ i ~ '_value_field') | trim %}\n    {% set readback = states('text.hpvc_pv' ~ i ~ '_readback_entity') | trim | lower %}\n    {% set configured = base_valid and (action | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$')) and value_field != '' and (readback in bad or (readback | regex_match('^[a-z0-9_]+[.][a-z0-9_]+$'))) %}\n    {% set live = configured and (readback in bad or (states(readback) not in bad and is_number(states(readback)))) %}\n    {% if live %}✅{% else %}❌{% endif %} **PV{{ i }} Action/service**{% if action %} — `{{ action\
+          \ }}`{% endif %}{% if readback not in bad %} · readback `{{ readback }}`{% endif %}\n  {% else %}\n    ❌ **PV{{ i }} control method**\n  {% endif %}\n{% endfor %}\n{% set export_start = states('number.hpvc_export_start_threshold') | float(999999) %}\n{% set target_export = states('number.hpvc_export_stop_threshold') | float(999999) %}\n{% set import_restore = states('number.hpvc_import_restore_threshold') | float(-1) %}\n{% set thresholds_valid = export_start < target_export and target_export < import_restore and import_restore >= 0 %}\n{% if thresholds_valid %}✅{% else %}❌{% endif %} **Power control settings**"
       grid_options:
         columns: 12
         rows: auto
@@ -235,8 +171,7 @@ views:
         columns: 12
     - type: markdown
       text_only: true
-      content: "<ha-alert title=\"Standalone module\" alert-type=\"info\">\n  Home PV Control works as PV-only export control.\n\
-        \  HBC is optional and can be enabled when a valid HBC is detected.\n</ha-alert>\n"
+      content: "<ha-alert title=\"Standalone module\" alert-type=\"info\">\n  Home PV Control works as PV-only export control.\n  HBC is optional and can be enabled when a valid HBC is detected.\n</ha-alert>\n"
       visibility:
       - condition: state
         entity: switch.hpvc_onboarding_complete
@@ -263,8 +198,7 @@ views:
       card:
         type: markdown
         text_only: true
-        content: <ha-alert title="HPVC manually disabled" alert-type="info"> All required inputs are ready, but HPVC is off
-          because it was switched off manually. Press <b>Enable HPVC</b> to start Home PV Control. </ha-alert>
+        content: <ha-alert title="HPVC manually disabled" alert-type="info"> All required inputs are ready, but HPVC is off because it was switched off manually. Press <b>Enable HPVC</b> to start Home PV Control. </ha-alert>
       grid_options:
         columns: 12
         rows: auto
@@ -522,8 +456,7 @@ views:
       cards:
       - type: markdown
         title: 💡 Decision Details
-        content: "ℹ️ **Status**  \n{{ states('text.hpvc_status') }}\n\n\U0001F4AC **Reason**  \n{{ states('text.hpvc_reason')\
-          \ }}\n\n\U0001F552 **Status since**  \n{{ states('text.hpvc_last_action') }}\n"
+        content: "ℹ️ **Status**  \n{{ states('text.hpvc_status') }}\n\n\U0001F4AC **Reason**  \n{{ states('text.hpvc_reason') }}\n\n\U0001F552 **Status since**  \n{{ states('text.hpvc_last_action') }}\n"
   - type: grid
     cards:
     - type: entities
@@ -754,13 +687,7 @@ views:
     - type: vertical-stack
       cards:
       - type: markdown
-        content: "{% set raw = states('sensor.hpvc_daily_target_accuracy') %}\n{% set has_data = raw not in ['unknown', 'unavailable',\
-          \ 'none', ''] %}\n{% set value = raw if has_data else 'No data collected today' %}\n{% set unit = (state_attr('sensor.hpvc_daily_target_accuracy',\
-          \ 'unit_of_measurement') or '%') if has_data else '' %}\n\n<center>\n\n<span style=\"font-size:18px;\">\n  <ha-icon\
-          \ icon=\"mdi:bullseye-arrow\"></ha-icon>&nbsp;&nbsp;&nbsp;\n  <b>Daily Control Accuracy</b>\n</span>\n\n\n<h1><b>{{\
-          \ value }}{{ unit }}</b></h1>\n{% set sample_raw = states('sensor.hpvc_daily_target_accuracy_samples') %} {% if\
-          \ sample_raw not in ['unknown', 'unavailable', 'none', ''] %} <div style=\"opacity:.72; margin-top:-8px;\">{{ sample_raw\
-          \ | int(0) }} eligible samples today</div> {% endif %}\n\n</center>\n"
+        content: "{% set raw = states('sensor.hpvc_daily_target_accuracy') %}\n{% set has_data = raw not in ['unknown', 'unavailable', 'none', ''] %}\n{% set value = raw if has_data else 'No data collected today' %}\n{% set unit = (state_attr('sensor.hpvc_daily_target_accuracy', 'unit_of_measurement') or '%') if has_data else '' %}\n\n<center>\n\n<span style=\"font-size:18px;\">\n  <ha-icon icon=\"mdi:bullseye-arrow\"></ha-icon>&nbsp;&nbsp;&nbsp;\n  <b>Daily Control Accuracy</b>\n</span>\n\n\n<h1><b>{{ value }}{{ unit }}</b></h1>\n{% set sample_raw = states('sensor.hpvc_daily_target_accuracy_samples') %} {% if sample_raw not in ['unknown', 'unavailable', 'none', ''] %} <div style=\"opacity:.72; margin-top:-8px;\">{{ sample_raw | int(0) }} eligible samples today</div> {% endif %}\n\n</center>\n"
       - type: markdown
         text_only: true
         content: '{% set raw = states(''sensor.hpvc_daily_target_accuracy'') %}
@@ -908,20 +835,8 @@ views:
         intersect: false
         followCursor: true
         theme: false
-        custom: "EVAL:function({ series, dataPointIndex }) {\n\n  const colors = [\n    '#3B82F6',\n    '#22C55E',\n    '#F59E0B'\n\
-          \  ];\n\n  const names = [\n    'Grid import',\n    'Grid export',\n    'Solar'\n  ];\n\n  let rows = '';\n\n  //\
-          \ Only the first three visible graph series belong in the tooltip.\n  for (let i = 0; i < 3; i++) {\n    const value\
-          \ =\n      series[i] && dataPointIndex < series[i].length\n        ? series[i][dataPointIndex]\n        : null;\n\
-          \n    const display =\n      value === null ||\n      value === undefined ||\n      !Number.isFinite(value)\n  \
-          \      ? '—'\n        : Math.round(value).toLocaleString() + ' W';\n\n    rows +=\n      '<div style=\"display:flex;align-items:center;gap:6px;margin:2px\
-          \ 0;\">' +\n        '<span style=\"display:inline-block;width:10px;height:10px;border-radius:50%;background:' +\n\
-          \          colors[i] +\n          ';flex-shrink:0;\"></span>' +\n        '<span style=\"color:var(--secondary-text-color);min-width:88px;font-weight:700;\"\
-          >' +\n          names[i] +\n          '</span>' +\n        '<span style=\"font-weight:700;margin-left:auto;\">'\
-          \ +\n          display +\n        '</span>' +\n      '</div>';\n  }\n\n  return (\n    '<div style=\"padding:8px\
-          \ 10px;font-size:10px;width:max-content;max-width:240px;box-sizing:border-box;background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color))\
-          \ 35%,transparent);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);border-radius:6px;border:1px solid\
-          \ var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:600;\">'\
-          \ +\n      rows +\n    '</div>'\n  );\n}\n"
+        custom: "EVAL:function({ series, dataPointIndex }) {\n\n  const colors = [\n    '#3B82F6',\n    '#22C55E',\n    '#F59E0B'\n  ];\n\n  const names = [\n    'Grid import',\n    'Grid export',\n    'Solar'\n  ];\n\n  let rows = '';\n\n  // Only the first three visible graph series belong in the tooltip.\n  for (let i = 0; i < 3; i++) {\n    const value =\n      series[i] && dataPointIndex < series[i].length\n        ? series[i][dataPointIndex]\n        : null;\n\n    const display =\n      value === null ||\n      value === undefined ||\n      !Number.isFinite(value)\n        ? '—'\n        : Math.round(value).toLocaleString() + ' W';\n\n    rows +=\n      '<div style=\"display:flex;align-items:center;gap:6px;margin:2px 0;\">' +\n        '<span style=\"display:inline-block;width:10px;height:10px;border-radius:50%;background:' +\n          colors[i] +\n          ';flex-shrink:0;\"></span>' +\n        '<span style=\"color:var(--secondary-text-color);min-width:88px;font-weight:700;\">'\
+          \ +\n          names[i] +\n          '</span>' +\n        '<span style=\"font-weight:700;margin-left:auto;\">' +\n          display +\n        '</span>' +\n      '</div>';\n  }\n\n  return (\n    '<div style=\"padding:8px 10px;font-size:10px;width:max-content;max-width:240px;box-sizing:border-box;background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 35%,transparent);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);border-radius:6px;border:1px solid var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:600;\">' +\n      rows +\n    '</div>'\n  );\n}\n"
       grid:
         borderColor: var(--divider-color)
         strokeDashArray: 2
@@ -940,10 +855,7 @@ views:
           style:
             fontSize: 11px
         tooltip:
-          formatter: "EVAL:function(value) {\n  const date = new Date(value);\n\n  const months = [\n    'Jan', 'Feb', 'Mar',\
-            \ 'Apr', 'May', 'Jun',\n    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'\n  ];\n\n  const pad = number =>\n    String(number).padStart(2,\
-            \ '0');\n\n  return (\n    pad(date.getDate()) +\n    ' ' +\n    months[date.getMonth()] +\n    ' · ' +\n    pad(date.getHours())\
-            \ +\n    ':' +\n    pad(date.getMinutes())\n  );\n}\n"
+          formatter: "EVAL:function(value) {\n  const date = new Date(value);\n\n  const months = [\n    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',\n    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'\n  ];\n\n  const pad = number =>\n    String(number).padStart(2, '0');\n\n  return (\n    pad(date.getDate()) +\n    ' ' +\n    months[date.getMonth()] +\n    ' · ' +\n    pad(date.getHours()) +\n    ':' +\n    pad(date.getMinutes())\n  );\n}\n"
       dataLabels:
         enabled: false
       legend:
@@ -967,8 +879,7 @@ views:
       show:
         in_header: false
         legend_value: false
-      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n) {\n  return\
-        \ null;\n}\n\nreturn value > 0 ? value : 0;\n"
+      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n) {\n  return null;\n}\n\nreturn value > 0 ? value : 0;\n"
       group_by:
         func: avg
         duration: 5min
@@ -987,8 +898,7 @@ views:
       show:
         in_header: false
         legend_value: false
-      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n) {\n  return\
-        \ null;\n}\n\nreturn value < 0 ? value : 0;\n"
+      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n) {\n  return null;\n}\n\nreturn value < 0 ? value : 0;\n"
       group_by:
         func: avg
         duration: 5min
@@ -1007,8 +917,7 @@ views:
       show:
         in_header: false
         legend_value: false
-      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  value < 0 ||\n  value > 50000\n) {\n \
-        \ return null;\n}\n\nreturn value;\n"
+      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  value < 0 ||\n  value > 50000\n) {\n  return null;\n}\n\nreturn value;\n"
       group_by:
         func: avg
         duration: 5min
@@ -1028,8 +937,7 @@ views:
         in_header: true
         name_in_header: true
         legend_value: false
-      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n\
-        ) {\n  return [];\n}\n\nreturn [[Date.now(), value > 0 ? value : 0]];\n"
+      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n) {\n  return [];\n}\n\nreturn [[Date.now(), value > 0 ? value : 0]];\n"
     - entity: sensor.hpvc_diag_grid_power
       name: Export
       yaxis_id: raw_header
@@ -1044,8 +952,7 @@ views:
         in_header: true
         name_in_header: true
         legend_value: false
-      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n\
-        ) {\n  return [];\n}\n\nreturn [[Date.now(), value < 0 ? value : 0]];\n"
+      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n) {\n  return [];\n}\n\nreturn [[Date.now(), value < 0 ? value : 0]];\n"
     - entity: sensor.hpvc_diag_pv_power
       name: Solar
       yaxis_id: raw_header
@@ -1060,8 +967,7 @@ views:
         in_header: true
         name_in_header: true
         legend_value: false
-      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  value < 0 ||\n  value\
-        \ > 50000\n) {\n  return [];\n}\n\nreturn [[Date.now(), value]];\n"
+      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  value < 0 ||\n  value > 50000\n) {\n  return [];\n}\n\nreturn [[Date.now(), value]];\n"
   - type: custom:apexcharts-card
     section_mode: true
     visibility:
@@ -1121,20 +1027,8 @@ views:
         intersect: false
         followCursor: true
         theme: false
-        custom: "EVAL:function({ series, dataPointIndex }) {\n\n  const colors = [\n    '#3B82F6',\n    '#22C55E',\n    '#F59E0B',\n\
-          \    '#EC4899'\n  ];\n\n  const names = [\n    'Grid import',\n    'Grid export',\n    'Solar',\n    'Battery charge'\n\
-          \  ];\n\n  let rows = '';\n\n  // Only the first four visible graph series belong in the tooltip.\n  for (let i\
-          \ = 0; i < 4; i++) {\n    const value =\n      series[i] && dataPointIndex < series[i].length\n        ? series[i][dataPointIndex]\n\
-          \        : null;\n\n    const display =\n      value === null ||\n      value === undefined ||\n      !Number.isFinite(value)\n\
-          \        ? '—'\n        : Math.round(value).toLocaleString() + ' W';\n\n    rows +=\n      '<div style=\"display:flex;align-items:center;gap:6px;margin:2px\
-          \ 0;\">' +\n        '<span style=\"display:inline-block;width:10px;height:10px;border-radius:50%;background:' +\n\
-          \          colors[i] +\n          ';flex-shrink:0;\"></span>' +\n        '<span style=\"color:var(--secondary-text-color);min-width:88px;font-weight:700;\"\
-          >' +\n          names[i] +\n          '</span>' +\n        '<span style=\"font-weight:700;margin-left:auto;\">'\
-          \ +\n          display +\n        '</span>' +\n      '</div>';\n  }\n\n  return (\n    '<div style=\"padding:8px\
-          \ 10px;font-size:10px;width:max-content;max-width:240px;box-sizing:border-box;background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color))\
-          \ 35%,transparent);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);border-radius:6px;border:1px solid\
-          \ var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:600;\">'\
-          \ +\n      rows +\n    '</div>'\n  );\n}\n"
+        custom: "EVAL:function({ series, dataPointIndex }) {\n\n  const colors = [\n    '#3B82F6',\n    '#22C55E',\n    '#F59E0B',\n    '#EC4899'\n  ];\n\n  const names = [\n    'Grid import',\n    'Grid export',\n    'Solar',\n    'Battery charge'\n  ];\n\n  let rows = '';\n\n  // Only the first four visible graph series belong in the tooltip.\n  for (let i = 0; i < 4; i++) {\n    const value =\n      series[i] && dataPointIndex < series[i].length\n        ? series[i][dataPointIndex]\n        : null;\n\n    const display =\n      value === null ||\n      value === undefined ||\n      !Number.isFinite(value)\n        ? '—'\n        : Math.round(value).toLocaleString() + ' W';\n\n    rows +=\n      '<div style=\"display:flex;align-items:center;gap:6px;margin:2px 0;\">' +\n        '<span style=\"display:inline-block;width:10px;height:10px;border-radius:50%;background:' +\n          colors[i] +\n          ';flex-shrink:0;\"></span>' +\n        '<span style=\"color:var(--secondary-text-color);min-width:88px;font-weight:700;\"\
+          >' +\n          names[i] +\n          '</span>' +\n        '<span style=\"font-weight:700;margin-left:auto;\">' +\n          display +\n        '</span>' +\n      '</div>';\n  }\n\n  return (\n    '<div style=\"padding:8px 10px;font-size:10px;width:max-content;max-width:240px;box-sizing:border-box;background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 35%,transparent);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);border-radius:6px;border:1px solid var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:600;\">' +\n      rows +\n    '</div>'\n  );\n}\n"
       grid:
         borderColor: var(--divider-color)
         strokeDashArray: 2
@@ -1153,10 +1047,7 @@ views:
           style:
             fontSize: 11px
         tooltip:
-          formatter: "EVAL:function(value) {\n  const date = new Date(value);\n\n  const months = [\n    'Jan', 'Feb', 'Mar',\
-            \ 'Apr', 'May', 'Jun',\n    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'\n  ];\n\n  const pad = number =>\n    String(number).padStart(2,\
-            \ '0');\n\n  return (\n    pad(date.getDate()) +\n    ' ' +\n    months[date.getMonth()] +\n    ' · ' +\n    pad(date.getHours())\
-            \ +\n    ':' +\n    pad(date.getMinutes())\n  );\n}\n"
+          formatter: "EVAL:function(value) {\n  const date = new Date(value);\n\n  const months = [\n    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',\n    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'\n  ];\n\n  const pad = number =>\n    String(number).padStart(2, '0');\n\n  return (\n    pad(date.getDate()) +\n    ' ' +\n    months[date.getMonth()] +\n    ' · ' +\n    pad(date.getHours()) +\n    ':' +\n    pad(date.getMinutes())\n  );\n}\n"
       dataLabels:
         enabled: false
       legend:
@@ -1180,8 +1071,7 @@ views:
       show:
         in_header: false
         legend_value: false
-      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n) {\n  return\
-        \ null;\n}\n\nreturn value > 0 ? value : 0;\n"
+      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n) {\n  return null;\n}\n\nreturn value > 0 ? value : 0;\n"
       group_by:
         func: avg
         duration: 5min
@@ -1200,8 +1090,7 @@ views:
       show:
         in_header: false
         legend_value: false
-      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n) {\n  return\
-        \ null;\n}\n\nreturn value < 0 ? value : 0;\n"
+      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n) {\n  return null;\n}\n\nreturn value < 0 ? value : 0;\n"
       group_by:
         func: avg
         duration: 5min
@@ -1220,8 +1109,7 @@ views:
       show:
         in_header: false
         legend_value: false
-      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  value < 0 ||\n  value > 50000\n) {\n \
-        \ return null;\n}\n\nreturn value;\n"
+      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  value < 0 ||\n  value > 50000\n) {\n  return null;\n}\n\nreturn value;\n"
       group_by:
         func: avg
         duration: 5min
@@ -1240,8 +1128,7 @@ views:
       show:
         in_header: false
         legend_value: false
-      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  value < 0 ||\n  value > 50000\n) {\n \
-        \ return null;\n}\n\nreturn value;\n"
+      transform: "const value = Number(x);\n\nif (\n  !Number.isFinite(value) ||\n  value < 0 ||\n  value > 50000\n) {\n  return null;\n}\n\nreturn value;\n"
       group_by:
         func: avg
         duration: 5min
@@ -1261,8 +1148,7 @@ views:
         in_header: true
         name_in_header: true
         legend_value: false
-      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n\
-        ) {\n  return [];\n}\n\nreturn [[Date.now(), value > 0 ? value : 0]];\n"
+      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n) {\n  return [];\n}\n\nreturn [[Date.now(), value > 0 ? value : 0]];\n"
     - entity: sensor.hpvc_diag_grid_power
       name: Export
       yaxis_id: raw_header
@@ -1277,8 +1163,7 @@ views:
         in_header: true
         name_in_header: true
         legend_value: false
-      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n\
-        ) {\n  return [];\n}\n\nreturn [[Date.now(), value < 0 ? value : 0]];\n"
+      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  Math.abs(value) > 50000\n) {\n  return [];\n}\n\nreturn [[Date.now(), value < 0 ? value : 0]];\n"
     - entity: sensor.hpvc_diag_pv_power
       name: Solar
       yaxis_id: raw_header
@@ -1293,8 +1178,7 @@ views:
         in_header: true
         name_in_header: true
         legend_value: false
-      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  value < 0 ||\n  value\
-        \ > 50000\n) {\n  return [];\n}\n\nreturn [[Date.now(), value]];\n"
+      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  value < 0 ||\n  value > 50000\n) {\n  return [];\n}\n\nreturn [[Date.now(), value]];\n"
     - entity: sensor.hpvc_total_hbc_charging_power
       name: Charge
       yaxis_id: raw_header
@@ -1309,60 +1193,17 @@ views:
         in_header: true
         name_in_header: true
         legend_value: false
-      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  value < 0 ||\n  value\
-        \ > 50000\n) {\n  return [];\n}\n\nreturn [[Date.now(), value]];\n"
+      data_generator: "const value = Number(entity.state);\n\nif (\n  !Number.isFinite(value) ||\n  value < 0 ||\n  value > 50000\n) {\n  return [];\n}\n\nreturn [[Date.now(), value]];\n"
   - type: grid
     cards:
     - type: markdown
       title: 📋 Insights
-      content: "<ha-alert alert-type=\"info\">\n  For complete current-day history, press <b>Generate report</b>\n  in <b>PV\
-        \ Master Control</b>.\n</ha-alert>\n<br>\n{% set entities = [\n  'text.hpvc_insight_1',\n  'text.hpvc_insight_2',\n\
-        \  'text.hpvc_insight_3',\n  'text.hpvc_insight_4',\n  'text.hpvc_insight_5',\n  'text.hpvc_insight_6',\n  'text.hpvc_insight_7',\n\
-        \  'text.hpvc_insight_8',\n  'text.hpvc_insight_9',\n  'text.hpvc_insight_10',\n  'text.hpvc_insight_11',\n  'text.hpvc_insight_12',\n\
-        \  'text.hpvc_insight_13',\n  'text.hpvc_insight_14',\n  'text.hpvc_insight_15',\n  'text.hpvc_insight_16',\n  'text.hpvc_insight_17',\n\
-        \  'text.hpvc_insight_18',\n  'text.hpvc_insight_19',\n  'text.hpvc_insight_20'\n] %} {% set ns = namespace(items=[])\
-        \ %} {% for entity in entities %}\n  {% set value = states(entity) %}\n  {% if value not in ['unknown', 'unavailable',\
-        \ '', none] %}\n    {% set parts = value.split('|') %}\n    {% if parts | length >= 7 and parts[0] | trim == 'v2'\
-        \ %}\n      {% set severity_code = parts[3] | trim %}\n      {% set item = {\n        'time': parts[2] | trim,\n \
-        \       'severity': 'critical' if severity_code == 'c' else ('warning' if severity_code == 'w' else 'info'),\n   \
-        \     'count': parts[4] | trim | int(1),\n        'node': parts[5] | trim,\n        'explanation': parts[6:] | join('|')\
-        \ | trim\n      } %}\n    {% elif parts | length >= 6 and parts[1] | trim in ['critical', 'warning', 'info'] %}\n\
-        \      {% set item = {\n        'time': parts[0] | trim,\n        'severity': parts[1] | trim,\n        'count': parts[2]\
-        \ | trim | int(1),\n        'node': parts[4] | trim,\n        'explanation': parts[5:] | join('|') | trim\n      }\
-        \ %}\n    {% elif parts | length >= 4 %}\n      {% set explanation = parts[3:] | join('|') | trim %}\n      {% set\
-        \ lower = (parts[2] ~ ' ' ~ explanation) | lower %}\n      {% set critical =\n        'control paused' in lower or\
-        \ 'no inverter writes' in lower or\n        'invalid configuration' in lower or ('core ' in lower and ' unavailable'\
-        \ in lower) or\n        ('command' in lower and 'fail' in lower) or ('report' in lower and 'fail' in lower) or\n \
-        \       'all battery telemetry' in lower or 'runtime unavailable' in lower %}\n      {% set warning = not critical\
-        \ and (\n        'warning' in lower or 'unavailable' in lower or 'stale' in lower or\n        'excluded' in lower\
-        \ or 'blocked' in lower or 'ineffective' in lower or\n        'not confirmed' in lower or 'fault' in lower) %}\n \
-        \     {% set item = {\n        'time': parts[0] | trim,\n        'severity': 'critical' if critical else ('warning'\
-        \ if warning else 'info'),\n        'count': 1,\n        'node': parts[2] | trim,\n        'explanation': explanation\n\
-        \      } %}\n    {% else %}\n      {% set item = none %}\n    {% endif %}\n    {% if item %}{% set ns.items = ns.items\
-        \ + [item] %}{% endif %}\n  {% endif %}\n{% endfor %}\n{% if ns.items | length == 0 %} <p><em>No Insights recorded\
-        \ yet today.</em></p> {% else %}\n  {# Node-RED publishes helpers 1..20 already normalized and newest-first. #}\n\
-        \  {% for item in ns.items %}\n    {% set node = (item.node | lower) %}\n    {% set explanation = (item.explanation\
-        \ | lower) %}\n    {% set insight_text = node ~ ' ' ~ explanation %}\n    {# Dashboard-only colour policy: red is\
-        \ reserved for an actual fault,\n       failed action, safety pause, or control-blocking condition. #}\n    {% set\
-        \ red_fault =\n      ('hbc safety' in node and ('paused' in explanation or 'fault' in explanation or 'failed' in explanation))\
-        \ or\n      ('sensor health' in node and ('control paused' in explanation or 'invalid' in explanation or 'unavailable'\
-        \ in explanation)) or\n      (('configuration' in node or node == 'inputs') and\n        ('control paused' in explanation\
-        \ or 'configuration error' in explanation or 'invalid' in explanation or 'unavailable' in explanation or 'no valid\
-        \ pv inverter' in explanation)) or\n      ('inverter group' in node and ('paused' in explanation or 'fault' in explanation\
-        \ or 'failed' in explanation or 'unavailable' in explanation)) or\n      ('write warning' in node and ('failed' in\
-        \ explanation or 'failure' in explanation or 'error' in explanation or 'could not' in explanation)) or\n      ('runtime\
-        \ warning' in node and ('error' in explanation or 'exception' in explanation or 'failed' in explanation or 'failure'\
-        \ in explanation)) or\n      ('support report' in node and ('failed' in explanation or 'failure' in explanation or\
-        \ 'error' in explanation)) %}\n    {% if 'battery' in node or 'charge priority' in node or 'taper' in node %}\n  \
-        \  {% set icon = '\U0001F7E3' %}\n    {% elif red_fault or item.severity == 'critical' %}\n    {% set icon = '\U0001F534\
-        ' %}\n    {% elif 'pv' in node or 'inverter' in node or 'limit' in node or 'restore' in node %}\n    {% set icon =\
-        \ '\U0001F7E1' %}\n    {% elif 'price' in node %}\n    {% set icon = '\U0001F7E2' %}\n    {% else %}\n    {% set icon\
-        \ = '⚪' %}\n    {% endif %}\n<div style=\"padding:8px 0; border-bottom:1px solid rgba(128,128,128,.24); overflow:hidden;\"\
-        >\n  <div style=\"display:flex; align-items:flex-start; gap:6px; min-width:0;\">\n    <span style=\"flex:0 0 auto;\"\
-        >{{ icon }}</span>\n    <strong style=\"min-width:0; overflow-wrap:anywhere; word-break:break-word; white-space:normal;\"\
-        >{{ item.time }} · {{ item.node }}{% if item.count > 1 %} · ×{{ item.count }}{% endif %}</strong>\n  </div>\n  <div\
-        \ style=\"margin-top:5px; overflow-wrap:anywhere; word-break:break-word; white-space:normal; line-height:1.45;\">{{\
-        \ item.explanation }}</div>\n</div>\n  {% endfor %}\n{% endif %}"
+      content: "<ha-alert alert-type=\"info\">\n  For complete current-day history, press <b>Generate report</b>\n  in <b>PV Master Control</b>.\n</ha-alert>\n<br>\n{% set entities = [\n  'text.hpvc_insight_1',\n  'text.hpvc_insight_2',\n  'text.hpvc_insight_3',\n  'text.hpvc_insight_4',\n  'text.hpvc_insight_5',\n  'text.hpvc_insight_6',\n  'text.hpvc_insight_7',\n  'text.hpvc_insight_8',\n  'text.hpvc_insight_9',\n  'text.hpvc_insight_10',\n  'text.hpvc_insight_11',\n  'text.hpvc_insight_12',\n  'text.hpvc_insight_13',\n  'text.hpvc_insight_14',\n  'text.hpvc_insight_15',\n  'text.hpvc_insight_16',\n  'text.hpvc_insight_17',\n  'text.hpvc_insight_18',\n  'text.hpvc_insight_19',\n  'text.hpvc_insight_20'\n] %} {% set ns = namespace(items=[]) %} {% for entity in entities %}\n  {% set value = states(entity) %}\n  {% if value not in ['unknown', 'unavailable', '', none] %}\n    {% set parts = value.split('|') %}\n    {% if parts | length >= 7 and parts[0] | trim == 'v2' %}\n      {% set severity_code\
+        \ = parts[3] | trim %}\n      {% set item = {\n        'time': parts[2] | trim,\n        'severity': 'critical' if severity_code == 'c' else ('warning' if severity_code == 'w' else 'info'),\n        'count': parts[4] | trim | int(1),\n        'node': parts[5] | trim,\n        'explanation': parts[6:] | join('|') | trim\n      } %}\n    {% elif parts | length >= 6 and parts[1] | trim in ['critical', 'warning', 'info'] %}\n      {% set item = {\n        'time': parts[0] | trim,\n        'severity': parts[1] | trim,\n        'count': parts[2] | trim | int(1),\n        'node': parts[4] | trim,\n        'explanation': parts[5:] | join('|') | trim\n      } %}\n    {% elif parts | length >= 4 %}\n      {% set explanation = parts[3:] | join('|') | trim %}\n      {% set lower = (parts[2] ~ ' ' ~ explanation) | lower %}\n      {% set critical =\n        'control paused' in lower or 'no inverter writes' in lower or\n        'invalid configuration' in lower or ('core ' in lower and ' unavailable'\
+        \ in lower) or\n        ('command' in lower and 'fail' in lower) or ('report' in lower and 'fail' in lower) or\n        'all battery telemetry' in lower or 'runtime unavailable' in lower %}\n      {% set warning = not critical and (\n        'warning' in lower or 'unavailable' in lower or 'stale' in lower or\n        'excluded' in lower or 'blocked' in lower or 'ineffective' in lower or\n        'not confirmed' in lower or 'fault' in lower) %}\n      {% set item = {\n        'time': parts[0] | trim,\n        'severity': 'critical' if critical else ('warning' if warning else 'info'),\n        'count': 1,\n        'node': parts[2] | trim,\n        'explanation': explanation\n      } %}\n    {% else %}\n      {% set item = none %}\n    {% endif %}\n    {% if item %}{% set ns.items = ns.items + [item] %}{% endif %}\n  {% endif %}\n{% endfor %}\n{% if ns.items | length == 0 %} <p><em>No Insights recorded yet today.</em></p> {% else %}\n  {# Node-RED publishes helpers 1..20 already normalized\
+        \ and newest-first. #}\n  {% for item in ns.items %}\n    {% set node = (item.node | lower) %}\n    {% set explanation = (item.explanation | lower) %}\n    {% set insight_text = node ~ ' ' ~ explanation %}\n    {# Dashboard-only colour policy: red is reserved for an actual fault,\n       failed action, safety pause, or control-blocking condition. #}\n    {% set red_fault =\n      ('hbc safety' in node and ('paused' in explanation or 'fault' in explanation or 'failed' in explanation)) or\n      ('sensor health' in node and ('control paused' in explanation or 'invalid' in explanation or 'unavailable' in explanation)) or\n      (('configuration' in node or node == 'inputs') and\n        ('control paused' in explanation or 'configuration error' in explanation or 'invalid' in explanation or 'unavailable' in explanation or 'no valid pv inverter' in explanation)) or\n      ('inverter group' in node and ('paused' in explanation or 'fault' in explanation or 'failed' in explanation or 'unavailable'\
+        \ in explanation)) or\n      ('write warning' in node and ('failed' in explanation or 'failure' in explanation or 'error' in explanation or 'could not' in explanation)) or\n      ('runtime warning' in node and ('error' in explanation or 'exception' in explanation or 'failed' in explanation or 'failure' in explanation)) or\n      ('support report' in node and ('failed' in explanation or 'failure' in explanation or 'error' in explanation)) %}\n    {% if 'battery' in node or 'charge priority' in node or 'taper' in node %}\n    {% set icon = '\U0001F7E3' %}\n    {% elif red_fault or item.severity == 'critical' %}\n    {% set icon = '\U0001F534' %}\n    {% elif 'pv' in node or 'inverter' in node or 'limit' in node or 'restore' in node %}\n    {% set icon = '\U0001F7E1' %}\n    {% elif 'price' in node %}\n    {% set icon = '\U0001F7E2' %}\n    {% else %}\n    {% set icon = '⚪' %}\n    {% endif %}\n<div style=\"padding:8px 0; border-bottom:1px solid rgba(128,128,128,.24); overflow:hidden;\"\
+        >\n  <div style=\"display:flex; align-items:flex-start; gap:6px; min-width:0;\">\n    <span style=\"flex:0 0 auto;\">{{ icon }}</span>\n    <strong style=\"min-width:0; overflow-wrap:anywhere; word-break:break-word; white-space:normal;\">{{ item.time }} · {{ item.node }}{% if item.count > 1 %} · ×{{ item.count }}{% endif %}</strong>\n  </div>\n  <div style=\"margin-top:5px; overflow-wrap:anywhere; word-break:break-word; white-space:normal; line-height:1.45;\">{{ item.explanation }}</div>\n</div>\n  {% endfor %}\n{% endif %}"
     visibility:
     - condition: state
       entity: switch.hpvc_onboarding_complete
@@ -1437,8 +1278,7 @@ views:
           offsetY: -3
         tooltip:
           enabled: true
-          formatter: "EVAL:function(value) {\n  const date = new Date(value);\n\n  const pad = number =>\n    String(number).padStart(2,\
-            \ '0');\n\n  return (\n    pad(date.getHours()) +\n    ':' +\n    pad(date.getMinutes())\n  );\n}\n"
+          formatter: "EVAL:function(value) {\n  const date = new Date(value);\n\n  const pad = number =>\n    String(number).padStart(2, '0');\n\n  return (\n    pad(date.getHours()) +\n    ':' +\n    pad(date.getMinutes())\n  );\n}\n"
         crosshairs:
           show: true
           stroke:
@@ -1454,20 +1294,8 @@ views:
         intersect: false
         followCursor: true
         theme: false
-        custom: "EVAL:function({ series, seriesIndex, dataPointIndex, w }) {\n\n  const priceSeriesIndex =\n    w &&\n   \
-          \ w.config &&\n    w.config.series\n      ? w.config.series.findIndex(s => s.name === 'Price')\n      : -1;\n\n\
-          \  const index =\n    priceSeriesIndex >= 0\n      ? priceSeriesIndex\n      : seriesIndex;\n\n  const value =\n\
-          \    series[index] &&\n    dataPointIndex >= 0 &&\n    dataPointIndex < series[index].length\n      ? Number(series[index][dataPointIndex])\n\
-          \      : NaN;\n\n  const point =\n    w &&\n    w.config &&\n    w.config.series &&\n    w.config.series[index]\
-          \ &&\n    w.config.series[index].data &&\n    dataPointIndex >= 0\n      ? w.config.series[index].data[dataPointIndex]\n\
-          \      : null;\n\n  const colour =\n    point && point.fillColor\n      ? point.fillColor\n      : '#9e9e9e';\n\n\
-          \  const display =\n    Number.isFinite(value)\n      ? value.toFixed(1) + ' ct/kWh'\n      : '—';\n\n  return (\n\
-          \    '<div style=\"display:flex;align-items:center;gap:7px;padding:7px 9px;font-size:10px;width:max-content;box-sizing:border-box;background:color-mix(in\
-          \ srgb,var(--ha-card-background,var(--card-background-color)) 35%,transparent);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);border-radius:6px;border:1px\
-          \ solid var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:700;\"\
-          >' +\n      '<span style=\"display:inline-block;width:10px;height:10px;border-radius:50%;background:' +\n      colour\
-          \ +\n      ';flex-shrink:0;\"></span>' +\n      '<span style=\"color:var(--secondary-text-color);\">Price</span>'\
-          \ +\n      '<span>' +\n      display +\n      '</span>' +\n    '</div>'\n  );\n}\n"
+        custom: "EVAL:function({ series, seriesIndex, dataPointIndex, w }) {\n\n  const priceSeriesIndex =\n    w &&\n    w.config &&\n    w.config.series\n      ? w.config.series.findIndex(s => s.name === 'Price')\n      : -1;\n\n  const index =\n    priceSeriesIndex >= 0\n      ? priceSeriesIndex\n      : seriesIndex;\n\n  const value =\n    series[index] &&\n    dataPointIndex >= 0 &&\n    dataPointIndex < series[index].length\n      ? Number(series[index][dataPointIndex])\n      : NaN;\n\n  const point =\n    w &&\n    w.config &&\n    w.config.series &&\n    w.config.series[index] &&\n    w.config.series[index].data &&\n    dataPointIndex >= 0\n      ? w.config.series[index].data[dataPointIndex]\n      : null;\n\n  const colour =\n    point && point.fillColor\n      ? point.fillColor\n      : '#9e9e9e';\n\n  const display =\n    Number.isFinite(value)\n      ? value.toFixed(1) + ' ct/kWh'\n      : '—';\n\n  return (\n    '<div style=\"display:flex;align-items:center;gap:7px;padding:7px\
+          \ 9px;font-size:10px;width:max-content;box-sizing:border-box;background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 35%,transparent);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);border-radius:6px;border:1px solid var(--divider-color);color:var(--primary-text-color);font-family:inherit;box-shadow:none;font-weight:700;\">' +\n      '<span style=\"display:inline-block;width:10px;height:10px;border-radius:50%;background:' +\n      colour +\n      ';flex-shrink:0;\"></span>' +\n      '<span style=\"color:var(--secondary-text-color);\">Price</span>' +\n      '<span>' +\n      display +\n      '</span>' +\n    '</div>'\n  );\n}\n"
     series:
     - entity: sensor.hbc_energy_prices_data
       name: Current high price
@@ -1481,11 +1309,7 @@ views:
         name_in_header: false
         null_in_header: false
         legend_value: false
-      data_generator: "const marks = entity.attributes.marks || [];\nconst now = Date.now();\n\nconst current =\n  marks.find(interval\
-        \ => interval.is_now) ||\n  marks.find((interval, index) => {\n    const start =\n      new Date(interval.start).getTime();\n\
-        \n    const nextStart =\n      index < marks.length - 1\n        ? new Date(marks[index + 1].start).getTime()\n  \
-        \      : start + (15 * 60 * 1000);\n\n    return now >= start && now < nextStart;\n  });\n\nif (\n  !current ||\n\
-        \  current.mark !== 'high' ||\n  !Number.isFinite(Number(current.price))\n) {\n  return [];\n}\n\nreturn [[now, Number(current.price)]];\n"
+      data_generator: "const marks = entity.attributes.marks || [];\nconst now = Date.now();\n\nconst current =\n  marks.find(interval => interval.is_now) ||\n  marks.find((interval, index) => {\n    const start =\n      new Date(interval.start).getTime();\n\n    const nextStart =\n      index < marks.length - 1\n        ? new Date(marks[index + 1].start).getTime()\n        : start + (15 * 60 * 1000);\n\n    return now >= start && now < nextStart;\n  });\n\nif (\n  !current ||\n  current.mark !== 'high' ||\n  !Number.isFinite(Number(current.price))\n) {\n  return [];\n}\n\nreturn [[now, Number(current.price)]];\n"
     - entity: sensor.hbc_energy_prices_data
       name: Current low price
       color: '#4caf50'
@@ -1498,11 +1322,7 @@ views:
         name_in_header: false
         null_in_header: false
         legend_value: false
-      data_generator: "const marks = entity.attributes.marks || [];\nconst now = Date.now();\n\nconst current =\n  marks.find(interval\
-        \ => interval.is_now) ||\n  marks.find((interval, index) => {\n    const start =\n      new Date(interval.start).getTime();\n\
-        \n    const nextStart =\n      index < marks.length - 1\n        ? new Date(marks[index + 1].start).getTime()\n  \
-        \      : start + (15 * 60 * 1000);\n\n    return now >= start && now < nextStart;\n  });\n\nif (\n  !current ||\n\
-        \  current.mark !== 'low' ||\n  !Number.isFinite(Number(current.price))\n) {\n  return [];\n}\n\nreturn [[now, Number(current.price)]];\n"
+      data_generator: "const marks = entity.attributes.marks || [];\nconst now = Date.now();\n\nconst current =\n  marks.find(interval => interval.is_now) ||\n  marks.find((interval, index) => {\n    const start =\n      new Date(interval.start).getTime();\n\n    const nextStart =\n      index < marks.length - 1\n        ? new Date(marks[index + 1].start).getTime()\n        : start + (15 * 60 * 1000);\n\n    return now >= start && now < nextStart;\n  });\n\nif (\n  !current ||\n  current.mark !== 'low' ||\n  !Number.isFinite(Number(current.price))\n) {\n  return [];\n}\n\nreturn [[now, Number(current.price)]];\n"
     - entity: sensor.hbc_energy_prices_data
       name: Current normal price
       color: '#9e9e9e'
@@ -1515,12 +1335,7 @@ views:
         name_in_header: false
         null_in_header: false
         legend_value: false
-      data_generator: "const marks = entity.attributes.marks || [];\nconst now = Date.now();\n\nconst current =\n  marks.find(interval\
-        \ => interval.is_now) ||\n  marks.find((interval, index) => {\n    const start =\n      new Date(interval.start).getTime();\n\
-        \n    const nextStart =\n      index < marks.length - 1\n        ? new Date(marks[index + 1].start).getTime()\n  \
-        \      : start + (15 * 60 * 1000);\n\n    return now >= start && now < nextStart;\n  });\n\nif (\n  !current ||\n\
-        \  current.mark === 'high' ||\n  current.mark === 'low' ||\n  !Number.isFinite(Number(current.price))\n) {\n  return\
-        \ [];\n}\n\nreturn [[now, Number(current.price)]];\n"
+      data_generator: "const marks = entity.attributes.marks || [];\nconst now = Date.now();\n\nconst current =\n  marks.find(interval => interval.is_now) ||\n  marks.find((interval, index) => {\n    const start =\n      new Date(interval.start).getTime();\n\n    const nextStart =\n      index < marks.length - 1\n        ? new Date(marks[index + 1].start).getTime()\n        : start + (15 * 60 * 1000);\n\n    return now >= start && now < nextStart;\n  });\n\nif (\n  !current ||\n  current.mark === 'high' ||\n  current.mark === 'low' ||\n  !Number.isFinite(Number(current.price))\n) {\n  return [];\n}\n\nreturn [[now, Number(current.price)]];\n"
     - entity: sensor.hbc_energy_prices_data
       name: Price
       type: column
@@ -1528,15 +1343,7 @@ views:
       show:
         in_header: false
         legend_value: false
-      data_generator: "const marks = entity.attributes.marks || [];\n\nconst colours = {\n  high: '#ff9800',\n  low: '#4caf50'\n\
-        };\n\nconst startOfTomorrow = new Date();\nstartOfTomorrow.setHours(24, 0, 0, 0);\n\nconst tomorrowTimestamp =\n \
-        \ startOfTomorrow.getTime();\n\nconst withOpacity = (hex, opacity) => {\n  const value = hex.replace('#', '');\n\n\
-        \  const red =\n    parseInt(value.slice(0, 2), 16);\n\n  const green =\n    parseInt(value.slice(2, 4), 16);\n\n\
-        \  const blue =\n    parseInt(value.slice(4, 6), 16);\n\n  return `rgba(${red}, ${green}, ${blue}, ${opacity})`;\n\
-        };\n\nreturn marks.map(interval => {\n  const timestamp =\n    new Date(interval.start).getTime();\n\n  const colour\
-        \ =\n    interval.is_now\n      ? '#009ac7'\n      : (colours[interval.mark] || '#9e9e9e');\n\n  return {\n    x:\
-        \ timestamp,\n    y: Number(interval.price),\n    fillColor:\n      timestamp >= tomorrowTimestamp &&\n      !interval.is_now\n\
-        \        ? withOpacity(colour, 0.55)\n        : colour\n  };\n});\n"
+      data_generator: "const marks = entity.attributes.marks || [];\n\nconst colours = {\n  high: '#ff9800',\n  low: '#4caf50'\n};\n\nconst startOfTomorrow = new Date();\nstartOfTomorrow.setHours(24, 0, 0, 0);\n\nconst tomorrowTimestamp =\n  startOfTomorrow.getTime();\n\nconst withOpacity = (hex, opacity) => {\n  const value = hex.replace('#', '');\n\n  const red =\n    parseInt(value.slice(0, 2), 16);\n\n  const green =\n    parseInt(value.slice(2, 4), 16);\n\n  const blue =\n    parseInt(value.slice(4, 6), 16);\n\n  return `rgba(${red}, ${green}, ${blue}, ${opacity})`;\n};\n\nreturn marks.map(interval => {\n  const timestamp =\n    new Date(interval.start).getTime();\n\n  const colour =\n    interval.is_now\n      ? '#009ac7'\n      : (colours[interval.mark] || '#9e9e9e');\n\n  return {\n    x: timestamp,\n    y: Number(interval.price),\n    fillColor:\n      timestamp >= tomorrowTimestamp &&\n      !interval.is_now\n        ? withOpacity(colour, 0.55)\n        : colour\n  };\n});\n"
   background:
     opacity: 33
     alignment: center
@@ -1558,10 +1365,7 @@ views:
         '
     - type: markdown
       text_only: true
-      content: "**Grid**: current grid power. Negative is export, positive is import (W).\n\n**Market/export price**: current\
-        \ market or export price used for PV limiting (€/kWh).\n\n**All-in price**: current total import price used for negative-price\
-        \ override (€/kWh).\n\n**Solar power**: current total PV power from active inverters (W).\n\nPaste (Ctrl + V) the\
-        \ entity IDs in the fields below. \nExample: `sensor.p1_meter_power`"
+      content: "**Grid**: current grid power. Negative is export, positive is import (W).\n\n**Market/export price**: current market or export price used for PV limiting (€/kWh).\n\n**All-in price**: current total import price used for negative-price override (€/kWh).\n\n**Solar power**: current total PV power from active inverters (W).\n\nPaste (Ctrl + V) the entity IDs in the fields below. \nExample: `sensor.p1_meter_power`"
     - type: entities
       entities:
       - entity: text.hpvc_grid_power_sensor
@@ -1610,8 +1414,7 @@ views:
       text_only: true
       content: '<ha-alert title="Negative price protection" alert-type="info">
 
-        When the all-in price is ≤ 0 €/kWh, PV is limited to the configured minimum. Set it to <b>0 W</b> for full shutdown
-        during negative price.
+        When the all-in price is ≤ 0 €/kWh, PV is limited to the configured minimum. Set it to <b>0 W</b> for full shutdown during negative price.
 
         </ha-alert>'
     - type: entities
@@ -2705,18 +2508,15 @@ views:
         '
     - type: markdown
       text_only: true
-      content: '**PV limit price**: PV limiting is allowed at or below this market/export price.{% if is_state(''switch.hpvc_control_hbc_strategy'',
-        ''on'') %} HBC Charge takes priority while batteries still have useful charge headroom.{% endif %}'
+      content: '**PV limit price**: PV limiting is allowed at or below this market/export price.{% if is_state(''switch.hpvc_control_hbc_strategy'', ''on'') %} HBC Charge takes priority while batteries still have useful charge headroom.{% endif %}'
     - type: markdown
       text_only: true
-      content: '**Price hysteresis**: prevents rapid PV limiting changes when leaving the configured PV limit price zone.
-        Not used for negative-price mode.'
+      content: '**Price hysteresis**: prevents rapid PV limiting changes when leaving the configured PV limit price zone. Not used for negative-price mode.'
     - type: markdown
       text_only: true
       content: '<ha-alert title="PV limiting price guidance" alert-type="info">
 
-        Use €0.00/kWh if you use a net export-price sensor. For a raw market-price sensor, adjust for fees, compensation,
-        and local rules.
+        Use €0.00/kWh if you use a net export-price sensor. For a raw market-price sensor, adjust for fees, compensation, and local rules.
 
         </ha-alert>'
     - type: entities
@@ -2740,8 +2540,7 @@ views:
       content: '**Export start**: start limiting when export is stronger than this value.
 
 
-        **Target export**: export level Home PV Control tries to maintain while limiting. Must be higher (less negative) than
-        Export start.
+        **Target export**: export level Home PV Control tries to maintain while limiting. Must be higher (less negative) than Export start.
 
 
         **Import restore**: raise PV again if the house imports too much while limited.
@@ -2761,8 +2560,7 @@ views:
         card:
           type: markdown
           text_only: true
-          content: <ha-alert alert-type="warning">Export start must be lower than Target export, and Target export must be
-            lower than Import restore.</ha-alert>
+          content: <ha-alert alert-type="warning">Export start must be lower than Target export, and Target export must be lower than Import restore.</ha-alert>
       - type: entities
         show_header_toggle: false
         entities:
@@ -2808,12 +2606,9 @@ views:
       - type: markdown
         content: '### 🧩 Optional HBC Setup
 
-          {% if is_state(''binary_sensor.hpvc_hbc_available'', ''on'') %} <ha-alert title="HBC detected" alert-type="success">
-          HBC strategy control is available. Enable or disable it in <b>PV Master Control</b> when HPVC is enabled. </ha-alert>
-          {% else %} <ha-alert title="Standalone mode" alert-type="warning"> No compatible HBC runtime was detected.
+          {% if is_state(''binary_sensor.hpvc_hbc_available'', ''on'') %} <ha-alert title="HBC detected" alert-type="success"> HBC strategy control is available. Enable or disable it in <b>PV Master Control</b> when HPVC is enabled. </ha-alert> {% else %} <ha-alert title="Standalone mode" alert-type="warning"> No compatible HBC runtime was detected.
 
-          HPVC requires both <code>input_select.house_battery_strategy</code> and <code>input_text.house_battery_strategy_active_sub_strategy</code>.
-          </ha-alert> {% endif %}
+          HPVC requires both <code>input_select.house_battery_strategy</code> and <code>input_text.house_battery_strategy_active_sub_strategy</code>. </ha-alert> {% endif %}
 
           '
       - type: conditional
@@ -2836,4 +2631,68 @@ views:
     grid_options:
       columns: 12
       rows: auto
+  - type: grid
+    cards:
+    - type: markdown
+      content: '### 🔄 HPVC Updates
+
+        '
+    - type: markdown
+      text_only: true
+      content: '{% set status = states(''sensor.hpvc_update_status'') %}
+
+        {% if status == ''Quick reload available'' %}
+
+        <ha-alert title="Update ready" alert-type="success">The installed HPVC update contains no Python changes. Press <b>Apply installed update</b> to confirm. HPVC will apply any bundled Node-RED change and reload only Home PV Control; Home Assistant itself stays online.</ha-alert>
+
+        {% elif status == ''Restart required'' %}
+
+        <ha-alert title="Home Assistant restart required" alert-type="warning">The installed HPVC update contains Python changes. A quick HPVC reload is intentionally blocked because the new Python modules must be loaded by Home Assistant.</ha-alert>
+
+        {% elif status in [''Apply failed'', ''Rollback failed''] %}
+
+        <ha-alert title="Update not applied" alert-type="error">{{ state_attr(''sensor.hpvc_update_status'', ''detail'') or ''Check the HPVC update status and Node-RED installer status.'' }}</ha-alert>
+
+        {% else %}
+
+        <ha-alert title="HPVC update status" alert-type="info">{{ state_attr(''sensor.hpvc_update_status'', ''detail'') or status }}</ha-alert>
+
+        {% endif %}'
+    - type: entities
+      show_header_toggle: false
+      entities:
+      - entity: sensor.hpvc_integration_version
+        name: Installed HPVC version
+      - entity: sensor.hpvc_update_status
+        name: Update status
+      - entity: button.hpvc_check_installed_update
+        name: Check installed update
+      - entity: button.hpvc_apply_installed_update
+        name: Confirm & apply installed update
+    grid_options:
+      columns: 12
+  - type: grid
+    cards:
+    - type: markdown
+      content: '### 🔗 Node-RED Installer
+
+        '
+    - type: markdown
+      text_only: true
+      content: HACS/native installs can install or update the bundled HPVC Node-RED flow through the official per-flow Node-RED Admin API. HPVC manages only its four marked HPVC tabs and never posts the complete Node-RED configuration. Automatic writes are opt-in and default Off; use **Configure** to enable them. Leave the URL empty for Home Assistant Node-RED add-on discovery. For external/direct Node-RED, configure an existing Home Assistant server in Node-RED first.
+    - type: entities
+      show_header_toggle: false
+      entities:
+      - entity: sensor.hpvc_nodered_installer_status
+        name: Installer status
+      - entity: sensor.hpvc_nodered_status
+        name: Running flow status
+      - entity: sensor.hpvc_nodered_version
+        name: Running flow version
+      - entity: button.hpvc_check_nodered_connection
+        name: Check Node-RED connection
+      - entity: button.hpvc_install_update_nodered_flow
+        name: Install / update Node-RED flow
+    grid_options:
+      columns: 12
   cards: []

@@ -4,7 +4,7 @@
     "type": "tab",
     "label": "HPVC Inputs v1.5.2",
     "disabled": false,
-    "info": "Control and report triggers, one compact per-evaluation HPVC state snapshot, configuration and telemetry collection, duplicate-inverter validation, sensor-health validation, safety gates, and Link handoff to HPVC Engine.\n\nVisual layout: grouped workflow islands with non-overlapping sections and short local wiring.\n\nPersistent Runtime Journal initializes private storage, then stores Insights, Power Control and Daily Control Accuracy in the private hpvc-data/runtime-history.json journal (using /homeassistant or /homeassistant_config), resets them at local midnight, and restores current-day history and restores any active negative-price override regardless of date before runtime evaluation starts.",
+    "info": "HPVC_MANAGED=1\nHPVC_ROLE=Inputs\nHPVC_VERSION=1.5.2\n\nControl and report triggers, one compact per-evaluation HPVC state snapshot, configuration and telemetry collection, duplicate-inverter validation, sensor-health validation, safety gates, and Link handoff to HPVC Engine.\n\nVisual layout: grouped workflow islands with non-overlapping sections and short local wiring.\n\nPersistent Runtime Journal initializes private storage, then stores Insights, Power Control and Daily Control Accuracy in the private hpvc-data/runtime-history.json journal (using /homeassistant or /homeassistant_config), resets them at local midnight, and restores current-day history and restores any active negative-price override regardless of date before runtime evaluation starts.",
     "env": []
   },
   {
@@ -1049,7 +1049,7 @@
     "type": "tab",
     "label": "HPVC Engine v1.5.2",
     "disabled": false,
-    "info": "Cooldown, fresh battery/HBC evaluation, price hysteresis, total-target calculation, request arbitration, and the final total PV control action. Per-inverter distribution is intentionally not performed on this tab.\n\nVisual layout: grouped workflow islands with non-overlapping sections and short local wiring.",
+    "info": "HPVC_MANAGED=1\nHPVC_ROLE=Engine\nHPVC_VERSION=1.5.2\n\nCooldown, fresh battery/HBC evaluation, price hysteresis, total-target calculation, request arbitration, and the final total PV control action. Per-inverter distribution is intentionally not performed on this tab.\n\nVisual layout: grouped workflow islands with non-overlapping sections and short local wiring.",
     "env": []
   },
   {
@@ -1505,7 +1505,7 @@
     "type": "tab",
     "label": "HPVC Outputs v1.5.2",
     "disabled": false,
-    "info": "Per-inverter target distribution with exact rounding reconciliation, command construction, Home Assistant writes, runtime publication, accuracy, verification, transitions, stability and Insights.\n\nVisual layout: grouped workflow islands with non-overlapping sections and short local wiring.",
+    "info": "HPVC_MANAGED=1\nHPVC_ROLE=Outputs\nHPVC_VERSION=1.5.2\n\nPer-inverter target distribution with exact rounding reconciliation, command construction, Home Assistant writes, runtime publication, accuracy, verification, transitions, stability and Insights.\n\nVisual layout: grouped workflow islands with non-overlapping sections and short local wiring.",
     "env": []
   },
   {
@@ -2412,7 +2412,7 @@
     "type": "tab",
     "label": "HPVC Reports v1.5.2",
     "disabled": false,
-    "info": "On-demand report locking, fresh state snapshot, shared report model, separate TXT and HTML rendering, parity verification, atomic publication and error recovery.\n\nVisual layout: grouped workflow islands with non-overlapping sections and short local wiring.",
+    "info": "HPVC_MANAGED=1\nHPVC_ROLE=Reports\nHPVC_VERSION=1.5.2\n\nOn-demand report locking, fresh state snapshot, shared report model, separate TXT and HTML rendering, parity verification, atomic publication and error recovery.\n\nVisual layout: grouped workflow islands with non-overlapping sections and short local wiring.",
     "env": []
   },
   {

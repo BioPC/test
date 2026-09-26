@@ -3,24 +3,41 @@
     "step": {
       "user": {
         "title": "Home PV Control",
-        "description": "Set up the HPVC HACS integration. It creates HPVC configuration entities natively, registers the sidebar dashboard, and does not require configuration.yaml package setup. The Node-RED flow remains a deliberate semi-automatic import."
+        "description": "Set up HPVC. The integration creates its Home Assistant entities and sidebar dashboard natively. It can also install/update the bundled HPVC Node-RED flow through the official Node-RED Admin API. Leave the Node-RED URL empty to discover the Home Assistant Node-RED add-on. Automatic writes are opt-in.",
+        "data": {
+          "node_red_url": "Node-RED URL (optional)",
+          "node_red_username": "Node-RED username (if required)",
+          "node_red_password": "Node-RED password (if required)",
+          "node_red_auto_install": "Automatically install/update HPVC Node-RED flow"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "HPVC Node-RED settings",
+        "description": "Configure the Node-RED Admin API connection used for HPVC flow installation and updates. Leave the URL empty to discover the Home Assistant Node-RED add-on. For external Node-RED, configure an existing Home Assistant server in Node-RED first.",
+        "data": {
+          "node_red_url": "Node-RED URL (optional)",
+          "node_red_username": "Node-RED username (if required)",
+          "node_red_password": "Node-RED password (if required)",
+          "node_red_auto_install": "Automatically install/update HPVC Node-RED flow"
+        }
       }
     }
   },
   "entity": {
     "sensor": {
-      "integration_version": {
-        "name": "Integration version"
-      },
-      "nodered_version": {
-        "name": "Node-RED version"
-      },
-      "nodered_status": {
-        "name": "Node-RED status"
-      },
-      "installation_mode": {
-        "name": "Installation mode"
-      }
+      "integration_version": {"name": "Integration version"},
+      "nodered_version": {"name": "Node-RED version"},
+      "nodered_status": {"name": "Node-RED status"},
+      "nodered_installer_status": {"name": "Node-RED installer status"},
+      "installation_mode": {"name": "Installation mode"}
+    },
+    "button": {
+      "install_update_nodered_flow": {"name": "Install / update Node-RED flow"},
+      "check_nodered_connection": {"name": "Check Node-RED connection"}
     }
   }
 }
