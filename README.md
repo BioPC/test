@@ -379,7 +379,7 @@ examples/
 
 assets/
   banner.png
-  logo.svg
+  logo.png
   screenshots/
     dashboard_main.png
     dashboard_settings.png

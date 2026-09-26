@@ -19,22 +19,17 @@ HPVC supports two installation paths. **HACS is the convenience path; manual ins
 
 **No `configuration.yaml` change is required for HACS installation.** HACS mode does not use `/config/packages/hpvc_config.yaml`.
 
-#### Updates
+#### Updating after HACS installation
 
-HACS updates `custom_components/hpvc`, the bundled sidebar dashboard and the bundled HACS Node-RED flow. HPVC fingerprints the loaded files and watches the installed files on disk. If no `.py` file changed, HPVC reports **Quick reload available**; confirm **Apply installed update** in the HPVC Settings tab and HPVC reloads only the Home PV Control config entry. If Python changed, HPVC reports **Restart required** and a full Home Assistant restart is required. When the bundled Node-RED flow changed, the confirmed quick-apply action updates the four managed HPVC tabs first using `POST /flow` and `PUT /flow/:id`; it never posts the complete Node-RED configuration. The running flow publishes its version to `text.hpvc_nodered_version`.
-
-#
-### Quick apply versus full restart
-
-The first HACS installation requires a Home Assistant restart because the custom integration Python modules must be imported. For later updates, HPVC monitors the files installed by HACS:
+The first HACS installation requires a Home Assistant restart because the custom integration Python modules must be imported. For later HACS updates, HPVC fingerprints the loaded integration files and periodically compares them with the files installed on disk.
 
 - `button.hpvc_check_installed_update` checks immediately instead of waiting for the periodic monitor.
 - `sensor.hpvc_update_status` reports **Up to date**, **Quick reload available**, **Restart required**, **Applying update**, **Reloading HPVC** or an error state.
-- `button.hpvc_apply_installed_update` is the explicit confirmation to apply a reload-safe update.
-- When no Python changed, HPVC updates the bundled Node-RED flow if required and then runs a Home PV Control config-entry reload only.
-- When Python changed, quick reload is blocked and a Home Assistant restart is required.
+- If no `.py` file changed, HPVC reports **Quick reload available**. Confirm **Apply installed update** in the HPVC Settings tab. If the bundled Node-RED flow changed, HPVC updates the four managed HPVC tabs first using the per-flow Node-RED Admin API (`POST /flow` and `PUT /flow/:id`), then reloads only the Home PV Control config entry. Home Assistant itself is not restarted.
+- If any HPVC `.py` file changed, HPVC reports **Restart required** and deliberately blocks quick reload so Home Assistant can load the updated Python modules during a full restart.
+- The running Node-RED flow publishes its version to `text.hpvc_nodered_version`.
 
-A config-entry reload is not used as a substitute for loading changed Python code.
+A config-entry reload is not used as a substitute for loading changed Python code, and HPVC never posts the complete Node-RED configuration during this update path.
 
 ## Switching between Manual and HACS-native
 

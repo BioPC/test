@@ -371,9 +371,9 @@ HTML and TXT use the same report model. The report's timestamps and current-day 
 
 
 
-## v1.4.3 runtime state and performance model
+## Runtime state and performance model
 
-HPVC no longer deep-copies Home Assistant's complete `homeassistant.homeAssistant.states` object on each 10-second evaluation. The Inputs tab resolves the fixed HPVC helpers plus configured dynamic grid, price, PV and inverter-limit entities, then copies only those required state entries into a compact `msg.hpvc.cycleStates` snapshot. Predictable HBC/Marstek entities needed by battery safety and Charge Priority are included directly.
+Introduced in v1.4.3, HPVC no longer deep-copies Home Assistant's complete `homeassistant.homeAssistant.states` object on each 10-second evaluation. The Inputs tab resolves the fixed HPVC helpers plus configured dynamic grid, price, PV and inverter-limit entities, then copies only those required state entries into a compact `msg.hpvc.cycleStates` snapshot. Predictable HBC/Marstek entities needed by battery safety and Charge Priority are included directly.
 
 This preserves one coherent state picture for a control cycle without allocating a second copy of every Home Assistant entity and its attributes. `msg.hpvc.haStates` is not used by v1.4.1 and is explicitly removed before output publication as a migration safety guard.
 
@@ -387,9 +387,9 @@ HPVC still wakes every 10 seconds. When the relevant live control inputs remain 
 A confirmed **Night Restore** state is itself considered stable and no longer forces every 10-second wake through the full pipeline. HPVC continues to take the lightweight live snapshot each wake. If valid PV rises above the Night Restore recovery level (`max(25 W, threshold + 15 W)`), or a Night Restore recovery timer is already active, the limiter is bypassed so the 30-second recovery persistence is evaluated on the normal timer cadence. This preserves recovery responsiveness while allowing quiet overnight cycles to be skipped.
 
 
-### v1.4.3 helper publishing
+### Helper publishing
 
-v1.4.3 keeps HPVC-owned dashboard/output helpers out of the stable-input rate-limiter hash and uses flow-context publication caches to avoid resending unchanged helper values. Status and reason publish on change, target JSON is limited to at most one changed publish per 30 seconds, accuracy diagnostics to at most one changed publish per 60 seconds, and Insight rows are written individually only when that row changes. A five-minute forced refresh keeps the dashboard synchronized after unusual external helper changes. These changes affect diagnostics/UI traffic only; PV control decisions and safety gates are unchanged.
+Since v1.4.3, HPVC keeps HPVC-owned dashboard/output helpers out of the stable-input rate-limiter hash and uses flow-context publication caches to avoid resending unchanged helper values. Status and reason publish on change, target JSON is limited to at most one changed publish per 30 seconds, accuracy diagnostics to at most one changed publish per 60 seconds, and Insight rows are written individually only when that row changes. A five-minute forced refresh keeps the dashboard synchronized after unusual external helper changes. These changes affect diagnostics/UI traffic only; PV control decisions and safety gates are unchanged.
 
 ### Percentage target quantization
 
@@ -399,7 +399,7 @@ Percent-controlled inverter targets are converted to the entity's representable 
 
 ### Charge Priority release retries
 
-Charge Priority releases additional PV only while usable battery headroom exists. If the batteries actually absorb the released PV, the control converges normally. If the plant does not absorb the release and export returns, HPVC can reduce PV again and retry a later release after the normal cooldown/full-evaluation cadence. This is intentional closed-loop probing rather than a guaranteed one-shot release; there is no long exponential backoff in v1.5.0 because that could delay useful battery charging when conditions recover. Repeated release/limit activity should therefore be investigated as a battery-acceptance, HBC-execution, telemetry, or plant-response issue rather than hidden by a long retry delay.
+Charge Priority releases additional PV only while usable battery headroom exists. If the batteries actually absorb the released PV, the control converges normally. If the plant does not absorb the release and export returns, HPVC can reduce PV again and retry a later release after the normal cooldown/full-evaluation cadence. This is intentional closed-loop probing rather than a guaranteed one-shot release; there is no long exponential backoff because that could delay useful battery charging when conditions recover; this retry model was introduced in v1.5.0. Repeated release/limit activity should therefore be investigated as a battery-acceptance, HBC-execution, telemetry, or plant-response issue rather than hidden by a long retry delay.
 
 ## Generic inverter adapter pipeline
 
@@ -410,7 +410,9 @@ A configured readback entity participates in normal write verification. Without 
 [← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)
 
 
-## Safe disable and external PV release (v1.5.1)
+## Safe disable and external PV release
+
+These safety and handover behaviors were introduced in v1.5.1 and remain part of the current control model.
 
 ### Safe disable
 

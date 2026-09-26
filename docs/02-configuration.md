@@ -71,7 +71,7 @@ See [Inverter compatibility](05-inverter-compatibility.md) before selecting an e
 
 HPVC always calculates plant and inverter targets internally in watts. With **Limit unit = Percent**, only the Home Assistant I/O boundary is converted: `target % = target W / Full power W × 100`. The live percentage state is converted back to watts before allocation, deadband and write-verification logic. This allows percentage-controlled integrations to use the same HPVC control model without changing thresholds or proportional distribution.
 
-The writable number entity is also used as the command-state readback for write verification. In **Number entity** mode, HPVC v1.5.1 does not require a separate physical inverter-feedback sensor. If **Limit unit** is missing, unavailable, or not exactly `Watts` or `Percent`, configuration is treated as invalid and inverter writes are blocked rather than silently assuming Watts. For percentage entities, HPVC uses the Home Assistant `number` entity's `step` attribute when available, rounds commands to that supported percentage resolution, and verifies the effective Watt equivalent. If an integration does not expose a writable percentage `number` entity directly, use the v1.5.0 **Action/service** control method when the integration exposes a stable action/register-write path. A template/bridge number remains an alternative when preferred. A bridge that mirrors its requested value provides command-state confirmation only; it is not independent proof that the physical inverter accepted the underlying service/register write.
+The writable number entity is also used as the command-state readback for write verification. In **Number entity** mode, HPVC does not require a separate physical inverter-feedback sensor (this behavior was introduced in v1.5.1). If **Limit unit** is missing, unavailable, or not exactly `Watts` or `Percent`, configuration is treated as invalid and inverter writes are blocked rather than silently assuming Watts. For percentage entities, HPVC uses the Home Assistant `number` entity's `step` attribute when available, rounds commands to that supported percentage resolution, and verifies the effective Watt equivalent. If an integration does not expose a writable percentage `number` entity directly, use the **Action/service** control method introduced in v1.5.0 when the integration exposes a stable action/register-write path. A template/bridge number remains an alternative when preferred. A bridge that mirrors its requested value provides command-state confirmation only; it is not independent proof that the physical inverter accepted the underlying service/register write.
 
 Invalid inverter limits or a percentage entity reporting outside 0–100% block writes and produce a configuration error.
 
@@ -182,13 +182,13 @@ It resets **Force charge at negative price** to its shipped default of **On**. T
 
 It does not populate installation-specific sensor or inverter entities. Verify all entities, maximum and minimum powers, inverter count, and optional HBC strategy entity afterward.
 
-### Percentage step handling (v1.4.3)
+### Percentage step handling
 
-For `Limit unit: Percent`, HPVC quantizes the requested Watt target to the writable `number.*` entity's advertised percentage `step` before deciding whether a write is required. The configured minimum remains a hard Watt floor: if nearest-step rounding would fall below it, HPVC uses the first supported percentage at or above the minimum.
+Introduced in v1.4.3, this behavior remains part of the current control model. For `Limit unit: Percent`, HPVC quantizes the requested Watt target to the writable `number.*` entity's advertised percentage `step` before deciding whether a write is required. The configured minimum remains a hard Watt floor: if nearest-step rounding would fall below it, HPVC uses the first supported percentage at or above the minimum.
 
-## Inverter control method (v1.5.0)
+## Inverter control methods
 
-Each inverter has its own **Control method**.
+Introduced in v1.5.0, each inverter has its own **Control method**.
 
 ### Number entity
 
@@ -250,7 +250,7 @@ They are retained for backward compatibility with v1.4.3 installations and for u
 [← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)
 
 
-## External PV release interface (v1.5.1)
+## External PV release interface
 
 HPVC exposes a small Home Assistant handshake for companion controllers such as EV/forecast automations. It is generic and is not tied to any charger, forecast provider or external project.
 
