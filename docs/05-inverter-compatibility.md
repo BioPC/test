@@ -71,7 +71,3 @@ In **Number entity** mode HPVC verifies the configured writable limit entity. In
 The matrix is intentionally conservative. If you successfully use an integration marked **Compatible by design** or **Action/service adapter** with HPVC, please open a GitHub issue or discussion with the inverter model, Home Assistant integration, control method, action/entity details and Limit unit so the status can be promoted to **Confirmed direct**.
 
 [← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)
-
-## Safe-disable and external-release compatibility
-
-Introduced in v1.5.1, safe disable and the external PV-release handshake use the same configured Number-entity or Action/service write path as normal HPVC control. They do not create a separate inverter protocol. A real readback remains recommended: without independent readback, HPVC can confirm its command path but cannot prove the physical inverter response beyond the semantics exposed by the selected integration.
