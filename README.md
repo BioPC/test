@@ -46,8 +46,10 @@ See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configurati
 - [Screenshots](#screenshots)
 - [Support](#support)
 - [Repository structure](#repository-structure)
+- [Credits](#credits)
 - [License](#license)
-
+- [Disclaimer](#disclaimer)
+  
 ## Requirements
 
 - Home Assistant Core **2025.12 or newer**. HACS/native installation does not require Home Assistant package configuration; package support is needed only for the manual installation path.
@@ -392,23 +394,12 @@ hacs.json               # HACS repository metadata
 releases/
   v1.0.0/
   ...
-  v1.5.1/
   v1.5.2/
 ```
-
-## Installation format
-
-HPVC v1.5.2 supports a HACS custom-integration installation and the original manual GitHub release ZIP. HACS manages the Home Assistant companion integration and bundled files; the HACS/native integration can install and update the HPVC Node-RED flow through the official Node-RED Admin API, while the manual package + flow + dashboard workflow remains fully supported.
 
 ## Credits
 
 Inspired by the Home Assistant and Node-RED workflow of [Home Battery Control](https://github.com/gitcodebob/marstek-venus-rs485-node-red).
-
-## HACS integration files
-
-The HACS integration includes local Home Assistant brand images in `custom_components/hpvc/brand/`, generated from `assets/logo.svg`, so Home Assistant can show the HPVC icon/logo after installation and restart.
-
-The HACS installation is implemented in `custom_components/hpvc/`. It ships native equivalents of the manual HPVC helpers/templates plus a matching dashboard and Node-RED flow variant. The manual and HACS files provide the same HPVC behavior but use different Home Assistant entity domains where required.
 
 ## License
 
