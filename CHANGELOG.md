@@ -38,6 +38,7 @@
 - Added explicit regression checks for inverter-slot visibility from PV1 through PV10.
 - Added a mixed-install safety interlock: when legacy/manual `input_*` HPVC helpers are present, HACS-native HPVC does not create a second control stack or run Node-RED management. If manual HPVC appears while native HPVC is running, the native master switch is turned off and the integration reloads into protection mode with a persistent warning.
 - Added an explicit Manual → HACS-native migration cleanup in the HPVC sidebar. Administrators can delete storage-backed legacy `input_*.hpvc_*` helpers through Home Assistant's helper WebSocket API. YAML/runtime helpers are handled by removing their YAML/package source and restarting Home Assistant; HPVC rescans automatically on startup. No direct `.storage` editing is used.
+- Added an administrator-confirmed exact-file migration action for `/config/packages/hpvc_config.yaml`: HPVC creates a timestamped backup under `/config/hpvc-data/migration-backups/`, removes only that exact legacy package file, and then guides the user to restart Home Assistant. Other YAML files and `.storage` are never deleted automatically.
 - Synchronized v1.5.2 documentation for HACS/native versus manual entity domains, safe migration/mixed-install recovery, Node-RED installer behavior, and HBC availability troubleshooting. The PV2–PV10 visibility issue remains recorded as a fixed regression in the release history, not as normal troubleshooting guidance.
 
 ## v1.5.1
