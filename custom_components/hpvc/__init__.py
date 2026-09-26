@@ -3,13 +3,17 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import shutil
+from datetime import datetime, timezone
 from pathlib import Path
 
 from aiohttp import web
-from homeassistant.components import frontend, webhook
+from homeassistant.components import frontend, persistent_notification, webhook
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import service as ha_service
 from homeassistant.helpers.event import async_track_state_change_event
 
 from .button import async_apply_defaults
@@ -26,6 +30,9 @@ from .update_manager import async_update_monitor, disk_fingerprints
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = ["switch", "text", "select", "number", "button", "sensor", "binary_sensor"]
 WEBHOOK_ID = "hpvc_report_viewed_141"
+LEGACY_PACKAGE_RELATIVE_PATH = Path("packages") / "hpvc_config.yaml"
+LEGACY_MIGRATION_BACKUP_DIR = Path("hpvc-data") / "migration-backups"
+SERVICE_BACKUP_REMOVE_LEGACY_PACKAGE = "backup_remove_legacy_package"
 
 
 async def _call(hass, domain, service, entity_id, **data):
@@ -131,6 +138,76 @@ async def _ensure_frontend_registered(
         )
 
 
+async def _backup_remove_legacy_package(
+    hass: HomeAssistant, call: ServiceCall
+) -> None:
+    """Back up and remove only the standard legacy HPVC package file."""
+    package_path = Path(hass.config.path(*LEGACY_PACKAGE_RELATIVE_PATH.parts)).resolve()
+    config_root = Path(hass.config.path()).resolve()
+    expected_path = (config_root / LEGACY_PACKAGE_RELATIVE_PATH).resolve()
+
+    # Refuse any path ambiguity. This service is deliberately exact-file-only.
+    if package_path != expected_path:
+        raise HomeAssistantError("Legacy HPVC package path validation failed.")
+
+    if not package_path.exists():
+        raise HomeAssistantError(
+            f"Legacy HPVC package was not found at {package_path}. "
+            "Nothing was deleted."
+        )
+    if not package_path.is_file():
+        raise HomeAssistantError(
+            f"Expected a file at {package_path}, but found a non-file path."
+        )
+
+    backup_dir = (config_root / LEGACY_MIGRATION_BACKUP_DIR).resolve()
+    if config_root not in backup_dir.parents:
+        raise HomeAssistantError("Migration backup path validation failed.")
+
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    backup_path = backup_dir / f"hpvc_config.yaml.{stamp}.bak"
+
+    try:
+        shutil.copy2(package_path, backup_path)
+    except OSError as exc:
+        raise HomeAssistantError(
+            f"Could not back up legacy HPVC package: {exc}"
+        ) from exc
+
+    try:
+        package_path.unlink()
+    except OSError as exc:
+        # Preserve the backup and report the deletion failure.
+        raise HomeAssistantError(
+            f"Backup created at {backup_path}, but the original package "
+            f"could not be removed: {exc}"
+        ) from exc
+
+    persistent_notification.async_create(
+        hass,
+        "The standard legacy HPVC package was backed up and removed.\n\n"
+        f"Removed: `{package_path}`\n"
+        f"Backup: `{backup_path}`\n\n"
+        "Restart Home Assistant to unload YAML/runtime HPVC helpers. "
+        "`hpvc-data/runtime-history.json` was not changed.",
+        title="Home PV Control: legacy package removed",
+        notification_id="hpvc_legacy_package_removed",
+    )
+
+
+def _ensure_migration_admin_service(hass: HomeAssistant) -> None:
+    """Register the exact-file legacy-package migration service once."""
+    if hass.services.has_service(DOMAIN, SERVICE_BACKUP_REMOVE_LEGACY_PACKAGE):
+        return
+    ha_service.async_register_admin_service(
+        hass,
+        DOMAIN,
+        SERVICE_BACKUP_REMOVE_LEGACY_PACKAGE,
+        _backup_remove_legacy_package,
+    )
+
+
 async def _activate_mixed_protection(
     hass: HomeAssistant, entry: ConfigEntry, manual_entities: list[str]
 ) -> None:
@@ -161,6 +238,7 @@ async def _activate_mixed_protection(
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     domain_data = hass.data.setdefault(DOMAIN, {})
     entry.async_on_unload(entry.add_update_listener(_options_updated))
+    _ensure_migration_admin_service(hass)
 
     # Keep the HPVC sidebar available in mixed-install protection mode so the
     # user can run the explicit legacy-helper migration/cleanup tool.

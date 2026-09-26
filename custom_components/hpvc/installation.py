@@ -42,10 +42,11 @@ def mixed_installation_message(manual_entities: list[str]) -> str:
         "Any already-running HACS-native HPVC control switch is turned off before the integration reloads into protection mode.\n\n"
         "Choose one installation method:\n"
         "• Keep Manual: remove/disable the HACS HPVC integration.\n"
-        "• Migrate to HACS-native: remove the HPVC manual package if it is still present, then open "
-        "Home PV Control in the sidebar and use the legacy-helper cleanup tool. HPVC can remove storage-backed "
-        "HPVC helpers and reload helper domains so removed YAML helpers disappear without editing Home Assistant storage files.\n\n"
-        "If YAML-managed HPVC helpers remain after cleanup, their YAML/package definition is still loaded and must be removed first.\n\n"
+        "• Migrate to HACS-native: open Home PV Control in the sidebar. HPVC can delete storage-backed "
+        "legacy helpers and can back up/remove the exact standard package file `/config/packages/hpvc_config.yaml` "
+        "after explicit administrator confirmation. YAML/runtime helpers require a Home Assistant restart after "
+        "their YAML source is removed.\n\n"
+        "HPVC never edits `.storage` files directly and never deletes `hpvc-data/runtime-history.json`.\n\n"
         f"Detected manual HPVC entities: {sample or 'unknown'}"
     )
 
