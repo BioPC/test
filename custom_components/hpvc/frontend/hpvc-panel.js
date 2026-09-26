@@ -17,6 +17,8 @@ class HPVCPanel extends HTMLElement {
     this._migrationRestarting = false;
     this._legacyPackageRemoving = false;
     this._legacyPackageRemoved = false;
+    this._legacyRegistryCleaning = false;
+    this._legacyRegistryCleaned = false;
     this._migrationMessage = "";
   }
 
@@ -270,6 +272,52 @@ class HPVCPanel extends HTMLElement {
     this._renderMigration();
   }
 
+  async _cleanLegacyRegistry() {
+    if (
+      this._legacyRegistryCleaning ||
+      this._legacyPackageRemoving ||
+      this._legacyRegistryCleaning ||
+      this._migrationBusy ||
+      this._migrationRefreshing ||
+      this._migrationRestarting
+    ) return;
+
+    if (!this._hass?.user?.is_admin) {
+      this._migrationMessage =
+        "Administrator access is required to clean legacy HPVC registry entries.";
+      this._renderMigration();
+      return;
+    }
+
+    const info = this._migrationInfo || await this._getLegacyMigrationInfo();
+    const confirmed = window.confirm(
+      `Remove stale legacy HPVC helper entries from Home Assistant's entity registry?\n\n` +
+      `HPVC will target only old standalone input_*.hpvc_* entries with no config entry attached. ` +
+      `A JSON backup will be created under /config/hpvc-data/migration-backups/ first.\n\n` +
+      `Native HPVC entities, HBC entities, .storage files and runtime-history.json are not edited directly. ` +
+      `A Home Assistant restart will still be required afterward.`
+    );
+    if (!confirmed) return;
+
+    this._legacyRegistryCleaning = true;
+    this._migrationMessage = "Backing up and cleaning stale HPVC registry entries…";
+    this._renderMigration();
+
+    try {
+      await this._hass.callService("hpvc", "clean_legacy_registry");
+      this._legacyRegistryCleaned = true;
+      this._migrationMessage =
+        "Stale legacy HPVC registry entries were backed up and removed. Restart Home Assistant now to unload the remaining legacy helper states.";
+    } catch (err) {
+      this._migrationMessage =
+        `Legacy registry cleanup was not completed: ${String(err)}`;
+    } finally {
+      this._legacyRegistryCleaning = false;
+    }
+
+    this._renderMigration();
+  }
+
   async _backupRemoveLegacyPackage() {
     if (
       this._legacyPackageRemoving ||
@@ -334,9 +382,11 @@ class HPVCPanel extends HTMLElement {
 
     const confirmed = window.confirm(
       `Restart Home Assistant now to unload ${info.yamlOrRuntime.length} YAML/runtime legacy HPVC helper(s)?\n\n` +
-      (this._legacyPackageRemoved
-        ? "The standard legacy HPVC package was backed up and removed by HPVC. "
-        : "Make sure the old HPVC YAML/package definition has already been removed. ") +
+      (this._legacyRegistryCleaned
+        ? "Stale legacy HPVC registry entries were backed up and removed by HPVC. "
+        : this._legacyPackageRemoved
+          ? "The standard legacy HPVC package was backed up and removed by HPVC. "
+          : "Make sure any old HPVC YAML/package definition has already been removed. ") +
       "Home Assistant will be temporarily unavailable during the restart."
     );
     if (!confirmed) return;
@@ -405,9 +455,11 @@ class HPVCPanel extends HTMLElement {
     const warning = document.createElement("div");
     warning.className = "warn";
     warning.innerHTML =
-      "<b>Migration safety:</b> HPVC can automatically back up and remove only the standard " +
-      "<code>/config/packages/hpvc_config.yaml</code> file, and only after administrator confirmation. " +
-      "Other YAML files are never deleted automatically. The file <code>hpvc-data/runtime-history.json</code> is not deleted.";
+      "<b>Migration safety:</b> HPVC can back up and remove stale standalone <code>input_*.hpvc_*</code> " +
+      "entity-registry entries through Home Assistant's official registry API. It can also back up/remove only the standard " +
+      "<code>/config/packages/hpvc_config.yaml</code> file after administrator confirmation. " +
+      "Other YAML files are never deleted automatically, <code>.storage</code> is never edited directly, and " +
+      "<code>hpvc-data/runtime-history.json</code> is not deleted.";
     card.appendChild(warning);
 
     const h2 = document.createElement("h2");
@@ -443,7 +495,7 @@ class HPVCPanel extends HTMLElement {
         ? "Cleaning…"
         : `Delete ${info.storage.length} legacy HPVC helper${info.storage.length === 1 ? "" : "s"} & migrate`;
       cleanup.disabled =
-        this._migrationBusy || this._migrationRefreshing || this._migrationRestarting || this._legacyPackageRemoving || !admin;
+        this._migrationBusy || this._migrationRefreshing || this._migrationRestarting || this._legacyPackageRemoving || this._legacyRegistryCleaning || !admin;
       cleanup.onclick = () => this._runLegacyCleanup();
       card.appendChild(cleanup);
     }
@@ -454,11 +506,28 @@ class HPVCPanel extends HTMLElement {
       ? "Refreshing…"
       : "Refresh detection";
     refresh.disabled =
-      this._migrationBusy || this._migrationRefreshing || this._migrationRestarting || this._legacyPackageRemoving;
+      this._migrationBusy || this._migrationRefreshing || this._migrationRestarting || this._legacyPackageRemoving || this._legacyRegistryCleaning;
     refresh.onclick = () => this._refreshMigration();
     card.appendChild(refresh);
 
     if (info.yamlOrRuntime.length) {
+      if (!this._legacyRegistryCleaned) {
+        const cleanRegistry = document.createElement("button");
+        cleanRegistry.className = info.storage.length ? "secondary" : "";
+        cleanRegistry.textContent = this._legacyRegistryCleaning
+          ? "Cleaning stale registry entries…"
+          : "Back up & remove stale HPVC registry entries";
+        cleanRegistry.disabled =
+          this._migrationBusy ||
+          this._migrationRefreshing ||
+          this._migrationRestarting ||
+          this._legacyPackageRemoving ||
+          this._legacyRegistryCleaning ||
+          !admin;
+        cleanRegistry.onclick = () => this._cleanLegacyRegistry();
+        card.appendChild(cleanRegistry);
+      }
+
       if (!this._legacyPackageRemoved) {
         const removePackage = document.createElement("button");
         removePackage.className = info.storage.length ? "secondary" : "";
@@ -477,7 +546,9 @@ class HPVCPanel extends HTMLElement {
 
       const restart = document.createElement("button");
       restart.className =
-        (info.storage.length || !this._legacyPackageRemoved) ? "secondary" : "";
+        (info.storage.length || (!this._legacyRegistryCleaned && !this._legacyPackageRemoved))
+          ? "secondary"
+          : "";
       restart.textContent = this._migrationRestarting
         ? "Restarting Home Assistant…"
         : "Restart Home Assistant";
@@ -488,15 +559,19 @@ class HPVCPanel extends HTMLElement {
 
       const restartHelp = document.createElement("p");
       restartHelp.className = info.storage.length ? "small" : "warn";
-      restartHelp.innerHTML = this._legacyPackageRemoved
-        ? "<b>The standard legacy HPVC package has been backed up and removed.</b><br><br>" +
-          "Restart Home Assistant to unload YAML/runtime HPVC helpers. HPVC will rescan automatically during startup."
-        : info.storage.length
+      restartHelp.innerHTML = this._legacyRegistryCleaned
+        ? "<b>Stale legacy HPVC entity-registry entries have been backed up and removed.</b><br><br>" +
+          "Restart Home Assistant to unload the still-running legacy helper states. HPVC will rescan automatically during startup."
+        : this._legacyPackageRemoved
+          ? "<b>The standard legacy HPVC package has been backed up and removed.</b><br><br>" +
+            "Restart Home Assistant to unload YAML/runtime HPVC helpers. HPVC will rescan automatically during startup."
+          : info.storage.length
           ? "After deleting storage-backed helpers, remaining YAML/runtime HPVC helpers require a full Home Assistant restart. " +
             "Use <b>Back up & remove legacy HPVC package</b> if the standard package file still exists, then restart Home Assistant."
           : `<b>${info.yamlOrRuntime.length} legacy HPVC helper(s) are still loaded, but none are storage-backed.</b><br><br>` +
-            "Use <b>Back up & remove legacy HPVC package</b> to safely remove the standard package file if it exists, " +
-            "then restart Home Assistant. If the button reports that the file does not exist, another YAML source may be defining the helpers.";
+            "First use <b>Back up & remove stale HPVC registry entries</b>. This handles old standalone helper entries left in Home Assistant's entity registry. " +
+            "Then restart Home Assistant. If the helpers return after restart, an old YAML source is still defining them; " +
+            "the standard package can also be removed with <b>Back up & remove legacy HPVC package</b> when present.";
       card.appendChild(restartHelp);
     }
 
