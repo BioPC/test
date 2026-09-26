@@ -37,7 +37,7 @@
 - HBC availability now treats an empty active sub-strategy as valid when the HBC strategy selector and sub-strategy entity are present, preventing false "HBC unavailable" status while HBC is idle.
 - Added explicit regression checks for inverter-slot visibility from PV1 through PV10.
 - Added a mixed-install safety interlock: when legacy/manual `input_*` HPVC helpers are present, HACS-native HPVC does not create a second control stack or run Node-RED management. If manual HPVC appears while native HPVC is running, the native master switch is turned off and the integration reloads into protection mode with a persistent warning.
-- Added an explicit Manual → HACS-native migration cleanup in the HPVC sidebar. Administrators can delete storage-backed legacy `input_*.hpvc_*` helpers through Home Assistant's helper WebSocket API, reload helper domains to drop removed YAML helpers, and return to native mode without direct `.storage` editing.
+- Added an explicit Manual → HACS-native migration cleanup in the HPVC sidebar. Administrators can delete storage-backed legacy `input_*.hpvc_*` helpers through Home Assistant's helper WebSocket API. YAML/runtime helpers are handled by removing their YAML/package source and restarting Home Assistant; HPVC rescans automatically on startup. No direct `.storage` editing is used.
 - Synchronized v1.5.2 documentation for HACS/native versus manual entity domains, safe migration/mixed-install recovery, Node-RED installer behavior, and HBC availability troubleshooting. The PV2–PV10 visibility issue remains recorded as a fixed regression in the release history, not as normal troubleshooting guidance.
 
 ## v1.5.1
