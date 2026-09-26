@@ -6,7 +6,7 @@
 
 HPVC supports two installation paths. **HACS is the convenience path; manual installation remains supported exactly as a separate workflow.**
 
-### HACS installation
+# HACS installation
 
 [![Open your Home Assistant instance and add this repository to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BioPC&repository=home-pv-control&category=integration)
 
@@ -40,7 +40,7 @@ Do not enable both installation methods at the same time. v1.5.2 includes a mixe
 
 If legacy manual HPVC helpers are detected while the HACS integration is present, native HPVC control and Node-RED management stay blocked until one installation method is removed. HPVC never deletes or edits the manual YAML package automatically.
 
-### Manual installation
+# Manual installation
 
 Continue with the steps below. The original package, Node-RED flow and YAML dashboard remain first-class supported files.
 Home PV Control can run independently or alongside Home Battery Control. Use Steps 1–6 for a fresh installation. Existing installations should also read the upgrade section before replacing files.
