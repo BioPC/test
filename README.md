@@ -28,7 +28,9 @@ Home PV Control (HPVC) dynamically controls, limits and restores PV inverter out
 
 See [Inverter compatibility](docs/05-inverter-compatibility.md) and [Configuration](docs/02-configuration.md) for the four compatibility statuses, current brand/integration matrix and configuration.
 
-<img src="https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/dashboard_main.png" alt="Home PV Control dashboard" width="60%">
+<p align="center">
+  <img src="https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/dashboard_main.png" alt="Home PV Control dashboard" width="60%">
+</p>
 
 ## Contents
 
@@ -322,17 +324,23 @@ The bundled screenshots are retained for orientation and may show an earlier HPV
 
 ### Settings
 
-<img src="https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/dashboard_settings.png" alt="Home PV Control settings" width="60%">
+<p align="center">
+  <img src="https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/dashboard_settings.png" alt="Home PV Control settings" width="60%">
+</p>
 
 ### Report
 
-<img src="https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/hpvc_report.png" alt="HPVC report" width="60%">
+<p align="center">
+  <img src="https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/hpvc_report.png" alt="HPVC report" width="60%">
+</p>
 
 ### Node-RED flow
 
 Reference Node-RED architecture screenshot.
 
-<img src="https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED flow" width="80%">
+<p align="center">
+  <img src="https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED flow" width="80%">
+</p>
 
 ## Support
 
