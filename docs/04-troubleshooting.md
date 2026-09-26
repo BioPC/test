@@ -294,13 +294,9 @@ v1.4.3 deduplicates HPVC-owned status, reason, Insights, targets JSON and accura
 
 This is expected when the writable percentage entity has a coarse `step`. HPVC uses the nearest representable percentage for normal targets. At the configured minimum it rounds upward when necessary, so the effective command never falls below the configured minimum Watt limit.
 
-
-
 ### Action/service adapter does not control the inverter
 
 Check that the action is written as `domain.service`, the fixed-data field contains valid JSON, and the value field matches the integration's service schema. If the inverter requires an enable switch, mode selection, trigger button, or heartbeat, put those calls in the per-inverter pre/post action arrays. Configure a numeric readback entity when available so HPVC can verify the applied limit. The readback must use the same unit as the configured Limit unit. If an action/service call itself fails, HPVC clears that inverter's cached command and retries on a later eligible cycle; check the persistent notification and Node-RED/Home Assistant logs for the rejected payload. Pre/main/post calls execute sequentially and stop on the first failed Home Assistant action, but HPVC does not insert built-in delays. Use a Home Assistant script when timed waits are required. The advanced JSON helper fields are limited to 255 characters.
-
-[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)
 
 ## Charge Priority repeatedly releases and limits PV
 
@@ -309,7 +305,6 @@ If Charge Priority releases PV but the batteries do not absorb the additional po
 ## Action/service writes again soon after Node-RED restart
 
 After Node-RED loses its runtime command cache, an Action/service inverter performs one synchronization write on the next normal/full evaluation. Startup synchronization itself is not treated as an ordinary PV target change and therefore does not start the normal PV cooldown. If grid/PV conditions then require a different target on the following cycle, a second write can occur sooner than the configured cooldown. This is intentional so startup synchronization cannot block a newly required control response. A real readback entity is recommended when the integration provides one.
-
 
 ## v1.5.1 external release and disable restoration
 
@@ -336,3 +331,5 @@ This is intentional in v1.5.2. HPVC fingerprints the loaded integration files an
 - **Apply failed** means HPVC did not complete the confirmed update safely. Check `sensor.hpvc_update_status` attributes and `sensor.hpvc_nodered_installer_status`.
 
 Use **Check installed update** to force an immediate comparison if HACS has just finished updating and the status has not changed yet.
+
+[← README](../README.md) · [Installation](01-installation.md) · [Settings](02-configuration.md) · [How it works](03-how-it-works.md) · [Troubleshooting](04-troubleshooting.md) · [Inverter compatibility](05-inverter-compatibility.md)
