@@ -10,7 +10,17 @@
           "node_red_password": "Node-RED password (if required)",
           "node_red_auto_install": "Automatically install/update HPVC Node-RED flow"
         }
+      },
+      "legacy_migration": {
+        "title": "Legacy HPVC installation detected",
+        "description": "HPVC found {count} legacy/manual HPVC helper entities. Continue setup to enter protected migration mode. After the integration is added, open Home PV Control from the sidebar and use **Delete legacy HPVC helpers & migrate**. Nothing is deleted until you explicitly confirm the cleanup there.",
+        "data": {
+          "confirm_migration": "Continue to legacy-helper migration"
+        }
       }
+    },
+    "error": {
+      "confirm_required": "Confirm migration to continue."
     }
   },
   "options": {
@@ -29,15 +39,29 @@
   },
   "entity": {
     "sensor": {
-      "integration_version": {"name": "Integration version"},
-      "nodered_version": {"name": "Node-RED version"},
-      "nodered_status": {"name": "Node-RED status"},
-      "nodered_installer_status": {"name": "Node-RED installer status"},
-      "installation_mode": {"name": "Installation mode"}
+      "integration_version": {
+        "name": "Integration version"
+      },
+      "nodered_version": {
+        "name": "Node-RED version"
+      },
+      "nodered_status": {
+        "name": "Node-RED status"
+      },
+      "nodered_installer_status": {
+        "name": "Node-RED installer status"
+      },
+      "installation_mode": {
+        "name": "Installation mode"
+      }
     },
     "button": {
-      "install_update_nodered_flow": {"name": "Install / update Node-RED flow"},
-      "check_nodered_connection": {"name": "Check Node-RED connection"}
+      "install_update_nodered_flow": {
+        "name": "Install / update Node-RED flow"
+      },
+      "check_nodered_connection": {
+        "name": "Check Node-RED connection"
+      }
     }
   }
 }

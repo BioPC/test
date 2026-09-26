@@ -11,6 +11,9 @@ class HPVCPanel extends HTMLElement {
     this._fallbackView = null;
     this._loaded = false;
     this._viewIndex = 0;
+    this._migrationInfo = null;
+    this._migrationBusy = false;
+    this._migrationMessage = "";
   }
 
   set hass(value) {
@@ -42,6 +45,13 @@ class HPVCPanel extends HTMLElement {
   async _load() {
     this._loaded = true;
     try {
+      const migration = await this._getLegacyMigrationInfo();
+      if (migration.live.length) {
+        this._migrationInfo = migration;
+        this._renderMigration();
+        return;
+      }
+
       const response = await fetch("/hpvc_static/dashboard.json?v=1.5.2", {
         cache: "no-store",
       });
@@ -64,6 +74,299 @@ class HPVCPanel extends HTMLElement {
     } catch (err) {
       this._renderError(err);
     }
+  }
+
+  _legacyDomains() {
+    return [
+      "input_boolean",
+      "input_button",
+      "input_number",
+      "input_select",
+      "input_text",
+    ];
+  }
+
+  _isLegacyEntityId(entityId) {
+    if (!entityId || !entityId.includes(".")) return false;
+    const [domain, objectId] = entityId.split(".", 2);
+    return this._legacyDomains().includes(domain) && objectId.startsWith("hpvc_");
+  }
+
+  async _storageHelpersForDomain(domain) {
+    try {
+      const items = await this._hass.callWS({ type: `${domain}/list` });
+      return (Array.isArray(items) ? items : [])
+        .map((item) => item?.id)
+        .filter((id) => typeof id === "string" && id.startsWith("hpvc_"))
+        .map((id) => `${domain}.${id}`);
+    } catch (_) {
+      return [];
+    }
+  }
+
+  async _getLegacyMigrationInfo() {
+    const live = Object.keys(this._hass?.states || {})
+      .filter((entityId) => this._isLegacyEntityId(entityId))
+      .sort();
+
+    const storageLists = await Promise.all(
+      this._legacyDomains().map((domain) => this._storageHelpersForDomain(domain))
+    );
+    const storage = storageLists.flat().sort();
+    const storageSet = new Set(storage);
+    const yamlOrRuntime = live.filter((entityId) => !storageSet.has(entityId));
+
+    return {
+      live,
+      storage,
+      yamlOrRuntime,
+    };
+  }
+
+  _entryId() {
+    return (
+      this._panel?.config?._panel_custom?.entry_id ||
+      this._panel?._panel_custom?.entry_id ||
+      this._panel?.config?.entry_id ||
+      null
+    );
+  }
+
+  async _deleteStorageHelper(entityId) {
+    const [domain, objectId] = entityId.split(".", 2);
+    if (!this._legacyDomains().includes(domain) || !objectId.startsWith("hpvc_")) {
+      throw new Error(`Refusing to delete non-legacy entity ${entityId}`);
+    }
+    return this._hass.callWS({
+      type: `${domain}/delete`,
+      [`${domain}_id`]: objectId,
+    });
+  }
+
+  async _reloadLegacyHelperDomains() {
+    for (const domain of this._legacyDomains()) {
+      if (this._hass?.services?.[domain]?.reload) {
+        try {
+          await this._hass.callService(domain, "reload");
+        } catch (_) {
+          // A missing/unsupported reload must not stop the remaining domains.
+        }
+      }
+    }
+  }
+
+  async _runLegacyCleanup() {
+    if (this._migrationBusy) return;
+    if (!this._hass?.user?.is_admin) {
+      this._migrationMessage = "Administrator access is required to delete Home Assistant helpers.";
+      this._renderMigration();
+      return;
+    }
+
+    const info = await this._getLegacyMigrationInfo();
+    if (!info.live.length) {
+      this._migrationInfo = info;
+      this._migrationMessage = "No legacy HPVC helpers remain.";
+      this._renderMigration();
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete ${info.storage.length} storage-backed legacy HPVC helper(s) and reload the legacy helper domains?\n\n` +
+      "Only input_boolean.hpvc_*, input_button.hpvc_*, input_number.hpvc_*, input_select.hpvc_* and input_text.hpvc_* are eligible. " +
+      "HPVC will not edit Home Assistant .storage files directly."
+    );
+    if (!confirmed) return;
+
+    this._migrationBusy = true;
+    this._migrationMessage = "Cleaning legacy HPVC helpers…";
+    this._renderMigration();
+
+    const failures = [];
+    for (const entityId of info.storage) {
+      try {
+        await this._deleteStorageHelper(entityId);
+      } catch (err) {
+        failures.push(`${entityId}: ${String(err)}`);
+      }
+    }
+
+    // Reload YAML helper collections as well. If the old HPVC package has
+    // already been removed, this removes the still-loaded YAML entities
+    // without requiring direct registry/storage-file manipulation.
+    await this._reloadLegacyHelperDomains();
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+
+    const refreshed = await this._getLegacyMigrationInfo();
+    this._migrationInfo = refreshed;
+    this._migrationBusy = false;
+
+    if (failures.length) {
+      this._migrationMessage =
+        `${failures.length} helper deletion(s) failed. The remaining entities are shown below.`;
+      this._renderMigration();
+      return;
+    }
+
+    if (refreshed.live.length) {
+      this._migrationMessage =
+        `${refreshed.live.length} legacy HPVC helper(s) remain. ` +
+        "They are not storage-backed helpers; remove the HPVC YAML/package definition if it is still loaded, then run cleanup again.";
+      this._renderMigration();
+      return;
+    }
+
+    this._migrationMessage =
+      "Legacy HPVC helpers removed. Reloading Home PV Control into HACS-native mode…";
+    this._renderMigration();
+
+    const entryId = this._entryId();
+    if (entryId) {
+      try {
+        await this._hass.callService("homeassistant", "reload_config_entry", {
+          entry_id: entryId,
+        });
+        return;
+      } catch (err) {
+        this._migrationMessage =
+          `Cleanup completed, but automatic HPVC reload failed: ${String(err)}. ` +
+          "Reload Home PV Control from Settings → Devices & services.";
+        this._renderMigration();
+        return;
+      }
+    }
+
+    this._migrationMessage =
+      "Cleanup completed. Reload Home PV Control from Settings → Devices & services.";
+    this._renderMigration();
+  }
+
+  async _refreshMigration() {
+    this._migrationInfo = await this._getLegacyMigrationInfo();
+    if (!this._migrationInfo.live.length) {
+      this._loaded = false;
+      this._migrationMessage = "";
+      await this._load();
+      return;
+    }
+    this._renderMigration();
+  }
+
+  _renderMigration() {
+    const info = this._migrationInfo || { live: [], storage: [], yamlOrRuntime: [] };
+    const admin = Boolean(this._hass?.user?.is_admin);
+    const sample = info.live.slice(0, 12);
+    const more = Math.max(0, info.live.length - sample.length);
+
+    const style = document.createElement("style");
+    style.textContent = `
+      :host{display:block;min-height:100%;background:var(--primary-background-color);color:var(--primary-text-color)}
+      .wrap{max-width:900px;margin:32px auto;padding:0 16px 40px}
+      .card{background:var(--card-background-color);border-radius:12px;box-shadow:var(--ha-card-box-shadow);padding:24px}
+      h1{margin:0 0 10px;font-size:28px} h2{margin:26px 0 8px;font-size:20px}
+      p{line-height:1.55}.warn{padding:12px 14px;border-left:4px solid var(--warning-color,#ff9800);background:var(--secondary-background-color)}
+      .ok{padding:12px 14px;border-left:4px solid var(--success-color,#4caf50);background:var(--secondary-background-color)}
+      .counts{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}
+      .pill{padding:8px 12px;border-radius:999px;background:var(--secondary-background-color);font-weight:600}
+      code{font-family:var(--code-font-family,monospace)} ul{line-height:1.55}
+      button{border:0;border-radius:6px;padding:11px 16px;margin:8px 8px 0 0;background:var(--primary-color);color:var(--text-primary-color,#fff);font-weight:600;cursor:pointer}
+      button.secondary{background:var(--secondary-background-color);color:var(--primary-text-color)}
+      button[disabled]{opacity:.55;cursor:not-allowed}
+      .msg{margin-top:18px;font-weight:600}
+      .small{opacity:.8;font-size:.92em}
+    `;
+
+    const wrap = document.createElement("div");
+    wrap.className = "wrap";
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const title = document.createElement("h1");
+    title.textContent = "Migrate Manual HPVC to HACS-native";
+    card.appendChild(title);
+
+    const intro = document.createElement("p");
+    intro.textContent =
+      "HPVC detected legacy manual helper entities and has blocked the native control stack for safety. " +
+      "This cleanup tool removes only legacy HPVC helper domains and never edits Home Assistant .storage files directly.";
+    card.appendChild(intro);
+
+    const counts = document.createElement("div");
+    counts.className = "counts";
+    counts.innerHTML =
+      `<span class="pill">${info.live.length} legacy entities loaded</span>` +
+      `<span class="pill">${info.storage.length} storage-backed deletable helpers</span>` +
+      `<span class="pill">${info.yamlOrRuntime.length} YAML/runtime helpers</span>`;
+    card.appendChild(counts);
+
+    const warning = document.createElement("div");
+    warning.className = "warn";
+    warning.innerHTML =
+      "<b>Before cleanup:</b> remove the old HPVC manual package/YAML definition if it still exists. " +
+      "The file <code>hpvc-data/runtime-history.json</code> is not a manual installation and is not deleted.";
+    card.appendChild(warning);
+
+    const h2 = document.createElement("h2");
+    h2.textContent = "Detected legacy HPVC entities";
+    card.appendChild(h2);
+
+    const list = document.createElement("ul");
+    for (const entityId of sample) {
+      const li = document.createElement("li");
+      const code = document.createElement("code");
+      code.textContent = entityId;
+      li.appendChild(code);
+      list.appendChild(li);
+    }
+    if (more) {
+      const li = document.createElement("li");
+      li.textContent = `+${more} more`;
+      list.appendChild(li);
+    }
+    card.appendChild(list);
+
+    if (!admin) {
+      const adminNote = document.createElement("p");
+      adminNote.className = "warn";
+      adminNote.textContent =
+        "Log in as a Home Assistant administrator to run the cleanup.";
+      card.appendChild(adminNote);
+    }
+
+    const cleanup = document.createElement("button");
+    cleanup.textContent = this._migrationBusy
+      ? "Cleaning…"
+      : "Delete legacy HPVC helpers & migrate";
+    cleanup.disabled = this._migrationBusy || !admin;
+    cleanup.onclick = () => this._runLegacyCleanup();
+    card.appendChild(cleanup);
+
+    const refresh = document.createElement("button");
+    refresh.className = "secondary";
+    refresh.textContent = "Refresh detection";
+    refresh.disabled = this._migrationBusy;
+    refresh.onclick = () => this._refreshMigration();
+    card.appendChild(refresh);
+
+    if (this._migrationMessage) {
+      const msg = document.createElement("div");
+      msg.className = info.live.length ? "msg warn" : "msg ok";
+      msg.textContent = this._migrationMessage;
+      card.appendChild(msg);
+    }
+
+    const safety = document.createElement("p");
+    safety.className = "small";
+    safety.innerHTML =
+      "Cleanup scope: <code>input_boolean.hpvc_*</code>, <code>input_button.hpvc_*</code>, " +
+      "<code>input_number.hpvc_*</code>, <code>input_select.hpvc_*</code> and " +
+      "<code>input_text.hpvc_*</code> only. Native <code>switch.hpvc_*</code>, " +
+      "<code>number.hpvc_*</code>, <code>text.hpvc_*</code>, <code>select.hpvc_*</code>, " +
+      "<code>button.hpvc_*</code>, sensors, binary sensors and HBC entities are never deleted.";
+    card.appendChild(safety);
+
+    wrap.appendChild(card);
+    this.shadowRoot.replaceChildren(style, wrap);
   }
 
   _lovelaceRoute() {

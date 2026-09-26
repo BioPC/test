@@ -22,7 +22,7 @@ If mixed mode is detected, HPVC blocks the native control stack and Node-RED man
 
 To keep **Manual**: remove/disable the Home PV Control integration in **Settings → Devices & services** and keep the package, manual flow and YAML dashboard.
 
-To use **HACS-native**: remove `/config/packages/hpvc_config.yaml` (or the equivalent manual HPVC package definition), restart Home Assistant so the legacy `input_*` HPVC helpers disappear, then reload or add the Home PV Control integration. Do not continue until only one HPVC control set remains.
+To use **HACS-native**: remove `/config/packages/hpvc_config.yaml` (or the equivalent manual HPVC package definition) if it is still present. Then open **Home PV Control** in the sidebar and use **Delete legacy HPVC helpers & migrate**. The cleanup removes storage-backed legacy HPVC helpers through Home Assistant's helper API and reloads the helper domains so a removed YAML package is reflected immediately. If YAML-managed helpers remain, their YAML source is still loaded and must be removed first. When no legacy helpers remain, HPVC reloads into HACS-native mode.
 
 ### HBC is installed but HPVC says HBC unavailable
 

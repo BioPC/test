@@ -98,6 +98,39 @@ async def _options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
     await hass.config_entries.async_reload(entry.entry_id)
 
 
+async def _ensure_frontend_registered(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> None:
+    """Register the HPVC sidebar/frontend, including mixed-install migration mode."""
+    domain_data = hass.data.setdefault(DOMAIN, {})
+    static_dir = Path(__file__).parent / "frontend"
+
+    if not domain_data.get("static_registered"):
+        await hass.http.async_register_static_paths(
+            [StaticPathConfig("/hpvc_static", str(static_dir), False)]
+        )
+        domain_data["static_registered"] = True
+
+    if not frontend.async_panel_exists(hass, PANEL_URL):
+        frontend.async_register_built_in_panel(
+            hass,
+            component_name="custom",
+            sidebar_title=PANEL_TITLE,
+            sidebar_icon=PANEL_ICON,
+            frontend_url_path=PANEL_URL,
+            config={
+                "_panel_custom": {
+                    "name": "hpvc-panel",
+                    "embed_iframe": False,
+                    "trust_external": False,
+                    "entry_id": entry.entry_id,
+                    "js_url": f"/hpvc_static/hpvc-panel.js?v={get_package_version()}-{disk_fingerprints()['dashboard'][:10]}",
+                }
+            },
+            require_admin=False,
+        )
+
+
 async def _activate_mixed_protection(
     hass: HomeAssistant, entry: ConfigEntry, manual_entities: list[str]
 ) -> None:
@@ -129,6 +162,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     domain_data = hass.data.setdefault(DOMAIN, {})
     entry.async_on_unload(entry.add_update_listener(_options_updated))
 
+    # Keep the HPVC sidebar available in mixed-install protection mode so the
+    # user can run the explicit legacy-helper migration/cleanup tool.
+    await _ensure_frontend_registered(hass, entry)
+
     manual_entities = manual_hpvc_entities(hass)
     if manual_entities:
         notify_mixed_installation(hass, manual_entities)
@@ -148,31 +185,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     domain_data[DATA_RUNTIME] = json.loads(
         (Path(__file__).parent / "runtime_config.json").read_text(encoding="utf-8")
     )
-
-    static_dir = Path(__file__).parent / "frontend"
-    if not domain_data.get("static_registered"):
-        await hass.http.async_register_static_paths(
-            [StaticPathConfig("/hpvc_static", str(static_dir), False)]
-        )
-        domain_data["static_registered"] = True
-
-    if not frontend.async_panel_exists(hass, PANEL_URL):
-        frontend.async_register_built_in_panel(
-            hass,
-            component_name="custom",
-            sidebar_title=PANEL_TITLE,
-            sidebar_icon=PANEL_ICON,
-            frontend_url_path=PANEL_URL,
-            config={
-                "_panel_custom": {
-                    "name": "hpvc-panel",
-                    "embed_iframe": False,
-                    "trust_external": False,
-                    "js_url": f"/hpvc_static/hpvc-panel.js?v={get_package_version()}-{disk_fingerprints()['dashboard'][:10]}",
-                }
-            },
-            require_admin=False,
-        )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -268,6 +280,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry_state = hass.data.get(DOMAIN, {}).get(entry.entry_id, {})
     if isinstance(entry_state, dict) and entry_state.get("mixed_installation"):
+        if frontend.async_panel_exists(hass, PANEL_URL):
+            frontend.async_remove_panel(hass, PANEL_URL)
         hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
         return True
 

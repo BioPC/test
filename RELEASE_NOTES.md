@@ -41,9 +41,11 @@ No `configuration.yaml` edit is required for HACS/native installation.
 
 ### Mixed-install protection
 
-Manual and HACS-native HPVC must not run at the same time. v1.5.2 checks for legacy/manual HPVC helpers in the `input_boolean`, `input_number`, `input_text`, `input_select` and `input_button` domains. When they are detected, the HACS integration enters protection mode: it does not create the native HPVC control entities, does not register the HPVC control dashboard, and does not run the Node-RED installer/updater. Home Assistant shows a persistent notification explaining how to keep the manual installation or migrate to HACS-native.
+Manual and HACS-native HPVC must not run at the same time. v1.5.2 checks for legacy/manual HPVC helpers in the `input_boolean`, `input_number`, `input_text`, `input_select` and `input_button` domains. When they are detected, the HACS integration enters protection mode: it does not create the native HPVC control entities and does not run the Node-RED installer/updater. The HPVC sidebar remains available as a protected migration surface.
 
-If a manual HPVC package is loaded after HACS-native HPVC is already running, HPVC turns off `switch.hpvc_enabled` first and reloads the integration into protection mode. HPVC does not automatically delete or edit the user's YAML package.
+For Manual → HACS-native migration, administrators can use **Delete legacy HPVC helpers & migrate**. The tool deletes only storage-backed legacy `input_*.hpvc_*` helpers through Home Assistant's helper API, reloads the helper domains so already-removed YAML definitions disappear, and reloads HPVC into native mode when the legacy set is empty. It never edits `.storage` files directly, never deletes the manual YAML file automatically, and never removes `hpvc-data/runtime-history.json`.
+
+If a manual HPVC package is loaded after HACS-native HPVC is already running, HPVC turns off `switch.hpvc_enabled` first and reloads the integration into protection mode.
 
 ## HACS updates
 

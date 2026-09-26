@@ -6,6 +6,8 @@ from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 
+from .installation import manual_hpvc_entities
+
 from .const import (
     CONF_NODE_RED_AUTO_INSTALL,
     CONF_NODE_RED_PASSWORD,
@@ -41,9 +43,39 @@ class HPVCConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None):
         await self.async_set_unique_id(DOMAIN)
         self._abort_if_unique_id_configured()
+
+        if not getattr(self, "_legacy_migration_acknowledged", False):
+            legacy_entities = manual_hpvc_entities(self.hass)
+            if legacy_entities:
+                self._legacy_entities = legacy_entities
+                return await self.async_step_legacy_migration()
+
         if user_input is not None:
             return self.async_create_entry(title="Home PV Control", data=user_input)
         return self.async_show_form(step_id="user", data_schema=_schema())
+
+    async def async_step_legacy_migration(self, user_input=None):
+        """Confirm that setup may continue into legacy-helper migration mode."""
+        errors = {}
+        if user_input is not None:
+            if user_input.get("confirm_migration"):
+                self._legacy_migration_acknowledged = True
+                return self.async_show_form(step_id="user", data_schema=_schema())
+            errors["base"] = "confirm_required"
+
+        legacy_entities = getattr(self, "_legacy_entities", manual_hpvc_entities(self.hass))
+        return self.async_show_form(
+            step_id="legacy_migration",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("confirm_migration", default=False): selector.BooleanSelector(),
+                }
+            ),
+            errors=errors,
+            description_placeholders={
+                "count": str(len(legacy_entities)),
+            },
+        )
 
     @staticmethod
     @callback

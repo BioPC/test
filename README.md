@@ -106,7 +106,9 @@ See the full [installation guide](docs/01-installation.md) for dependencies, upd
 
 > **Do not combine Manual and HACS-native HPVC.** v1.5.2 includes a mixed-install safety interlock. If legacy `input_boolean.hpvc_*`, `input_number.hpvc_*`, `input_text.hpvc_*`, `input_select.hpvc_*` or `input_button.hpvc_*` helpers are detected while the HACS integration is present, HPVC blocks the native control stack and Node-RED management and creates a persistent Home Assistant notification.
 >
-> If the manual package is added while HACS-native HPVC is already running, HPVC first turns off the native master control and reloads into protection mode. Remove one installation method and restart or reload HPVC to continue. HPVC never deletes the manual YAML package automatically.
+> For **Manual → HACS-native** migration, remove the old HPVC package/YAML definition if it is still present, then open **Home PV Control** in the sidebar. Protection mode provides **Delete legacy HPVC helpers & migrate**. With explicit administrator confirmation, HPVC deletes only storage-backed legacy `input_*.hpvc_*` helpers through Home Assistant's helper API, reloads the relevant helper domains so removed YAML helpers disappear, and reloads HPVC into native mode when no legacy helpers remain. HPVC never edits Home Assistant `.storage` files directly and never deletes `hpvc-data/runtime-history.json`.
+>
+> If legacy YAML-managed helpers remain after cleanup, their YAML/package definition is still loaded and must be removed before migration can complete.
 
 See [Installation → Switching between Manual and HACS-native](docs/01-installation.md#switching-between-manual-and-hacs-native) for the safe migration order.
 

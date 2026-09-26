@@ -35,10 +35,10 @@ A config-entry reload is not used as a substitute for loading changed Python cod
 
 Do not enable both installation methods at the same time. v1.5.2 includes a mixed-install safety interlock.
 
-- **Manual → HACS-native:** remove the manual HPVC package, restart Home Assistant so the legacy `input_*` HPVC helpers are gone, then add/reload the Home PV Control integration. After the native entities are present, install/update the HACS Node-RED flow from HPVC Settings.
+- **Manual → HACS-native:** remove the manual HPVC package/YAML definition if it is still present, then add/reload the Home PV Control integration. If legacy `input_*.hpvc_*` helpers are still loaded, HPVC enters protection mode and keeps the sidebar available. Open **Home PV Control** and choose **Delete legacy HPVC helpers & migrate**. After explicit administrator confirmation, HPVC deletes only storage-backed legacy HPVC helpers through Home Assistant's helper API, reloads the five legacy helper domains, and reloads HPVC into native mode when no legacy helpers remain. A full Home Assistant restart is therefore not normally required when the YAML source has already been removed.
 - **HACS-native → Manual:** turn HPVC Off, remove/disable the Home PV Control integration, then install the package, manual Node-RED flow and YAML dashboard together.
 
-If legacy manual HPVC helpers are detected while the HACS integration is present, native HPVC control and Node-RED management stay blocked until one installation method is removed. HPVC never deletes or edits the manual YAML package automatically.
+If legacy manual HPVC helpers are detected while the HACS integration is present, native HPVC control and Node-RED management stay blocked until one installation method is removed. The cleanup tool never deletes or edits the manual YAML package automatically, never edits Home Assistant `.storage` files directly, and never removes `hpvc-data/runtime-history.json`. If YAML-managed helpers remain after cleanup, remove their YAML/package definition and run the cleanup again.
 
 # Manual installation
 
