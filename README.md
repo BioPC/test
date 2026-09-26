@@ -242,19 +242,40 @@ Reports are generated from one shared fresh model and published atomically. Non-
 
 ## Architecture and persistence
 
-**Control path**
+### Control architecture
 
-| Inputs | Controller | Output |
-|---|---|---|
+HPVC uses Home Assistant as the integration layer and Node-RED as the control engine.
+
+| Inputs | Controller | Outputs |
+| --- | --- | --- |
 | Market / all-in price | Home PV Control (Node-RED) | PV inverter limits |
-| Grid power | ↑ | |
-| PV power | ↑ | |
-| Optional HBC | ↑ | |
-| Battery telemetry | ↑ | |
+| Grid power |  | Optional HBC strategy control |
+| PV power |  |  |
+| Battery telemetry |  |  |
+| Optional HBC state |  |  |
 
-The Node-RED flow is organized into four functional tabs. Current-day Insights, Power Control, Daily Control Accuracy and negative-price override state share the private `hpvc-data/runtime-history.json` journal.
+Home Assistant provides the configured sensors, writable inverter controls and optional HBC entities.
 
-Journal writes are serialized and guarded against stale completions. Runtime waits for current-day restoration before dependent actions continue, which avoids startup/redeploy races.
+The HPVC Node-RED flow evaluates these inputs and decides when PV output should be limited, restored or left unchanged.
+
+HBC integration is optional. When enabled, HPVC can read HBC state and request supported HBC strategy changes. HPVC remains responsible for PV control; HBC remains responsible for battery control.
+
+### Runtime persistence
+
+HPVC stores current-day runtime history in:
+
+`hpvc-data/runtime-history.json`
+
+This journal is shared by:
+
+- Today's Insights
+- Power Control history
+- Daily Control Accuracy
+- negative-price override state
+
+Journal writes are serialized to prevent overlapping or stale writes.
+
+After Home Assistant or Node-RED restarts, HPVC restores the current-day runtime state before dependent control actions continue. This helps prevent startup or redeploy races and preserves the active day's control history.
 
 ## Upgrading
 
