@@ -138,10 +138,9 @@ async def _ensure_frontend_registered(
         )
 
 
-async def _backup_remove_legacy_package(
-    hass: HomeAssistant, call: ServiceCall
-) -> None:
+async def _backup_remove_legacy_package(call: ServiceCall) -> None:
     """Back up and remove only the standard legacy HPVC package file."""
+    hass = call.hass
     package_path = Path(hass.config.path(*LEGACY_PACKAGE_RELATIVE_PATH.parts)).resolve()
     config_root = Path(hass.config.path()).resolve()
     expected_path = (config_root / LEGACY_PACKAGE_RELATIVE_PATH).resolve()
