@@ -13,6 +13,7 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import service as ha_service
 from homeassistant.helpers.event import async_track_state_change_event
 
@@ -33,6 +34,7 @@ WEBHOOK_ID = "hpvc_report_viewed_141"
 LEGACY_PACKAGE_RELATIVE_PATH = Path("packages") / "hpvc_config.yaml"
 LEGACY_MIGRATION_BACKUP_DIR = Path("hpvc-data") / "migration-backups"
 SERVICE_BACKUP_REMOVE_LEGACY_PACKAGE = "backup_remove_legacy_package"
+SERVICE_CLEAN_LEGACY_REGISTRY = "clean_legacy_registry"
 
 
 async def _call(hass, domain, service, entity_id, **data):
@@ -195,16 +197,114 @@ async def _backup_remove_legacy_package(call: ServiceCall) -> None:
     )
 
 
-def _ensure_migration_admin_service(hass: HomeAssistant) -> None:
-    """Register the exact-file legacy-package migration service once."""
-    if hass.services.has_service(DOMAIN, SERVICE_BACKUP_REMOVE_LEGACY_PACKAGE):
-        return
-    ha_service.async_register_admin_service(
+async def _clean_legacy_registry(call: ServiceCall) -> None:
+    """Back up and remove stale legacy HPVC helper entity-registry entries."""
+    hass = call.hass
+    registry = er.async_get(hass)
+
+    allowed_domains = {
+        "input_boolean",
+        "input_button",
+        "input_number",
+        "input_select",
+        "input_text",
+    }
+
+    matches = []
+    for entry in list(registry.entities.values()):
+        entity_id = entry.entity_id
+        domain, _, object_id = entity_id.partition(".")
+        if domain not in allowed_domains or not object_id.startswith("hpvc_"):
+            continue
+
+        # Deliberately restrict cleanup to old standalone helper entries.
+        # Native HPVC entities have platform "hpvc" and/or a config_entry_id.
+        if entry.config_entry_id is not None:
+            continue
+        if entry.platform != domain:
+            continue
+
+        matches.append(entry)
+
+    if not matches:
+        raise HomeAssistantError(
+            "No stale legacy HPVC helper entries were found in the entity registry."
+        )
+
+    config_root = Path(hass.config.path()).resolve()
+    backup_dir = (config_root / LEGACY_MIGRATION_BACKUP_DIR).resolve()
+    if config_root not in backup_dir.parents:
+        raise HomeAssistantError("Migration backup path validation failed.")
+    backup_dir.mkdir(parents=True, exist_ok=True)
+
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    backup_path = backup_dir / f"hpvc-entity-registry.{stamp}.json"
+
+    backup_payload = {
+        "created_at": stamp,
+        "count": len(matches),
+        "scope": [
+            "input_boolean.hpvc_*",
+            "input_button.hpvc_*",
+            "input_number.hpvc_*",
+            "input_select.hpvc_*",
+            "input_text.hpvc_*",
+        ],
+        "entries": [
+            {
+                "entity_id": entry.entity_id,
+                "unique_id": entry.unique_id,
+                "platform": entry.platform,
+                "config_entry_id": entry.config_entry_id,
+            }
+            for entry in matches
+        ],
+    }
+
+    try:
+        backup_path.write_text(
+            json.dumps(backup_payload, indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+    except OSError as exc:
+        raise HomeAssistantError(
+            f"Could not create entity-registry migration backup: {exc}"
+        ) from exc
+
+    for entry in matches:
+        registry.async_remove(entry.entity_id)
+
+    persistent_notification.async_create(
         hass,
-        DOMAIN,
-        SERVICE_BACKUP_REMOVE_LEGACY_PACKAGE,
-        _backup_remove_legacy_package,
+        "Removed stale legacy HPVC helper entries from Home Assistant's entity registry "
+        "using the official registry API.\n\n"
+        f"Removed: {len(matches)} entries\n"
+        f"Backup: `{backup_path}`\n\n"
+        "Restart Home Assistant now to unload any still-running legacy helper states. "
+        "Native HPVC entities, HBC entities, `.storage` files and "
+        "`hpvc-data/runtime-history.json` were not edited directly.",
+        title="Home PV Control: stale registry entries cleaned",
+        notification_id="hpvc_legacy_registry_cleaned",
     )
+
+
+def _ensure_migration_admin_service(hass: HomeAssistant) -> None:
+    """Register HPVC migration admin services once."""
+    if not hass.services.has_service(DOMAIN, SERVICE_BACKUP_REMOVE_LEGACY_PACKAGE):
+        ha_service.async_register_admin_service(
+            hass,
+            DOMAIN,
+            SERVICE_BACKUP_REMOVE_LEGACY_PACKAGE,
+            _backup_remove_legacy_package,
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_CLEAN_LEGACY_REGISTRY):
+        ha_service.async_register_admin_service(
+            hass,
+            DOMAIN,
+            SERVICE_CLEAN_LEGACY_REGISTRY,
+            _clean_legacy_registry,
+        )
 
 
 async def _activate_mixed_protection(

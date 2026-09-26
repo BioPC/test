@@ -43,9 +43,9 @@ def mixed_installation_message(manual_entities: list[str]) -> str:
         "Choose one installation method:\n"
         "• Keep Manual: remove/disable the HACS HPVC integration.\n"
         "• Migrate to HACS-native: open Home PV Control in the sidebar. HPVC can delete storage-backed "
-        "legacy helpers and can back up/remove the exact standard package file `/config/packages/hpvc_config.yaml` "
-        "after explicit administrator confirmation. YAML/runtime helpers require a Home Assistant restart after "
-        "their YAML source is removed.\n\n"
+        "legacy helpers, back up/remove stale standalone `input_*.hpvc_*` entity-registry entries through Home Assistant's "
+        "official registry API, and back up/remove the exact standard package file `/config/packages/hpvc_config.yaml` "
+        "after explicit administrator confirmation. A Home Assistant restart is required after registry/YAML cleanup.\n\n"
         "HPVC never edits `.storage` files directly and never deletes `hpvc-data/runtime-history.json`.\n\n"
         f"Detected manual HPVC entities: {sample or 'unknown'}"
     )
