@@ -332,7 +332,7 @@ The bundled screenshots are retained for orientation and may show an earlier HPV
 
 Reference Node-RED architecture screenshot.
 
-<img src="https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED flow" width="60%">
+<img src="https://raw.githubusercontent.com/BioPC/home-pv-control/main/assets/screenshots/node_red_flow.png" alt="Home PV Control Node-RED flow" width="80%">
 
 ## Support
 
