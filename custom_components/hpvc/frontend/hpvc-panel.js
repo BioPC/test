@@ -13,6 +13,8 @@ class HPVCPanel extends HTMLElement {
     this._viewIndex = 0;
     this._migrationInfo = null;
     this._migrationBusy = false;
+    this._migrationRefreshing = false;
+    this._migrationRestarting = false;
     this._migrationMessage = "";
   }
 
@@ -143,17 +145,6 @@ class HPVCPanel extends HTMLElement {
     });
   }
 
-  async _reloadLegacyHelperDomains() {
-    for (const domain of this._legacyDomains()) {
-      if (this._hass?.services?.[domain]?.reload) {
-        try {
-          await this._hass.callService(domain, "reload");
-        } catch (_) {
-          // A missing/unsupported reload must not stop the remaining domains.
-        }
-      }
-    }
-  }
 
   async _runLegacyCleanup() {
     if (this._migrationBusy) return;
@@ -171,10 +162,19 @@ class HPVCPanel extends HTMLElement {
       return;
     }
 
+    if (!info.storage.length) {
+      this._migrationInfo = info;
+      this._migrationMessage =
+        `${info.yamlOrRuntime.length} legacy HPVC helper(s) remain, but none are storage-backed. ` +
+        "Remove the old HPVC YAML/package definition if it still exists, then restart Home Assistant.";
+      this._renderMigration();
+      return;
+    }
+
     const confirmed = window.confirm(
-      `Delete ${info.storage.length} storage-backed legacy HPVC helper(s) and reload the legacy helper domains?\n\n` +
+      `Delete ${info.storage.length} storage-backed legacy HPVC helper(s)?\n\n` +
       "Only input_boolean.hpvc_*, input_button.hpvc_*, input_number.hpvc_*, input_select.hpvc_* and input_text.hpvc_* are eligible. " +
-      "HPVC will not edit Home Assistant .storage files directly."
+      "HPVC will not edit Home Assistant .storage files directly. YAML/runtime helpers are handled only by removing their YAML source and restarting Home Assistant."
     );
     if (!confirmed) return;
 
@@ -191,11 +191,7 @@ class HPVCPanel extends HTMLElement {
       }
     }
 
-    // Reload YAML helper collections as well. If the old HPVC package has
-    // already been removed, this removes the still-loaded YAML entities
-    // without requiring direct registry/storage-file manipulation.
-    await this._reloadLegacyHelperDomains();
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
     const refreshed = await this._getLegacyMigrationInfo();
     this._migrationInfo = refreshed;
@@ -211,7 +207,7 @@ class HPVCPanel extends HTMLElement {
     if (refreshed.live.length) {
       this._migrationMessage =
         `${refreshed.live.length} legacy HPVC helper(s) remain. ` +
-        "They are not storage-backed helpers; remove the HPVC YAML/package definition if it is still loaded, then run cleanup again.";
+        "They are YAML/runtime-backed. Remove the old HPVC YAML/package definition if it still exists, then restart Home Assistant.";
       this._renderMigration();
       return;
     }
@@ -242,14 +238,72 @@ class HPVCPanel extends HTMLElement {
   }
 
   async _refreshMigration() {
-    this._migrationInfo = await this._getLegacyMigrationInfo();
-    if (!this._migrationInfo.live.length) {
-      this._loaded = false;
-      this._migrationMessage = "";
-      await this._load();
+    if (this._migrationRefreshing || this._migrationBusy) return;
+
+    this._migrationRefreshing = true;
+    this._migrationMessage = "Refreshing detection…";
+    this._renderMigration();
+
+    try {
+      this._migrationInfo = await this._getLegacyMigrationInfo();
+
+      if (!this._migrationInfo.live.length) {
+        this._migrationRefreshing = false;
+        this._migrationMessage = "";
+        this._loaded = false;
+        await this._load();
+        return;
+      }
+
+      const count = this._migrationInfo.live.length;
+      this._migrationMessage =
+        `Detection refreshed — ${count} legacy HPVC helper(s) still found.`;
+    } catch (err) {
+      this._migrationMessage =
+        `Detection refresh failed: ${String(err)}`;
+    } finally {
+      this._migrationRefreshing = false;
+    }
+
+    this._renderMigration();
+  }
+
+  async _restartHomeAssistantForMigration() {
+    if (this._migrationRestarting || this._migrationBusy || this._migrationRefreshing) return;
+
+    if (!this._hass?.user?.is_admin) {
+      this._migrationMessage = "Administrator access is required to restart Home Assistant.";
+      this._renderMigration();
       return;
     }
+
+    const info = this._migrationInfo || await this._getLegacyMigrationInfo();
+    if (!info.yamlOrRuntime.length) {
+      this._migrationMessage =
+        "No YAML/runtime legacy HPVC helpers are currently detected, so a Home Assistant restart is not required.";
+      this._renderMigration();
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Restart Home Assistant now to unload ${info.yamlOrRuntime.length} YAML/runtime legacy HPVC helper(s)?\n\n` +
+      "Make sure the old HPVC YAML/package definition has already been removed. " +
+      "Home Assistant will be temporarily unavailable during the restart."
+    );
+    if (!confirmed) return;
+
+    this._migrationRestarting = true;
+    this._migrationMessage = "Restarting Home Assistant…";
     this._renderMigration();
+
+    try {
+      await this._hass.callService("homeassistant", "restart");
+    } catch (err) {
+      this._migrationRestarting = false;
+      this._migrationMessage =
+        `Home Assistant restart request failed: ${String(err)}`;
+      this._renderMigration();
+    }
   }
 
   _renderMigration() {
@@ -333,20 +387,49 @@ class HPVCPanel extends HTMLElement {
       card.appendChild(adminNote);
     }
 
-    const cleanup = document.createElement("button");
-    cleanup.textContent = this._migrationBusy
-      ? "Cleaning…"
-      : "Delete legacy HPVC helpers & migrate";
-    cleanup.disabled = this._migrationBusy || !admin;
-    cleanup.onclick = () => this._runLegacyCleanup();
-    card.appendChild(cleanup);
+    if (info.storage.length) {
+      const cleanup = document.createElement("button");
+      cleanup.textContent = this._migrationBusy
+        ? "Cleaning…"
+        : `Delete ${info.storage.length} legacy HPVC helper${info.storage.length === 1 ? "" : "s"} & migrate`;
+      cleanup.disabled =
+        this._migrationBusy || this._migrationRefreshing || this._migrationRestarting || !admin;
+      cleanup.onclick = () => this._runLegacyCleanup();
+      card.appendChild(cleanup);
+    }
 
     const refresh = document.createElement("button");
     refresh.className = "secondary";
-    refresh.textContent = "Refresh detection";
-    refresh.disabled = this._migrationBusy;
+    refresh.textContent = this._migrationRefreshing
+      ? "Refreshing…"
+      : "Refresh detection";
+    refresh.disabled =
+      this._migrationBusy || this._migrationRefreshing || this._migrationRestarting;
     refresh.onclick = () => this._refreshMigration();
     card.appendChild(refresh);
+
+    if (info.yamlOrRuntime.length) {
+      const restart = document.createElement("button");
+      restart.className = info.storage.length ? "secondary" : "";
+      restart.textContent = this._migrationRestarting
+        ? "Restarting Home Assistant…"
+        : "Restart Home Assistant";
+      restart.disabled =
+        this._migrationBusy || this._migrationRefreshing || this._migrationRestarting || !admin;
+      restart.onclick = () => this._restartHomeAssistantForMigration();
+      card.appendChild(restart);
+
+      const restartHelp = document.createElement("p");
+      restartHelp.className = info.storage.length ? "small" : "warn";
+      restartHelp.innerHTML = info.storage.length
+        ? "After deleting storage-backed helpers, any remaining YAML/runtime HPVC helpers require a full Home Assistant restart. " +
+          "Remove the old HPVC YAML/package definition if it still exists, then restart Home Assistant. " +
+          "HPVC will rescan automatically during startup."
+        : `<b>${info.yamlOrRuntime.length} legacy HPVC helper(s) are still loaded, but none are storage-backed.</b><br><br>` +
+          "These helpers cannot be deleted through Home Assistant's storage-helper API. Remove the old HPVC YAML/package definition " +
+          "if it still exists, then restart Home Assistant. HPVC will rescan automatically during startup.";
+      card.appendChild(restartHelp);
+    }
 
     if (this._migrationMessage) {
       const msg = document.createElement("div");
